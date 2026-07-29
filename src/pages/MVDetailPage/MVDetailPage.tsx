@@ -25,7 +25,6 @@ import video06 from '../../assets/hero/hero_06_alice_in_wonderland.mp4?url'
 import video07 from '../../assets/hero/hero_07_jpop.mp4?url'
 import video08 from '../../assets/hero/hero_08_paper_wonderland_converted.mp4?url'
 import mv01 from '../../assets/covers/mv_01_cinematic_dark.png'
-import mv02 from '../../assets/covers/mv_02_late_night_stage.png'
 import mv03 from '../../assets/covers/mv_03_neon_city.png'
 import mv06 from '../../assets/covers/mv_06_cinematic_movie.png'
 import mv07 from '../../assets/covers/mv_07_nature_earth.png'
@@ -42,7 +41,7 @@ import './MVDetailPage.css'
 // stand-in — see HeroBannerSection.tsx for the same asset set.
 const MV_CATALOG = [
   { id: 'mv-1', title: 'Dreamy Pastel', username: 'StarryNights', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv08, video: video05 },
-  { id: 'mv-2', title: 'Cinematic Dark', username: 'ChasingWaves', likes: 38, ratio: '4:3', cover: mv09, video: video04 },
+  { id: 'mv-2', title: 'Cinematic Dark', username: 'ChasingWaves', likes: 38, badge: undefined as string | undefined, ratio: '4:3', cover: mv09, video: video04 },
   { id: 'mv-3', title: 'Neon City', username: 'MysticRhythm', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv10, video: video02 },
   { id: 'mv-4', title: 'Nature & Earth', username: 'DreamyPastel', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv07, video: video06 },
   { id: 'mv-5', title: 'Neon City', username: 'ForestMorning', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv03, video: video07 },
