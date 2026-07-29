@@ -1,0 +1,1189 @@
+/*
+  Song Create Page — Figma "AI Song — Feature Room" (Simple: node 1351:28869,
+  1357:30377; Custom: 1367:31860, 1367:33182). Only a 1440px desktop frame
+  exists — responsive stacking below is adapted from the same source's
+  mobile prototype (scottwu630/ycmuse-prototype muse-prototype-v1.html
+  #screen-song-create), which uses the same tabs/textarea/chip structure in
+  a single column.
+*/
+
+.song-create {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 20px 20px 60px;
+}
+
+@media (min-width: 768px) {
+  .song-create {
+    padding: 20px 32px 60px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .song-create {
+    flex-direction: row;
+    gap: 48px;
+    padding: 20px 60px 60px;
+  }
+}
+
+/* =========================================================
+ * Left — Control Panel
+ * ======================================================= */
+
+.song-create__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .song-create__panel {
+    width: 600px;
+    flex-shrink: 0;
+  }
+
+  /* Processing has no My Creations column beside it (see SongCreatePage.tsx)
+     — the panel takes the full row and centers its content instead of
+     staying pinned to the form's fixed 600px width. */
+  .song-create__panel--full {
+    width: 100%;
+  }
+}
+
+.song-create__section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.song-create__row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.song-create__label-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.song-create__label {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-xs);
+}
+
+.song-create__info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--neutral-dark-100);
+  opacity: 0.5;
+}
+
+.song-create__info-icon {
+  width: 15px;
+  height: 15px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-create__tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 10;
+  width: 240px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-14);
+  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.5);
+}
+
+.song-create__tooltip-title {
+  margin: 0 0 6px;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.1px;
+}
+
+.song-create__tooltip-body {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.7;
+  letter-spacing: -0.1px;
+}
+
+/* =========================================================
+ * Idea/Lyrics input box
+ * ======================================================= */
+
+.song-create__input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+}
+
+.song-create__textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 0;
+  border: none;
+  background: none;
+  resize: none;
+  outline: none;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: -0.14px;
+}
+
+.song-create__textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.song-create__input-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.song-create__input-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.song-create__idea-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-24);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.11px;
+}
+
+.song-create__idea-icon {
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-create__char-count {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-s);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Enhance + char count + Clear — only shown once the textarea has a value. */
+.song-create__footer-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.song-create__enhance-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  color: #09090b;
+  cursor: pointer;
+}
+
+.song-create__enhance-icon {
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-create__clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 4px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-14);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+}
+
+.song-create__clear-icon {
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+/* =========================================================
+ * Style — Genre / Mood / Vocal chips
+ * ======================================================= */
+
+.song-create__style {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.song-create__chip-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.song-create__chip-label {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+.song-create__chip-label-optional {
+  color: var(--neutral-dark-44);
+  font-weight: var(--font-weight-medium);
+}
+
+.song-create__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* =========================================================
+ * Song Length — instrumental only
+ * ======================================================= */
+
+.song-create__length {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.song-create__length-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--neutral-dark-09);
+}
+
+.song-create__length-scale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.11px;
+}
+
+.song-create__length-slider {
+  width: 100%;
+  accent-color: var(--color-accent-purple);
+  cursor: pointer;
+}
+
+.song-create__length-value {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.13px;
+}
+
+/* =========================================================
+ * Song Title
+ * ======================================================= */
+
+.song-create__title-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.song-create__title-input-box {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+}
+
+.song-create__title-input {
+  width: 100%;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+.song-create__title-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.song-create__title-hint {
+  margin: 0;
+  color: var(--neutral-dark-54);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+/* =========================================================
+ * Create Song CTA
+ * ======================================================= */
+
+.song-create__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 34px;
+  box-sizing: border-box;
+  background: var(--neutral-dark-24);
+  color: var(--neutral-dark-100);
+  cursor: default;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  opacity: 0.3;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.song-create__cta--active {
+  background: linear-gradient(135deg, #ffb347 0%, #ff4e50 50%, #d63af9 100%);
+  box-shadow: 0 8px 12px 0 rgba(168, 85, 247, 0.32);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.song-create__cta-credits {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.song-create__cta-credit-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Desktop only — full-width reads as too heavy at this size; mobile keeps
+   the existing full-width design. Figma's own desktop CTA (node 1611:23710)
+   is auto-width with horizontal padding instead of stretching, centered
+   under the form rather than pinned to one side. */
+@media (min-width: 1024px) {
+  .song-create__cta {
+    width: auto;
+    min-width: 230px;
+    align-self: center;
+    padding: 0 16px;
+  }
+}
+
+/* =========================================================
+ * Right — My Creations
+ * ======================================================= */
+
+.song-create__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fixed width (not flex-grow) — matches Figma's "My Creations" instance
+   (432px) and SongDetailPage's Now Playing panel, rather than stretching
+   to fill the remaining row width. Sticky for the same reason Now Playing
+   is: stays in view while the left panel's content scrolls past it. */
+@media (min-width: 1024px) {
+  .song-create__side {
+    width: 432px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    position: sticky;
+    top: 100px;
+  }
+}
+
+/* Once a result is ready, Figma's mobile frame is a dedicated full screen
+   with no creations list — hide it below the same breakpoint the two-column
+   layout itself uses. Desktop keeps it visible; see SongCreatePage.tsx.
+   (Processing hides this column outright on every viewport instead — it's
+   simply not rendered then, no modifier needed.) */
+@media (max-width: 1023px) {
+  .song-create__side--hide-mobile {
+    display: none;
+  }
+}
+
+.song-create__side-title {
+  margin: 0;
+  padding: 4px 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.song-create__side-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  max-height: 683px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 26px;
+  border: 1px solid var(--white-15);
+  background: var(--black-60);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.song-create__side-item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================================
+ * Processing — Figma "Create Song — Processing" (node 49:92)
+ * ======================================================= */
+
+.song-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  min-height: 420px;
+  padding: 60px 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.song-processing__wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+}
+
+.song-processing__wave-bar {
+  width: 6px;
+  height: var(--peak-height);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ff6bce 14.639%, #a855f7 85.361%);
+  transform-origin: center;
+  animation: song-processing-wave 1.1s ease-in-out infinite;
+}
+
+@keyframes song-processing-wave {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.song-processing__message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 320px;
+}
+
+.song-processing__title {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  line-height: 26px;
+  letter-spacing: -0.2px;
+}
+
+.song-processing__subtitle {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: -0.14px;
+}
+
+.song-processing__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 240px;
+}
+
+.song-processing__progress-track {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--white-15);
+  overflow: hidden;
+}
+
+.song-processing__progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ffb347 14.639%, #ff4e50 85.361%);
+  transition: width 0.3s ease;
+}
+
+.song-processing__status {
+  margin: 0;
+  color: var(--neutral-dark-44);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.11px;
+}
+
+.song-processing__view-later {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  height: 46px;
+  padding: 0 24px;
+  box-sizing: border-box;
+  border: 1px solid var(--white-15);
+  border-radius: 14px;
+  background: var(--neutral-dark-14);
+  color: var(--neutral-dark-84);
+  text-decoration: none;
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+  transition: background-color 0.15s ease;
+}
+
+.song-processing__view-later:hover {
+  background: var(--neutral-dark-24);
+}
+
+/* =========================================================
+ * Result — Figma "Song Result" (node 50:84, mobile) + desktop
+ * reference (node 1611:23120). Same meta/progress/transport structure as
+ * SongDetailPage's Now Playing, reused here rather than re-invented.
+ * ======================================================= */
+
+.song-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  padding: 20px 0 0;
+  box-sizing: border-box;
+}
+
+.song-result__art {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+}
+
+@media (min-width: 1024px) {
+  .song-result__art {
+    width: 320px;
+    height: 320px;
+  }
+}
+
+.song-result__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-result__controller {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.song-result__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.song-result__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.song-result__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  line-height: 26px;
+  letter-spacing: -0.2px;
+}
+
+.song-result__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.song-result__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  color: var(--neutral-dark-100);
+}
+
+.song-result__icon-btn--active {
+  color: var(--color-accent-purple);
+}
+
+.song-result__icon {
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result__progress {
+  position: relative;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.song-result__progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--white-15);
+}
+
+.song-result__progress-fill {
+  position: absolute;
+  left: 0;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+}
+
+.song-result__progress-thumb {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.song-result__time {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.song-result__transport {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 35px;
+}
+
+.song-result__transport-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  color: var(--neutral-dark-100);
+}
+
+.song-result__transport-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.song-result__transport-icon {
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result__play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  cursor: pointer;
+  color: var(--neutral-dark-04);
+}
+
+.song-result__play-icon {
+  width: 32px;
+  height: 32px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result__ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Same "don't stretch on desktop" rule as .song-create__cta — side-by-side,
+   auto-width with horizontal padding instead of two full-width stacked
+   buttons; mobile keeps the stacked full-width design. */
+@media (min-width: 1024px) {
+  .song-result__ctas {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.song-result__cta-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 46px;
+  border-radius: 34px;
+  box-sizing: border-box;
+  background: linear-gradient(90deg, #ffb347 0%, #ff4e50 50%, #d63af9 100%);
+  box-shadow: 0 8px 12px 0 rgba(168, 85, 247, 0.32);
+  color: var(--neutral-dark-100);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: 15px;
+  font-weight: var(--font-weight-bold);
+}
+
+.song-result__cta-primary-icon {
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result__cta-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 46px;
+  box-sizing: border-box;
+  border: 1px solid var(--white-15);
+  border-radius: 34px;
+  background: var(--neutral-dark-14);
+  color: var(--neutral-dark-84);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: 15px;
+  font-weight: var(--font-weight-bold);
+  transition: background-color 0.15s ease;
+}
+
+.song-result__cta-secondary:hover {
+  background: var(--neutral-dark-24);
+}
+
+@media (min-width: 1024px) {
+  .song-result__cta-primary,
+  .song-result__cta-secondary {
+    width: auto;
+    min-width: 230px;
+    padding: 0 16px;
+  }
+}
+
+/* =========================================================
+ * Result — Lyrics sheet — Figma "Song Result — Lyrics" (node 881:19546,
+ * mobile). No separate desktop frame given, so this reuses LoginModal's
+ * established convention: a centered dialog by default, becoming a
+ * full-width bottom sheet only below the mobile breakpoint.
+ * ======================================================= */
+
+.song-result-lyrics-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.song-result-lyrics-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.song-result-lyrics {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  max-height: 70vh;
+  box-sizing: border-box;
+  padding: 20px;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+  box-shadow: 0 24px 60px 0 rgba(0, 0, 0, 0.5);
+}
+
+.song-result-lyrics__handle {
+  display: none;
+}
+
+.song-result-lyrics__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.song-result-lyrics__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--white-15);
+  cursor: pointer;
+}
+
+.song-result-lyrics__close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.song-result-lyrics__title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-s);
+  font-weight: var(--font-weight-bold);
+}
+
+.song-result-lyrics__header-spacer {
+  flex-shrink: 0;
+  width: 32px;
+}
+
+.song-result-lyrics__song-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.song-result-lyrics__song-art {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+}
+
+.song-result-lyrics__song-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.song-result-lyrics__song-title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-bold);
+}
+
+.song-result-lyrics__song-time {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+}
+
+.song-result-lyrics__play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  cursor: pointer;
+  color: var(--neutral-dark-04);
+}
+
+.song-result-lyrics__play-icon {
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result-lyrics__divider {
+  margin: 16px 0;
+  height: 1px;
+  background: var(--white-15);
+}
+
+.song-result-lyrics__lines {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.song-result-lyrics__lines::-webkit-scrollbar {
+  display: none;
+}
+
+.song-result-lyrics__line {
+  margin: 0;
+  padding: 6px 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-s);
+  font-weight: var(--font-weight-bold);
+  transition: color 0.2s ease;
+}
+
+.song-result-lyrics__line--active {
+  color: var(--neutral-dark-100);
+}
+
+/* App-mobile bottom sheet — same convention as LoginModal's mobile sheet. */
+@media (max-width: 767px) {
+  .song-result-lyrics-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .song-result-lyrics {
+    max-width: none;
+    max-height: 70vh;
+    padding: 12px 20px 24px;
+    border-radius: 26px 26px 0 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .song-result-lyrics__handle {
+    display: block;
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    margin-bottom: 12px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+}

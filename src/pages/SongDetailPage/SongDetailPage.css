@@ -9,7 +9,11 @@
   flex-wrap: wrap;
   min-width: 0;
   gap: 40px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0 20px 40px;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -25,32 +29,8 @@
   }
 }
 
-/* Sticks right below the sticky DetailNavbar (80px), full page width —
-   same translucent blurred fill as DetailNavbar, so the two read as one
-   continuous sticky header instead of the tabs having their own background
-   that abruptly stops partway across the page. */
-.song-detail__tabs-bar {
-  position: sticky;
-  top: 80px;
-  z-index: 5;
-  padding: 12px 20px;
-  box-sizing: border-box;
-  background: rgba(9, 9, 11, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-@media (min-width: 768px) {
-  .song-detail__tabs-bar {
-    padding: 12px 32px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .song-detail__tabs-bar {
-    padding: 12px 60px;
-  }
-}
+/* Tabs now render inside DetailNavbar itself (via its tabsSlot prop) so the
+   two share one sticky background box — see DetailNavbar.css. */
 
 /* =========================================================
  * Left — Tabs + song list
@@ -109,11 +89,11 @@
     /* Stays in view while the song list scrolls past it. align-self is
        needed because a flex row stretches children to full height by
        default, which would make position:sticky have no room to move.
-       top is offset below the sticky DetailNavbar + tabs bar (80px + ~50px)
-       so they don't overlap once both are stuck. */
+       top matches DetailNavbar's own rendered height (back row + tabs row,
+       now merged into one sticky box) so they don't overlap once stuck. */
     align-self: flex-start;
     position: sticky;
-    top: 140px;
+    top: 124px;
   }
 }
 
@@ -137,7 +117,7 @@
    when playback pauses, so it resumes spinning from the same angle rather
    than snapping back to the start. */
 .now-playing__art-image {
-  animation: now-playing-spin 8s linear infinite;
+  animation: now-playing-spin 16s linear infinite;
   animation-play-state: paused;
 }
 

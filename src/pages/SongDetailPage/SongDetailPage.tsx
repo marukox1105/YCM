@@ -286,7 +286,11 @@ function SongDetailPage() {
   }
 
   return (
-    <AppLayout navbar={<DetailNavbar credits={390} />}>
+    <AppLayout
+      navbar={
+        <DetailNavbar credits={390} tabsSlot={<Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />} />
+      }
+    >
       <audio
         ref={audioRef}
         onPlay={() => setPlaying(true)}
@@ -295,14 +299,6 @@ function SongDetailPage() {
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onEnded={goNext}
       />
-
-      {/* A full-width bar (not confined to the list column) so its sticky
-          background reaches all the way to Now Playing, matching the
-          DetailNavbar above it — otherwise the tabs' own background reads
-          as an abrupt block that just stops partway across the page. */}
-      <div className="song-detail__tabs-bar">
-        <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
-      </div>
 
       <div className="song-detail">
         <div className="song-detail__lists">

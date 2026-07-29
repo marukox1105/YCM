@@ -21,6 +21,28 @@
   line-height: 32px;
 }
 
+.section-header__title--mobile {
+  display: none;
+}
+
+/* App-mobile layout (see layoutMode.ts) — Figma "Section" style: 17px Inter
+   Bold with a shorter, abbreviated title, instead of the desktop 24px Roboto
+   heading. Both titles stay in the DOM; only visibility swaps. */
+@media (max-width: 767px) {
+  .app-layout--mobile-app .section-header__title--desktop {
+    display: none;
+  }
+
+  .app-layout--mobile-app .section-header__title--mobile {
+    display: block;
+    font-family: var(--font-family-primary);
+    font-size: 17px;
+    font-weight: var(--font-weight-bold);
+    line-height: 22px;
+    letter-spacing: -0.17px;
+  }
+}
+
 .section-header__see-all {
   display: inline-flex;
   align-items: center;

@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import Button from '../Button/Button'
 import icClose from '../../assets/icons/ic_close.svg'
+import icAppleLogo from '../../assets/icons/ic_apple_logo.svg'
+import icGoogleLogo from '../../assets/icons/ic_google_logo.svg'
+import icCheck from '../../assets/icons/ic_check.svg'
+import appIcon from '../../assets/brand/AppIcon.svg'
 import './LoginModal.css'
 
 interface LoginModalProps {
@@ -9,82 +12,95 @@ interface LoginModalProps {
   onClose: () => void
 }
 
-// UI-only prototype — no backend to authenticate against, so this is a
-// plain mock: local state for the two fields, submit just closes the
-// modal (a stand-in for "success") instead of pretending to call an API.
+type Provider = 'Apple' | 'Google'
+
+// How long the success stage lingers before auto-closing — long enough to
+// read "Signed in successfully!", short enough not to feel stuck.
+const SUCCESS_DURATION_MS = 1800
+
+// Figma "Sign In — Sheet" (node 309:4720) + "Sign In — Successful" (node
+// 310:4720) — third-party sign-in only, no email/password fields. Both are
+// mobile bottom sheets; used as-is below 768px (see LoginModal.css), with a
+// plain centered dialog above that (no desktop frame was provided, so the
+// close button + centered card reuse this app's existing dialog convention
+// instead of guessing one).
+//
+// UI-only prototype — no backend to authenticate against, so both buttons
+// are a mock stand-in: clicking one shows the success state (matching
+// Figma's mock name "Scott"), then auto-closes.
 function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [provider, setProvider] = useState<Provider | null>(null)
+
+  useEffect(() => {
+    if (isOpen) setProvider(null)
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!provider) return
+    const timer = window.setTimeout(onClose, SUCCESS_DURATION_MS)
+    return () => window.clearTimeout(timer)
+  }, [provider, onClose])
 
   if (!isOpen) return null
 
-  // Portalled to <body>, like ShareDialog — standard practice for an
-  // overlay so it isn't affected by an ancestor's stacking context/overflow.
   return createPortal(
     <div className="login-modal-overlay">
       <div className="login-modal-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="login-modal" role="dialog" aria-label="Log in">
-        <div className="login-modal__header">
-          <p className="login-modal__title">Log in</p>
+      {provider ? (
+        <div className="login-modal login-modal--success" role="dialog" aria-label="Signed in successfully">
+          <div className="login-modal__handle" aria-hidden="true" />
+
+          <div className="login-modal__success-circle">
+            <img src={icCheck} alt="" className="login-modal__success-check" />
+          </div>
+
+          <div className="login-modal__message">
+            <p className="login-modal__title">Signed in successfully!</p>
+            <p className="login-modal__success-subtitle">Welcome back, Scott · via {provider}</p>
+          </div>
+
+          <div className="login-modal__processing">
+            <p className="login-modal__processing-text">Entering your account...</p>
+            <div className="login-modal__dots" aria-hidden="true">
+              <span className="login-modal__dot" />
+              <span className="login-modal__dot" />
+              <span className="login-modal__dot" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="login-modal" role="dialog" aria-label="Sign in to YouCam Muse">
+          <div className="login-modal__handle" aria-hidden="true" />
+
           <button type="button" className="login-modal__close" onClick={onClose} aria-label="Close">
             <img src={icClose} alt="" className="login-modal__close-icon" />
           </button>
+
+          <img src={appIcon} alt="" className="login-modal__logo" />
+
+          <div className="login-modal__message">
+            <p className="login-modal__title">Sign in to YouCam Muse</p>
+            <p className="login-modal__subtitle">
+              Save your creations, sync across devices,
+              <br />
+              and unlock your full creative history.
+            </p>
+          </div>
+
+          <div className="login-modal__buttons">
+            <button type="button" className="login-modal__social" onClick={() => setProvider('Apple')}>
+              <img src={icAppleLogo} alt="" className="login-modal__social-icon" />
+              Continue with Apple
+            </button>
+            <button type="button" className="login-modal__social" onClick={() => setProvider('Google')}>
+              <img src={icGoogleLogo} alt="" className="login-modal__social-icon" />
+              Continue with Google
+            </button>
+          </div>
+
+          <p className="login-modal__footer">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
         </div>
-
-        <div className="login-modal__field">
-          <label className="login-modal__label" htmlFor="login-modal-email">
-            Email
-          </label>
-          <input
-            id="login-modal-email"
-            type="email"
-            className="login-modal__input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
-        </div>
-
-        <div className="login-modal__field">
-          <label className="login-modal__label" htmlFor="login-modal-password">
-            Password
-          </label>
-          <input
-            id="login-modal-password"
-            type="password"
-            className="login-modal__input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-          />
-        </div>
-
-        <Button size="Large" variant="Primary" className="login-modal__submit" onClick={onClose}>
-          Log in
-        </Button>
-
-        <div className="login-modal__divider">
-          <span className="login-modal__divider-line" />
-          <span className="login-modal__divider-text">or</span>
-          <span className="login-modal__divider-line" />
-        </div>
-
-        {/* Same mock-only rule as the email form above — no real OAuth
-            wired up, just the buttons a real login screen would have. */}
-        <button type="button" className="login-modal__social" onClick={onClose}>
-          Continue with Google
-        </button>
-        <button type="button" className="login-modal__social" onClick={onClose}>
-          Continue with Apple
-        </button>
-
-        <p className="login-modal__footer">
-          Don&apos;t have an account?{' '}
-          <a href="#" className="login-modal__footer-link">
-            Start for Free
-          </a>
-        </p>
-      </div>
+      )}
     </div>,
     document.body,
   )

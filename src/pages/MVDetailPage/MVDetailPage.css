@@ -11,6 +11,9 @@
   flex-direction: column;
   min-width: 0;
   gap: 40px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 0 20px 40px;
 }
 
@@ -253,33 +256,52 @@
   gap: 24px;
 }
 
+/* Desktop (>=1024px): a stack of justified rows, each filled edge to edge —
+   see MvGrid's computeJustifiedRows. Below that, MvGrid instead renders the
+   simpler fixed-width wrapping grid (.mv-detail__grid--wrap). */
 .mv-detail__grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 20px;
+}
+
+.mv-detail__grid-row {
+  display: flex;
+  gap: 20px;
+}
+
+.mv-detail__grid--wrap {
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .mv-detail__grid-item {
   display: block;
   flex-shrink: 0;
-  width: 173px;
   text-decoration: none;
 }
 
-.mv-detail__grid-item--4-3 {
+/* Fixed per-ratio widths only apply to the wrapping fallback — the
+   justified-row layout sets each item's width inline (row height * its own
+   aspect ratio) instead. */
+.mv-detail__grid--wrap .mv-detail__grid-item {
+  width: 173px;
+}
+
+.mv-detail__grid--wrap .mv-detail__grid-item--4-3 {
   width: 308px;
 }
 
 @media (max-width: 1023px) {
-  .mv-detail__grid-item,
-  .mv-detail__grid-item--4-3 {
+  .mv-detail__grid--wrap .mv-detail__grid-item,
+  .mv-detail__grid--wrap .mv-detail__grid-item--4-3 {
     width: calc(50% - 10px);
   }
 }
 
 @media (max-width: 639px) {
-  .mv-detail__grid-item,
-  .mv-detail__grid-item--4-3 {
+  .mv-detail__grid--wrap .mv-detail__grid-item,
+  .mv-detail__grid--wrap .mv-detail__grid-item--4-3 {
     width: 100%;
   }
 }

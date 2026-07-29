@@ -3,12 +3,23 @@
   top: 0;
   z-index: 20;
   display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, #09090b 0%, rgba(9, 9, 11, 0) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.detail-navbar__top {
+  display: flex;
   align-items: center;
   gap: 20px;
   padding: 20px 60px;
-  background: rgba(9, 9, 11, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Shares the same background/blur box as .detail-navbar__top above instead
+   of being its own separate bar — see DetailNavbar's tabsSlot prop. */
+.detail-navbar__tabs {
+  padding: 0 60px 16px;
 }
 
 .detail-navbar__back {

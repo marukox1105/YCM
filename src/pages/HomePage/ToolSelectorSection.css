@@ -31,6 +31,7 @@
   background: var(--black-60);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  text-decoration: none;
 }
 
 @media (min-width: 768px) {

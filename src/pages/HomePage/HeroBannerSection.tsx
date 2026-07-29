@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import Button from '../../components/Button/Button'
 import IconButton from '../../components/IconButton/IconButton'
 import icStar from '../../assets/icons/ic_star.svg'
@@ -42,10 +42,147 @@ function maskStyle(src: string): CSSProperties {
   return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
 }
 
-// Rendered 3x back-to-back so there's always more row to scroll toward in
-// either direction — see the scroll-recentering effect below for how that
-// becomes an endless-feeling loop instead of just extra padding.
-const THUMBNAIL_COPIES = 3
+// App-mobile variant only (see layoutMode.ts) — Figma "Top Hero Banner"
+// (node 369:7479), matched against the reference build's infinite draggable
+// carousel (scottwu630/ycmuse-prototype muse-prototype-v1.html): fixed
+// 272x153 cards, a single clone on each side for the infinite loop (rather
+// than the desktop carousel's 3-copy trick above, since this recenters via
+// drag release instead of free scroll), and only the centered card's
+// title/subtitle/CTA are revealed — the rest stay image+badge only.
+const MOBILE_CARD_W = 272
+const MOBILE_GAP = 8
+const MOBILE_STEP = MOBILE_CARD_W + MOBILE_GAP
+const MOBILE_AUTO_MS = 4000
+const MOBILE_ANIM_MS = 380
+const MOBILE_DRAG_THRESHOLD = 60
+const MOBILE_REAL = HERO_ITEMS.length
+// domIndex 0 = clone of the last real card, 1..MOBILE_REAL = real cards,
+// MOBILE_REAL+1 = clone of the first real card.
+const MOBILE_PADDED_ITEMS = [HERO_ITEMS[MOBILE_REAL - 1], ...HERO_ITEMS, HERO_ITEMS[0]]
+
+function mobileRealIndex(domIndex: number) {
+  return (((domIndex - 1) % MOBILE_REAL) + MOBILE_REAL) % MOBILE_REAL
+}
+
+function HeroBannerMobile() {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const domIndexRef = useRef(1)
+  const dragRef = useRef({ startX: 0, dragging: false })
+  const timerRef = useRef<number | undefined>(undefined)
+  const [activeReal, setActiveReal] = useState(0)
+
+  function setTrackX(x: number, animated: boolean) {
+    const track = trackRef.current
+    if (!track) return
+    track.style.transition = animated ? `transform ${MOBILE_ANIM_MS}ms cubic-bezier(0.4, 0, 0.2, 1)` : 'none'
+    track.style.transform = `translateX(${x}px)`
+  }
+
+  function goToDom(domIndex: number, animated: boolean) {
+    domIndexRef.current = domIndex
+    setTrackX(-domIndex * MOBILE_STEP, animated)
+    setActiveReal(mobileRealIndex(domIndex))
+  }
+
+  // After animating onto a clone, silently (no transition) snap to its real
+  // equivalent — since the clone is pixel-identical, the jump is invisible.
+  function settleAfterSnap() {
+    if (domIndexRef.current >= MOBILE_REAL + 1) goToDom(1, false)
+    else if (domIndexRef.current <= 0) goToDom(MOBILE_REAL, false)
+  }
+
+  function next() {
+    goToDom(domIndexRef.current + 1, true)
+    window.setTimeout(settleAfterSnap, MOBILE_ANIM_MS + 10)
+  }
+
+  function startAuto() {
+    window.clearInterval(timerRef.current)
+    timerRef.current = window.setInterval(next, MOBILE_AUTO_MS)
+  }
+
+  useEffect(() => {
+    goToDom(1, false)
+    startAuto()
+    function handleVisibility() {
+      if (document.hidden) window.clearInterval(timerRef.current)
+      else startAuto()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.clearInterval(timerRef.current)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+    // Mount-only: goToDom/startAuto close over refs, not state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function handlePointerDown(event: ReactPointerEvent) {
+    dragRef.current = { startX: event.clientX, dragging: true }
+    event.currentTarget.setPointerCapture(event.pointerId)
+    window.clearInterval(timerRef.current)
+    setTrackX(-domIndexRef.current * MOBILE_STEP, false)
+  }
+
+  function handlePointerMove(event: ReactPointerEvent) {
+    if (!dragRef.current.dragging) return
+    const dx = event.clientX - dragRef.current.startX
+    setTrackX(-domIndexRef.current * MOBILE_STEP + dx, false)
+  }
+
+  function handlePointerUp(event: ReactPointerEvent) {
+    if (!dragRef.current.dragging) return
+    dragRef.current.dragging = false
+    const dx = event.clientX - dragRef.current.startX
+    if (dx < -MOBILE_DRAG_THRESHOLD) {
+      next()
+    } else if (dx > MOBILE_DRAG_THRESHOLD) {
+      goToDom(domIndexRef.current - 1, true)
+      window.setTimeout(settleAfterSnap, MOBILE_ANIM_MS + 10)
+    } else {
+      goToDom(domIndexRef.current, true)
+    }
+    startAuto()
+  }
+
+  return (
+    <div className="hero-banner-mobile">
+      <div
+        className="hero-banner-mobile__track"
+        ref={trackRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        {MOBILE_PADDED_ITEMS.map((item, domIndex) => {
+          const isActive = mobileRealIndex(domIndex) === activeReal
+          return (
+            <div className="hero-banner-mobile__card" key={`${domIndex}-${item.title}`}>
+              {item.thumbnail && (
+                <img src={item.thumbnail} alt="" className="hero-banner-mobile__bg" draggable={false} />
+              )}
+              <div className="hero-banner-mobile__scrim" aria-hidden="true" />
+              <span className="hero-banner-mobile__badge">
+                <span className="hero-banner-mobile__badge-icon" style={maskStyle(icStar)} aria-hidden="true" />
+                Trending MV
+              </span>
+              <div className={`hero-banner-mobile__bottom${isActive ? ' hero-banner-mobile__bottom--active' : ''}`}>
+                <div className="hero-banner-mobile__text">
+                  <p className="hero-banner-mobile__title">{item.title}</p>
+                  <p className="hero-banner-mobile__subtitle">{item.subtitle}</p>
+                </div>
+                <Button size="Small" variant="Secondary" className="hero-banner-mobile__cta">
+                  Create MV
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function HeroBannerSection() {
   // `activeIndex` moves the thumbnail highlight immediately; `displayedIndex`
@@ -55,7 +192,7 @@ function HeroBannerSection() {
   const [displayedIndex, setDisplayedIndex] = useState(1)
   const [isFading, setIsFading] = useState(false)
   const fadeTimeoutRef = useRef<number | undefined>(undefined)
-  const thumbnailsRef = useRef<HTMLDivElement>(null)
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([])
   // setInterval's closure would otherwise see a stale activeIndex, since it's
   // only ever created once on mount.
   const activeIndexRef = useRef(activeIndex)
@@ -84,28 +221,12 @@ function HeroBannerSection() {
 
   useEffect(() => () => window.clearTimeout(fadeTimeoutRef.current), [])
 
-  // Starts scrolled into the middle copy, so there's a full copy's worth of
-  // room to scroll either direction before hitting a real edge.
+  // Keeps the active thumbnail in view as selection moves — including the
+  // last-to-first wrap, which just scrolls back to the start like any other
+  // step (no separate "reset" case needed).
   useEffect(() => {
-    const row = thumbnailsRef.current
-    if (!row) return
-    row.scrollLeft = row.scrollWidth / THUMBNAIL_COPIES
-  }, [])
-
-  // Once the visible copy is scrolled (almost) out of view in either
-  // direction, silently jump back by exactly one copy's width — since
-  // every copy is identical, the jump is invisible and scrolling just
-  // keeps going, which reads as an endless loop instead of a dead end.
-  function handleThumbnailsScroll() {
-    const row = thumbnailsRef.current
-    if (!row) return
-    const copyWidth = row.scrollWidth / THUMBNAIL_COPIES
-    if (row.scrollLeft < copyWidth * 0.5) {
-      row.scrollLeft += copyWidth
-    } else if (row.scrollLeft > copyWidth * 1.5) {
-      row.scrollLeft -= copyWidth
-    }
-  }
+    thumbRefs.current[activeIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+  }, [activeIndex])
 
   function goPrev() {
     goTo((activeIndex - 1 + HERO_ITEMS.length) % HERO_ITEMS.length)
@@ -155,56 +276,26 @@ function HeroBannerSection() {
           </div>
         </div>
 
-        {/* Renders 3 identical copies back to back and silently re-centers
-            the scroll position on scroll (see handleThumbnailsScroll) — the
-            row always has more of itself to scroll toward in either
-            direction, which reads as an endless loop instead of stopping
-            at a real first/last item. */}
-        <div className="hero-banner__thumbnails" ref={thumbnailsRef} onScroll={handleThumbnailsScroll}>
-          {Array.from({ length: THUMBNAIL_COPIES }, (_, copy) =>
-            HERO_ITEMS.map((item, index) => (
-              <button
-                key={`${copy}-${item.title}`}
-                type="button"
-                className={`hero-banner__thumb${index === activeIndex ? ' hero-banner__thumb--active' : ''}`}
-                onClick={() => goTo(index)}
-                aria-hidden={copy !== 1}
-                tabIndex={copy === 1 ? 0 : -1}
-              >
-                {item.thumbnail && <img src={item.thumbnail} alt="" className="hero-banner__thumb-bg" />}
-                <span className="hero-banner__thumb-scrim" aria-hidden="true" />
-                <p className="hero-banner__thumb-title">{item.title}</p>
-              </button>
-            )),
-          )}
+        <div className="hero-banner__thumbnails">
+          {HERO_ITEMS.map((item, index) => (
+            <button
+              key={item.title}
+              ref={(el) => {
+                thumbRefs.current[index] = el
+              }}
+              type="button"
+              className={`hero-banner__thumb${index === activeIndex ? ' hero-banner__thumb--active' : ''}`}
+              onClick={() => goTo(index)}
+            >
+              {item.thumbnail && <img src={item.thumbnail} alt="" className="hero-banner__thumb-bg" />}
+              <span className="hero-banner__thumb-scrim" aria-hidden="true" />
+              <p className="hero-banner__thumb-title">{item.title}</p>
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* App-mobile variant — Figma "Top Hero Banner" (node 369:7479), only
-          shown below the app-mobile breakpoint; see AppLayout + layoutMode.ts.
-          Reuses the same HERO_ITEMS as a swipeable peek-carousel of static
-          cards instead of the video crossfade above. */}
-      <div className="hero-banner-mobile">
-        {HERO_ITEMS.map((item) => (
-          <div className="hero-banner-mobile__card" key={item.title}>
-            {item.thumbnail && <img src={item.thumbnail} alt="" className="hero-banner-mobile__bg" />}
-            <div className="hero-banner-mobile__scrim" aria-hidden="true" />
-            <span className="hero-banner-mobile__badge">
-              <span className="hero-banner-mobile__badge-icon" style={maskStyle(icStar)} aria-hidden="true" />
-              Trending MV
-            </span>
-            <div className="hero-banner-mobile__bottom">
-              <div className="hero-banner-mobile__text">
-                <p className="hero-banner-mobile__title">{item.title}</p>
-                <p className="hero-banner-mobile__subtitle">{item.subtitle}</p>
-              </div>
-              <Button size="Small" variant="Secondary" className="hero-banner-mobile__cta">
-                Create MV
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <HeroBannerMobile />
     </>
   )
 }

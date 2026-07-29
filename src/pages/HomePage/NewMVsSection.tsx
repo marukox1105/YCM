@@ -3,24 +3,23 @@ import Card from '../../components/Card/Card'
 import SectionHeader from '../../components/SectionHeader/SectionHeader'
 import IconButton from '../../components/IconButton/IconButton'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
-import mv08 from '../../assets/covers/mv_08_dramatic_scene.png'
-import mv09 from '../../assets/covers/mv_09_urban_performer.png'
-import mv10 from '../../assets/covers/mv_10_monochrome.png'
-import mv11 from '../../assets/covers/mv_11_halo.png'
-import mv12 from '../../assets/covers/mv_12_Splash.png'
-import mv13 from '../../assets/covers/mv_13_Urban Fashion.png'
+import { MUSIC_VIDEOS } from '../../data/musicVideos'
 import './NewMVsSection.css'
 
-// Mock content — no API to call yet, this is UI-only per project scope.
-// ids match the corresponding entries in MVDetailPage's own catalog, so a
-// click here plays the right video on that page.
-const NEW_MVS = [
-  { id: 'mv-1', title: 'Dreamy Pastel', subtitle: 'Singing | 1-3 min', badge: 'HOT', image: mv08 },
-  { id: 'mv-2', title: 'Cinematic Dark', subtitle: 'Storytelling | 2-3 min', badge: 'NEW', image: mv09 },
-  { id: 'mv-3', title: 'Neon City', subtitle: 'Hybrid | 2-3 min', badge: 'HOT', image: mv10 },
-  { id: 'mv-4', title: 'Nature & Earth', subtitle: 'Trending | 1-2 min', image: mv11 },
-  { id: 'mv-6', title: 'Anime Style', subtitle: 'Fan fav | 1-2 min', image: mv12 },
-  { id: 'mv-7', title: 'Rock & Roll', subtitle: 'Vintage | 2-3 min', image: mv13 },
+// Same catalog as the MV Detail "See all" page (src/data/musicVideos.ts) —
+// same ids/covers/videos, so clicking a card here plays the matching video
+// there instead of an unrelated stand-in. All of them (not just a handful),
+// so the row actually has more to reveal when the Next arrow is clicked.
+const NEW_MVS = MUSIC_VIDEOS
+
+// No real genre/duration data exists per video yet — decorative only.
+const SUBTITLES = [
+  'Storytelling | 2-3 min',
+  'Cinematic | 2-3 min',
+  'Hybrid | 2-3 min',
+  'Trending | 1-2 min',
+  'Fan fav | 1-2 min',
+  'Vintage | 2-3 min',
 ]
 
 function NewMVsSection() {
@@ -32,19 +31,19 @@ function NewMVsSection() {
 
   return (
     <section className="new-mvs">
-      <SectionHeader title="New Music Videos" seeAllHref="/mv-detail" />
+      <SectionHeader title="New Music Videos" mobileTitle="New MVs" seeAllHref="/mv-detail" />
 
       <div className="new-mvs__row-wrapper">
         <div className="new-mvs__row" ref={rowRef}>
-          {NEW_MVS.map((mv) => (
+          {NEW_MVS.map((mv, index) => (
             <a key={mv.id} href={`/mv-detail?id=${mv.id}`} className="new-mvs__item">
               <Card
                 type="Video"
-                ratio="3:4"
+                ratio={mv.ratio}
                 title={mv.title}
-                subtitle={mv.subtitle}
+                subtitle={SUBTITLES[index % SUBTITLES.length]}
                 badge={mv.badge}
-                coverImage={mv.image}
+                coverImage={mv.cover}
               />
             </a>
           ))}

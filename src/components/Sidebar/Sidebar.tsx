@@ -11,13 +11,14 @@ import icHistory from '../../assets/icons/ic_history_OL.svg'
 import icFileText from '../../assets/icons/ic_file_text.svg'
 import './Sidebar.css'
 
+// href "#" means that page doesn't exist in the prototype yet.
 const NAV_ITEMS = [
-  { key: 'home', label: 'Home', icon: icCompass, active: true },
-  { key: 'mv', label: 'AI Music Video', icon: icVideoAi },
-  { key: 'song', label: 'AI Song', icon: icSongAi },
-  { key: 'story', label: 'AI Storybook', icon: icStoryAi, badge: 'NEW' },
-  { key: 'history', label: 'History', icon: icHistory },
-  { key: 'blog', label: 'Blog', icon: icFileText },
+  { key: 'home', label: 'Home', icon: icCompass, href: '/home' },
+  { key: 'mv', label: 'AI Music Video', icon: icVideoAi, href: '#' },
+  { key: 'song', label: 'AI Song', icon: icSongAi, href: '/song-create' },
+  { key: 'story', label: 'AI Storybook', icon: icStoryAi, badge: 'NEW', href: '#' },
+  { key: 'history', label: 'History', icon: icHistory, href: '#' },
+  { key: 'blog', label: 'Blog', icon: icFileText, href: '#' },
 ]
 
 // Below Laptop (1024px), the sidebar collapses to icon-only by default.
@@ -48,6 +49,13 @@ function Sidebar() {
     setCollapsed((current) => !current)
   }
 
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/'
+  function isActive(href: string) {
+    if (href === '#') return false
+    if (href === '/home') return pathname === '/' || pathname.startsWith('/home')
+    return pathname.startsWith(href)
+  }
+
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar__logo-row">
@@ -69,8 +77,8 @@ function Sidebar() {
         {NAV_ITEMS.map((item) => (
           <a
             key={item.key}
-            href="#"
-            className={`sidebar__nav-item${item.active ? ' sidebar__nav-item--active' : ''}`}
+            href={item.href}
+            className={`sidebar__nav-item${isActive(item.href) ? ' sidebar__nav-item--active' : ''}`}
           >
             <span className="sidebar__nav-icon" style={maskStyle(item.icon)} aria-hidden="true" />
             <span className="sidebar__nav-label">

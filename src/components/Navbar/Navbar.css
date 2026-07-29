@@ -16,7 +16,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: rgba(9, 9, 11, 0.4);
+  background: linear-gradient(to bottom, #09090b 0%, rgba(9, 9, 11, 0) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }

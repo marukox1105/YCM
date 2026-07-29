@@ -23,9 +23,12 @@ interface AppLayoutProps {
   children: ReactNode
   /** Overrides the default marketing Navbar — e.g. DetailNavbar on detail pages. */
   navbar?: ReactNode
+  /** The looping colorflow background is Home-only — every other page keeps
+   *  a plain dark background instead. */
+  showBackground?: boolean
 }
 
-function AppLayout({ children, navbar }: AppLayoutProps) {
+function AppLayout({ children, navbar, showBackground = false }: AppLayoutProps) {
   const isMobileApp = MOBILE_LAYOUT === 'app'
 
   const [activeIndex, setActiveIndex] = useState(0)
@@ -39,6 +42,7 @@ function AppLayout({ children, navbar }: AppLayoutProps) {
   }, [activeIndex])
 
   useEffect(() => {
+    if (!showBackground) return
     const timer = window.setInterval(() => {
       const next = (activeIndexRef.current + 1) % BACKGROUND_VIDEOS.length
       setActiveIndex(next)
@@ -50,7 +54,7 @@ function AppLayout({ children, navbar }: AppLayoutProps) {
       }, BACKGROUND_FADE_MS)
     }, BACKGROUND_ROTATE_MS)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [showBackground])
 
   useEffect(() => () => window.clearTimeout(fadeTimeoutRef.current), [])
 
@@ -60,20 +64,25 @@ function AppLayout({ children, navbar }: AppLayoutProps) {
           which spans the full page width (including behind Sidebar's glass
           panel), but only the top ~80% of the height — the scrim below
           fades it into the page background instead of a hard cutoff.
-          Hidden below the app-mobile breakpoint — see AppLayout.css. */}
-      <video
-        key={BACKGROUND_VIDEOS[displayedIndex]}
-        className={`app-layout__background${isFading ? ' app-layout__background--fading' : ''}`}
-        src={BACKGROUND_VIDEOS[displayedIndex]}
-        autoPlay
-        loop
-        muted
-        playsInline
-        aria-hidden="true"
-      />
-      {/* Figma: 70% black fill over the video so it doesn't overpower the page;
-          fades to the solid page background color further down. */}
-      <div className="app-layout__background-scrim" aria-hidden="true" />
+          Hidden below the app-mobile breakpoint — see AppLayout.css.
+          Home-only (showBackground) — every other page stays plain dark. */}
+      {showBackground && (
+        <>
+          <video
+            key={BACKGROUND_VIDEOS[displayedIndex]}
+            className={`app-layout__background${isFading ? ' app-layout__background--fading' : ''}`}
+            src={BACKGROUND_VIDEOS[displayedIndex]}
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-hidden="true"
+          />
+          {/* Figma: 70% black fill over the video so it doesn't overpower the page;
+              fades to the solid page background color further down. */}
+          <div className="app-layout__background-scrim" aria-hidden="true" />
+        </>
+      )}
 
       {/* Sidebar/Navbar/Footer stay mounted as the desktop-sync mobile
           fallback — MOBILE_LAYOUT in layoutMode.ts decides which set of

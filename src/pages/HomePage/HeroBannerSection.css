@@ -206,6 +206,12 @@
   min-width: 0;
   gap: 12px;
   overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.hero-banner__thumbnails::-webkit-scrollbar {
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -279,8 +285,10 @@
 
 /*
   App-mobile variant (see src/config/layoutMode.ts) — Figma "Top Hero
-  Banner" (node 369:7479) from the manager's app design: a swipeable
-  peek-carousel of static cards, replacing the video crossfade above.
+  Banner" (node 369:7479), matched against the reference build's infinite
+  draggable carousel (scottwu630/ycmuse-prototype muse-prototype-v1.html):
+  fixed 272x153 cards, auto-rotating, swipeable, looping infinitely — see
+  HeroBannerMobile in HeroBannerSection.tsx for the drag/loop logic.
 
   Note: Figma tints each card's scrim with a hue matched to its own photo.
   Our 8 items don't have per-item hues defined, so this uses one consistent
@@ -297,24 +305,27 @@
   }
 
   .app-layout--mobile-app .hero-banner-mobile {
-    display: flex;
-    gap: 8px;
+    display: block;
     width: 100%;
-    padding: 4px 0;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    overflow: hidden;
+    touch-action: pan-y;
   }
+}
+
+.hero-banner-mobile__track {
+  display: flex;
+  gap: 8px;
+  will-change: transform;
 }
 
 .hero-banner-mobile__card {
   position: relative;
   flex-shrink: 0;
-  scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 85%;
-  aspect-ratio: 272 / 153;
+  width: 272px;
+  height: 153px;
   box-sizing: border-box;
   padding: 8px;
   border-radius: 14px;
@@ -368,6 +379,9 @@
   -webkit-mask-size: contain;
 }
 
+/* Only the centered/active card reveals its title, subtitle, and CTA —
+   matches Figma's flanking (peeking) cards, which have this row at
+   opacity 0. Badge + photo stay visible on every card regardless. */
 .hero-banner-mobile__bottom {
   position: relative;
   z-index: 1;
@@ -375,6 +389,14 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.hero-banner-mobile__bottom--active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .hero-banner-mobile__text {

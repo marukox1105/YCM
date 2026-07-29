@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
@@ -16,41 +16,16 @@ import icPause from '../../assets/icons/ic_pause.svg'
 import icSpeakerOn from '../../assets/icons/ic_speaker_on.svg'
 import icSpeakerOff from '../../assets/icons/ic_speaker_off.svg'
 import icExpand from '../../assets/icons/ic_expand.svg'
-import video01 from '../../assets/hero/hero_01_Vintage Car-tmp-tmp.mp4?url'
-import video02 from '../../assets/hero/hero_02_Splash-tmp-tmp.mp4?url'
-import video03 from '../../assets/hero/hero_03_Urban Fashion-tmp-tmp.mp4?url'
-import video04 from '../../assets/hero/hero_04_midnight_static-tmp-tmp.mp4?url'
-import video05 from '../../assets/hero/hero_05_pastel_film_converted.mp4?url'
-import video06 from '../../assets/hero/hero_06_alice_in_wonderland.mp4?url'
-import video07 from '../../assets/hero/hero_07_jpop.mp4?url'
-import video08 from '../../assets/hero/hero_08_paper_wonderland_converted.mp4?url'
-import mv01 from '../../assets/covers/mv_01_cinematic_dark.png'
-import mv03 from '../../assets/covers/mv_03_neon_city.png'
-import mv06 from '../../assets/covers/mv_06_cinematic_movie.png'
-import mv07 from '../../assets/covers/mv_07_nature_earth.png'
-import mv08 from '../../assets/covers/mv_08_dramatic_scene.png'
-import mv09 from '../../assets/covers/mv_09_urban_performer.png'
-import mv10 from '../../assets/covers/mv_10_monochrome.png'
-import mv12 from '../../assets/covers/mv_12_Splash.png'
-import mv13 from '../../assets/covers/mv_13_Urban Fashion.png'
+import { MUSIC_VIDEOS } from '../../data/musicVideos'
+import type { MvRatio } from '../../data/musicVideos'
 import './MVDetailPage.css'
 
 // Figma "New MVs — See All — Community_L_Portrait/Landscape" (nodes
-// 1459:10288 / 1459:11202). No dedicated video file exists for this page's
-// mock content yet, so each item reuses one of the Hero Banner's videos as a
-// stand-in — see HeroBannerSection.tsx for the same asset set.
-const MV_CATALOG = [
-  { id: 'mv-1', title: 'Dreamy Pastel', username: 'StarryNights', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv08, video: video05 },
-  { id: 'mv-2', title: 'Cinematic Dark', username: 'ChasingWaves', likes: 38, badge: undefined as string | undefined, ratio: '4:3', cover: mv09, video: video04 },
-  { id: 'mv-3', title: 'Neon City', username: 'MysticRhythm', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv10, video: video02 },
-  { id: 'mv-4', title: 'Nature & Earth', username: 'DreamyPastel', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv07, video: video06 },
-  { id: 'mv-5', title: 'Neon City', username: 'ForestMorning', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv03, video: video07 },
-  { id: 'mv-6', title: 'Anime Style', username: 'NeonCity', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv12, video: video08 },
-  { id: 'mv-7', title: 'Rock & Roll', username: 'NatureAndEarth', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv13, video: video01 },
-  { id: 'mv-8', title: 'Nature & Earth', username: 'MidnightDrive', likes: 38, badge: 'HOT', ratio: '4:3', cover: mv07, video: video03 },
-  { id: 'mv-9', title: 'Dreamy Pastel', username: 'RockNRoll', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv06, video: video05 },
-  { id: 'mv-10', title: 'Cinematic Dark', username: 'AnimeStyle', likes: 38, badge: 'HOT', ratio: '3:4', cover: mv01, video: video02 },
-] as const
+// 1459:10288 / 1459:11202). Real cover+video pairs (and the mock
+// username/likes/badge/ratio alongside them) live in src/data/musicVideos.ts
+// — Home's New Music Videos section reads the exact same catalog, so the
+// same id always shows the same cover/video on both pages.
+const MV_CATALOG = MUSIC_VIDEOS
 
 function maskStyle(src: string): CSSProperties {
   return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
@@ -224,6 +199,175 @@ function VideoPlayer({ item }: { item: (typeof MV_CATALOG)[number] }) {
   )
 }
 
+// Justified-row grid (desktop only — see MvGrid) — each row is filled edge
+// to edge before wrapping, instead of flex-wrap's default behavior of
+// leaving whatever remainder in each row (visible as a ragged gap on the
+// second row before this fix). Cover height is shared per row and picked
+// within [MIN_ROW_HEIGHT, MAX_ROW_HEIGHT], so a row mixing 3:4/4:3 items
+// still lines up, and item width = that shared height * the item's own
+// aspect ratio (aiming for MAX_ROW_HEIGHT, only shrinking as far as needed
+// to make the row's items exactly fill the container width).
+const GRID_GAP = 20
+const MIN_ROW_HEIGHT = 240
+const MAX_ROW_HEIGHT = 280
+const DESKTOP_QUERY = '(min-width: 1024px)'
+
+function aspectRatioOf(ratio: MvRatio): number {
+  return ratio === '4:3' ? 4 / 3 : 3 / 4
+}
+
+interface JustifiedRow {
+  items: MusicVideoWithMeta[]
+  coverHeight: number
+}
+
+type MusicVideoWithMeta = (typeof MV_CATALOG)[number]
+
+function computeJustifiedRows(items: readonly MusicVideoWithMeta[], containerWidth: number): JustifiedRow[] {
+  if (containerWidth <= 0) return [{ items: [...items], coverHeight: MAX_ROW_HEIGHT }]
+
+  const rows: JustifiedRow[] = []
+  let i = 0
+
+  while (i < items.length) {
+    let aspectSum = 0
+    let count = 0
+    let height = MAX_ROW_HEIGHT
+    let ranOutOfItems = true
+
+    while (i + count < items.length) {
+      const aspect = aspectRatioOf(items[i + count].ratio)
+      const newAspectSum = aspectSum + aspect
+      const newCount = count + 1
+      const availableWidth = containerWidth - GRID_GAP * (newCount - 1)
+      const heightIfIncluded = availableWidth / newAspectSum
+
+      if (count === 0 || heightIfIncluded >= MIN_ROW_HEIGHT) {
+        aspectSum = newAspectSum
+        count = newCount
+        height = heightIfIncluded
+        continue
+      }
+
+      // Adding the next item would shrink the row below the floor. Pick
+      // whichever of "stop here" (row ends up taller than MAX) or "include
+      // it anyway" (row ends up shorter than MIN) lands closer to the
+      // target range — either way the row still fills the container
+      // exactly, since neither branch clamps.
+      const overshootIfStop = Math.max(0, height - MAX_ROW_HEIGHT)
+      const undershootIfInclude = MIN_ROW_HEIGHT - heightIfIncluded
+      if (undershootIfInclude < overshootIfStop) {
+        aspectSum = newAspectSum
+        count = newCount
+        height = heightIfIncluded
+      }
+      ranOutOfItems = false
+      break
+    }
+
+    // Only the trailing row (stopped because there simply weren't enough
+    // items left, not because of a deliberate fit decision) is allowed to
+    // not fully justify — clamp its height instead of stretching content
+    // that isn't there to fill the row.
+    if (ranOutOfItems) {
+      height = Math.min(MAX_ROW_HEIGHT, Math.max(MIN_ROW_HEIGHT, height))
+    }
+
+    rows.push({ items: items.slice(i, i + count), coverHeight: height })
+    i += count
+  }
+
+  return rows
+}
+
+// Reused by both sections below — same catalog, just a different order per
+// section (see NEWLY_RELEASED) so the page doesn't read as two copies of one
+// grid when there's no separate content to fill it with.
+function MvGrid({ items }: { items: readonly MusicVideoWithMeta[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(DESKTOP_QUERY).matches : false,
+  )
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_QUERY)
+    const handleChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver((entries) => setContainerWidth(entries[0].contentRect.width))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Below Laptop width, the justified-row math (built around the 1440
+  // desktop frame Figma provides) doesn't have room to work with — fall
+  // back to the simpler fixed-width wrapping grid instead.
+  if (!isDesktop) {
+    return (
+      <div className="mv-detail__grid mv-detail__grid--wrap" ref={containerRef}>
+        {items.map((mv) => (
+          <a
+            key={mv.id}
+            href={`/mv-detail?id=${mv.id}`}
+            className={`mv-detail__grid-item mv-detail__grid-item--${mv.ratio.replace(':', '-')}`}
+          >
+            <Card
+              type="Video"
+              ratio={mv.ratio}
+              community
+              title={mv.title}
+              username={mv.username}
+              likes={mv.likes}
+              badge={mv.badge}
+              coverImage={mv.cover}
+            />
+          </a>
+        ))}
+      </div>
+    )
+  }
+
+  const rows = computeJustifiedRows(items, containerWidth)
+
+  return (
+    <div className="mv-detail__grid" ref={containerRef}>
+      {rows.map((row, rowIndex) => (
+        <div className="mv-detail__grid-row" key={rowIndex}>
+          {row.items.map((mv) => (
+            <a
+              key={mv.id}
+              href={`/mv-detail?id=${mv.id}`}
+              className="mv-detail__grid-item"
+              style={{ width: row.coverHeight * aspectRatioOf(mv.ratio) }}
+            >
+              <Card
+                type="Video"
+                ratio={mv.ratio}
+                community
+                title={mv.title}
+                username={mv.username}
+                likes={mv.likes}
+                badge={mv.badge}
+                coverImage={mv.cover}
+              />
+            </a>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Not a second real category — just MV_CATALOG reordered (reversed) so its
+// badges/covers land in different grid positions than Top Picks above it.
+const NEWLY_RELEASED = [...MV_CATALOG].reverse()
+
 function MVDetailPage() {
   const params = new URLSearchParams(window.location.search)
   const selected = MV_CATALOG.find((mv) => mv.id === params.get('id'))
@@ -233,28 +377,16 @@ function MVDetailPage() {
       <div className="mv-detail">
         {selected && <VideoPlayer item={selected} />}
 
+        {/* This page is already the "See all" destination, so neither
+            section links anywhere further. */}
+        <section className="mv-detail__grid-section">
+          <SectionHeader title="Top Picks Music Videos" showSeeAll={false} />
+          <MvGrid items={MV_CATALOG} />
+        </section>
+
         <section className="mv-detail__grid-section">
           <SectionHeader title="Newly Released Music Video" showSeeAll={false} />
-          <div className="mv-detail__grid">
-            {MV_CATALOG.map((mv) => (
-              <a
-                key={mv.id}
-                href={`/mv-detail?id=${mv.id}`}
-                className={`mv-detail__grid-item mv-detail__grid-item--${mv.ratio.replace(':', '-')}`}
-              >
-                <Card
-                  type="Video"
-                  ratio={mv.ratio}
-                  community
-                  title={mv.title}
-                  username={mv.username}
-                  likes={mv.likes}
-                  badge={mv.badge}
-                  coverImage={mv.cover}
-                />
-              </a>
-            ))}
-          </div>
+          <MvGrid items={NEWLY_RELEASED} />
         </section>
       </div>
     </AppLayout>

@@ -17,7 +17,7 @@ function ToolSelectorSection() {
         </div>
       </div>
 
-      <div className="tool-selector__card">
+      <a href="/song-create" className="tool-selector__card">
         <div className="tool-selector__icon-badge tool-selector__icon-badge--song">
           <span className="tool-selector__icon" style={maskStyle(icSongAi)} aria-hidden="true" />
         </div>
@@ -27,7 +27,7 @@ function ToolSelectorSection() {
             Write your lyrics, pick a style, and AI generates a full song ready to share or use in your MV.
           </p>
         </div>
-      </div>
+      </a>
     </section>
   )
 }

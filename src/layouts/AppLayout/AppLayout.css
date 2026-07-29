@@ -83,6 +83,7 @@
   .app-layout--mobile-app .sidebar,
   .app-layout--mobile-app .navbar,
   .app-layout--mobile-app .detail-navbar,
+  .app-layout--mobile-app .room-navbar,
   .app-layout--mobile-app .footer {
     display: none;
   }

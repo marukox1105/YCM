@@ -8,7 +8,7 @@ import './HomePage.css'
 
 function HomePage() {
   return (
-    <AppLayout>
+    <AppLayout showBackground>
       <div className="home-page">
         <HeroBannerSection />
         <ToolSelectorSection />
