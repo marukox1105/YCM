@@ -1,0 +1,159 @@
+/*
+  Sidebar — Figma "Sidebar" (node 1330:21899)
+  Persistent left navigation, shared across every page.
+
+  Collapses to icon-only below Laptop (1024px); the toggle button can
+  override that default at any width (see Sidebar.tsx).
+*/
+
+.sidebar {
+  /* sticky + align-self:flex-start (rather than the flex row's default
+     stretch) + an explicit height, so the sidebar stays in view while the
+     page content scrolls past it, instead of scrolling away with it. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 240px;
+  flex-shrink: 0;
+  padding: 20px 16px;
+  overflow-y: auto;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(9, 9, 11, 0.15);
+  border-right: 1px solid var(--white-15);
+  box-sizing: border-box;
+  transition: width 0.25s ease;
+}
+
+.sidebar--collapsed {
+  width: 76px;
+}
+
+/* =========================================================
+ * Logo row
+ * ======================================================= */
+
+.sidebar__logo-row {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding-left: 12px;
+  transition: padding-left 0.25s ease;
+}
+
+.sidebar--collapsed .sidebar__logo-row {
+  padding-left: 0;
+  justify-content: center;
+}
+
+.sidebar__logo {
+  overflow: hidden;
+  width: 136px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.sidebar__logo img {
+  display: block;
+  width: 136px;
+  height: 40px;
+  max-width: none;
+}
+
+/* =========================================================
+ * Nav items
+ * ======================================================= */
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 208px;
+  padding: 12px;
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  color: var(--neutral-dark-64);
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: width 0.25s ease, gap 0.25s ease, background-color 0.15s ease;
+}
+
+.sidebar--collapsed .sidebar__nav-item {
+  width: 44px;
+  gap: 0;
+  justify-content: center;
+}
+
+/* Hover/press only add a wash — active/inactive text and icon color don't change. */
+.sidebar__nav-item:hover,
+.sidebar__nav-item:active {
+  background: var(--white-15);
+}
+
+.sidebar__nav-item--active {
+  color: var(--neutral-dark-100);
+}
+
+.sidebar__nav-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.sidebar__nav-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 160px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-width 0.25s ease, opacity 0.15s ease;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body-m);
+  letter-spacing: -0.14px;
+  white-space: nowrap;
+}
+
+.sidebar--collapsed .sidebar__nav-label {
+  max-width: 0;
+  opacity: 0;
+}
+
+.sidebar__nav-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--pf-orange-60);
+  /* accent-orange border @ 25% — no exact tokens.css match yet, kept as a one-off value */
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-caption-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-caption-s);
+  white-space: nowrap;
+}

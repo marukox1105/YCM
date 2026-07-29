@@ -1,0 +1,412 @@
+/*
+  Hero Banner Section — Figma "Hero Banner Section" (node 1330:21934)
+  Static mock content, auto-rotates every 3s; thumbnails are also clickable.
+*/
+
+.hero-banner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 20px;
+  width: 100%;
+  min-height: 420px;
+  /* No right padding here — .hero-banner__top restores it for the badge/
+     title/CTA content, but .hero-banner__thumbnails deliberately doesn't,
+     so the last thumbnail can bleed flush to the container's right edge
+     instead of getting cut off short by the padding. */
+  padding: 20px 0 20px 20px;
+  box-sizing: border-box;
+  border: 1px solid var(--white-15);
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--neutral-dark-14);
+}
+
+@media (min-width: 768px) {
+  .hero-banner {
+    gap: 24px;
+    min-height: 460px;
+    padding: 28px 0 28px 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-banner {
+    gap: var(--spacing-28);
+    height: 500px;
+    min-height: unset;
+    padding: var(--spacing-40) 0 var(--spacing-40) var(--spacing-40);
+  }
+}
+
+.hero-banner__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.hero-banner__bg--fading {
+  opacity: 0;
+}
+
+.hero-banner__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(9, 9, 11, 0.9) 0%,
+    rgba(9, 9, 11, 0.3) 65%,
+    rgba(9, 9, 11, 0.9) 100%
+  );
+}
+
+.hero-banner__top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+  padding-right: 20px;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__top {
+    padding-right: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-banner__top {
+    padding-right: var(--spacing-40);
+  }
+}
+
+.hero-banner__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: flex-start;
+  padding: 6px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-label-m);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-label-m);
+  letter-spacing: -0.13px;
+  white-space: nowrap;
+}
+
+.hero-banner__badge-icon {
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.hero-banner__text-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20);
+  flex: 1;
+  min-height: 0;
+  justify-content: flex-end;
+}
+
+.hero-banner__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.hero-banner__title-group--fading {
+  opacity: 0;
+}
+
+.hero-banner__title {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 22px;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__title {
+    font-size: 26px;
+    line-height: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-banner__title {
+    font-size: var(--font-title-xl);
+    line-height: var(--line-height-title-xl);
+  }
+}
+
+.hero-banner__subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body-m);
+  letter-spacing: -0.14px;
+}
+
+.hero-banner__action-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.hero-banner__arrows {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__action-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
+
+.hero-banner__thumbnails {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__thumbnails {
+    gap: 20px;
+  }
+}
+
+.hero-banner__thumb {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  width: 130px;
+  height: 73px;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+  background: var(--neutral-dark-24);
+  box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__thumb {
+    width: 150px;
+    height: 84px;
+    padding: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-banner__thumb {
+    width: 180px;
+    height: 101px;
+  }
+}
+
+.hero-banner__thumb--active {
+  border: 3px solid var(--neutral-dark-100);
+}
+
+.hero-banner__thumb-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-banner__thumb-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+.hero-banner__thumb-title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  text-align: left;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-label-m);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-label-m);
+  letter-spacing: -0.13px;
+}
+
+/*
+  App-mobile variant (see src/config/layoutMode.ts) — Figma "Top Hero
+  Banner" (node 369:7479) from the manager's app design: a swipeable
+  peek-carousel of static cards, replacing the video crossfade above.
+
+  Note: Figma tints each card's scrim with a hue matched to its own photo.
+  Our 8 items don't have per-item hues defined, so this uses one consistent
+  black gradient scrim (same as Card/ListItem elsewhere) instead of
+  inventing arbitrary colors — flagged as a simplification, not a guess.
+*/
+.hero-banner-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .app-layout--mobile-app .hero-banner {
+    display: none;
+  }
+
+  .app-layout--mobile-app .hero-banner-mobile {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 4px 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+}
+
+.hero-banner-mobile__card {
+  position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 85%;
+  aspect-ratio: 272 / 153;
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--neutral-dark-14);
+}
+
+.hero-banner-mobile__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-banner-mobile__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--black-40) 100%);
+}
+
+.hero-banner-mobile__badge {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.hero-banner-mobile__badge-icon {
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.hero-banner-mobile__bottom {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hero-banner-mobile__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hero-banner-mobile__title {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  line-height: 18px;
+  letter-spacing: -0.13px;
+}
+
+.hero-banner-mobile__subtitle {
+  margin: 0;
+  color: var(--neutral-dark-89);
+  font-family: var(--font-family-primary);
+  font-size: 9px;
+  font-weight: var(--font-weight-medium);
+  line-height: 11px;
+  letter-spacing: -0.09px;
+}
+
+.hero-banner-mobile__cta {
+  flex-shrink: 0;
+}

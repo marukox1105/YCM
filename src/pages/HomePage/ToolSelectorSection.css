@@ -1,0 +1,155 @@
+/*
+  Tool Selector Section — Figma "Tool Selector Section" (node 1330:22000)
+  Only 2 of the original 4 tool tabs are visible in Figma (the other 2 are
+  hidden), so only these 2 are implemented.
+*/
+
+.tool-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .tool-selector {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+.tool-selector__card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 16px 16px 16px 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--white-15);
+  background: var(--black-60);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+@media (min-width: 768px) {
+  .tool-selector__card {
+    gap: 20px;
+    height: 118px;
+    padding: 16px 16px 16px 32px;
+  }
+}
+
+.tool-selector__icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+}
+
+.tool-selector__icon-badge--mv {
+  background: linear-gradient(135deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+}
+
+.tool-selector__icon-badge--song {
+  background: linear-gradient(135deg, #ffb347 0%, #ff4e50 50%, #d63af9 100%);
+}
+
+.tool-selector__icon {
+  width: 28px;
+  height: 28px;
+  background-color: var(--neutral-dark-100);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.tool-selector__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tool-selector__title {
+  margin: 0;
+  color: var(--neutral-dark-84);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-s);
+}
+
+.tool-selector__description {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body-m);
+  letter-spacing: -0.14px;
+}
+
+/* Confirmed in Figma: the first card's text is full white, the second stays
+   muted — not a mistake, kept as read. */
+.tool-selector__card--bright .tool-selector__title,
+.tool-selector__card--bright .tool-selector__description {
+  color: var(--neutral-dark-100);
+}
+
+/*
+  App-mobile variant (see src/config/layoutMode.ts) — Figma "Cards" (node
+  369:7501) from the manager's app design: compact full-gradient cards,
+  icon + title only, no description text.
+*/
+@media (max-width: 767px) {
+  .app-layout--mobile-app .tool-selector {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .app-layout--mobile-app .tool-selector__card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 10px;
+    border: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(153.93deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  }
+
+  .app-layout--mobile-app .tool-selector__card:not(.tool-selector__card--bright) {
+    background: linear-gradient(153.93deg, #ffb347 0%, #ff4e50 50%, #d63af9 100%);
+  }
+
+  .app-layout--mobile-app .tool-selector__icon-badge {
+    padding: 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  .app-layout--mobile-app .tool-selector__icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .app-layout--mobile-app .tool-selector__description {
+    display: none;
+  }
+
+  .app-layout--mobile-app .tool-selector__title {
+    color: var(--neutral-dark-100);
+    font-size: 15px;
+    line-height: 18px;
+  }
+}

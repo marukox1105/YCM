@@ -1,0 +1,87 @@
+.detail-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 60px;
+  background: rgba(9, 9, 11, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.detail-navbar__back {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-label-s);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-label-s);
+  letter-spacing: -0.12px;
+}
+
+.detail-navbar__back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: var(--radius-pill);
+  border: 0.6px solid var(--white-15);
+  background: var(--white-15);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.detail-navbar__back-icon {
+  width: 20px;
+  height: 20px;
+  background-color: var(--neutral-dark-100);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.detail-navbar__credit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 12px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(245, 158, 11, 0.4);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.detail-navbar__credit-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.detail-navbar__credit-count {
+  color: #f59e0b;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-label-s);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-label-s);
+  letter-spacing: -0.12px;
+}
+
+.detail-navbar__credit-add {
+  width: 16px;
+  height: 16px;
+  background-color: #f59e0b;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}

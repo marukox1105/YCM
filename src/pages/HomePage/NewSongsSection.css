@@ -1,0 +1,31 @@
+.new-songs {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.new-songs__layout {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.new-songs__column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.new-songs__item {
+  display: block;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .new-songs__layout {
+    flex-direction: column;
+  }
+}

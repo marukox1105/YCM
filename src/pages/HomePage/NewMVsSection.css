@@ -1,0 +1,47 @@
+/*
+  New MVs Section — Figma "New MVs Section" (node 1330:22050)
+  Horizontal scrolling row of Card (Video, flat, badge on/off), + a Next
+  button that scrolls the row by one card.
+*/
+
+.new-mvs {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 24px;
+  width: 100%;
+}
+
+.new-mvs__row-wrapper {
+  position: relative;
+}
+
+.new-mvs__row {
+  display: flex;
+  min-width: 0;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.new-mvs__item {
+  display: block;
+  flex-shrink: 0;
+  width: 200px;
+  text-decoration: none;
+}
+
+.new-mvs__next {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.new-mvs:hover .new-mvs__next {
+  opacity: 1;
+  pointer-events: auto;
+}

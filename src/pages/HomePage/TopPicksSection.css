@@ -1,0 +1,21 @@
+.top-picks {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 24px;
+  width: 100%;
+}
+
+.top-picks__row {
+  display: flex;
+  min-width: 0;
+  gap: 20px;
+  overflow-x: auto;
+}
+
+.top-picks__item {
+  display: block;
+  flex-shrink: 0;
+  width: 200px;
+  text-decoration: none;
+}
