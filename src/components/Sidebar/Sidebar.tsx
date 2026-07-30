@@ -14,7 +14,7 @@ import './Sidebar.css'
 // href "#" means that page doesn't exist in the prototype yet.
 const NAV_ITEMS = [
   { key: 'home', label: 'Home', icon: icCompass, href: '/home' },
-  { key: 'mv', label: 'AI Music Video', icon: icVideoAi, href: '#' },
+  { key: 'mv', label: 'AI Music Video', icon: icVideoAi, href: '/mv-create' },
   { key: 'song', label: 'AI Song', icon: icSongAi, href: '/song-create' },
   { key: 'story', label: 'AI Storybook', icon: icStoryAi, badge: 'NEW', href: '#' },
   { key: 'history', label: 'History', icon: icHistory, href: '#' },

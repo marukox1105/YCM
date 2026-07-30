@@ -4,6 +4,10 @@ import HomePage from './pages/HomePage/HomePage'
 import MVDetailPage from './pages/MVDetailPage/MVDetailPage'
 import SongDetailPage from './pages/SongDetailPage/SongDetailPage'
 import SongCreatePage from './pages/SongCreatePage/SongCreatePage'
+import MVCreatePage from './pages/MVCreatePage/MVCreatePage'
+import MVStoryboardPage from './pages/MVStoryboardPage/MVStoryboardPage'
+import MVResultPage from './pages/MVResultPage/MVResultPage'
+import MVEditPage from './pages/MVEditPage/MVEditPage'
 
 function App() {
   if (window.location.pathname.startsWith('/components')) {
@@ -24,6 +28,22 @@ function App() {
 
   if (window.location.pathname.startsWith('/song-create')) {
     return <SongCreatePage />
+  }
+
+  if (window.location.pathname.startsWith('/mv-create')) {
+    return <MVCreatePage />
+  }
+
+  if (window.location.pathname.startsWith('/mv-storyboard')) {
+    return <MVStoryboardPage />
+  }
+
+  if (window.location.pathname.startsWith('/mv-result')) {
+    return <MVResultPage />
+  }
+
+  if (window.location.pathname.startsWith('/mv-edit')) {
+    return <MVEditPage />
   }
 
   return (

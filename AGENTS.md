@@ -45,6 +45,13 @@ src/
   data/               Mock data assembled from real asset files via import.meta.glob
                      (songs.ts, musicVideos.ts). No manual re-registration needed when new
                      asset folders are added that match the existing naming pattern.
+                     mvDraft.ts is different: a sessionStorage-backed draft object that
+                     bridges state between separately-routed MV Create/Storyboard/Result/
+                     Edit pages, since routing here is full-page navigation, not client-side
+                     — component state can't survive the page transition on its own.
+  hooks/              Shared React hooks with no page/component of their own. Currently just
+                     useEnhance.ts (the "Enhance" button's dim-input/spin-icon/swap-text
+                     processing state, reused by every prompt textarea across the app).
   config/             layoutMode.ts — one flag (MOBILE_LAYOUT) controlling which mobile
                      chrome renders below the app-mobile breakpoint.
   styles/             tokens.css (design tokens, do not edit without explicit request) and
@@ -58,10 +65,11 @@ src/
 ```
 
 Routing today (`src/App.tsx`): `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
-`/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/components*` →
-ComponentsPage (internal style-guide page, not part of the product), anything else → a
-plain fallback placeholder. `vercel.json` rewrites all paths to `/index.html` so these
-routes survive a hard refresh/deep link on Vercel.
+`/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
+MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
+`/mv-edit*` → MVEditPage, `/components*` → ComponentsPage (internal style-guide page, not
+part of the product), anything else → a plain fallback placeholder. `vercel.json` rewrites
+all paths to `/index.html` so these routes survive a hard refresh/deep link on Vercel.
 
 ## Coding and naming conventions
 
@@ -99,7 +107,7 @@ routes survive a hard refresh/deep link on Vercel.
 | DetailNavbar | Sticky detail-page header — back button, credits, optional slotted second row for tabs |
 | Footer | Site footer — brand/tagline + Studio/Company link columns (mock links) |
 | IconButton | Icon-only button — sizes Large/Medium/Small/XSmall, variants Primary/Secondary/Tertiary/Ghost |
-| ListItem | List row for songs — `variant="community"` (avatar/stats/actions) or `variant="song"` (subtitle + chevron, used in My Creations) |
+| ListItem | List row for songs/videos — `variant="community"` (avatar/stats/actions, narrow-vs-wide layout driven by a CSS container query on its own rendered width, not viewport) or `variant="song"` (subtitle + chevron, used in My Creations) |
 | LoginModal | Mobile bottom-sheet / desktop dialog sign-in mock — Apple/Google buttons, mocked "signed in" success stage, no real auth |
 | MobileHeader | Sticky app-style mobile top bar — only rendered when `MOBILE_LAYOUT === 'app'` |
 | MobileTabBar | Bottom tab bar (Explore/Create/History) — only rendered when `MOBILE_LAYOUT === 'app'` |

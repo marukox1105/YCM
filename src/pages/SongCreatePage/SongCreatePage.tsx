@@ -14,7 +14,9 @@ import icSingingMic from '../../assets/icons/ic_singing_mic.svg'
 import icInfo from '../../assets/icons/ic_info.svg'
 import icCredit from '../../assets/icons/ic_credit.svg'
 import icEditAi from '../../assets/icons/ic_edit_ai.svg'
+import icRefresh from '../../assets/icons/ic_refresh.svg'
 import icClose from '../../assets/icons/ic_close.svg'
+import { useEnhance } from '../../hooks/useEnhance'
 import icFavoriteOff from '../../assets/icons/ic_favorite_off.svg'
 import icFavoriteOn from '../../assets/icons/ic_favorite_on.svg'
 import icShare from '../../assets/icons/ic_share.svg'
@@ -218,86 +220,151 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
 
   const progressRatio = duration ? currentTime / duration : 0
 
+  const lyricLines = song.lyricLines.length ? song.lyricLines : FALLBACK_LYRICS
+  const activeLineIndex = Math.min(
+    lyricLines.length - 1,
+    Math.floor((duration ? currentTime / duration : 0) * lyricLines.length),
+  )
+  const activeLineRef = useRef<HTMLParagraphElement>(null)
+
+  useEffect(() => {
+    activeLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [activeLineIndex])
+
   return (
-    <div className="song-result">
-      <audio
-        ref={audioRef}
-        src={song.audio}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-      />
+    <div className="song-result-page">
+      <div className="song-result">
+        {/* Figma "Song Result_L" (node 1614:76597, desktop) — the panel's
+            blurred background reuses the same cover image, not a separate
+            asset, simplified to a plain fill + center-crop rather than
+            Figma's oversized/offset source layer. Desktop-only (≥1024px):
+            the mobile Result frame (node 50:84) has no such panel/backdrop,
+            so mobile keeps its existing plain background untouched. */}
+        <img src={song.cover} alt="" className="song-result__bg" aria-hidden="true" />
+        <div className="song-result__bg-overlay" aria-hidden="true" />
 
-      <div className="song-result__art">
-        <img src={song.cover} alt="" />
-      </div>
+        <div className="song-result__content">
+          <audio
+            ref={audioRef}
+            src={song.audio}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+          />
 
-      <div className="song-result__controller">
-        <div className="song-result__meta-row">
-          <div className="song-result__meta">
-            <p className="song-result__title">{song.title}</p>
+          <div className="song-result__player">
+            <div className="song-result__art">
+              <img src={song.cover} alt="" />
+            </div>
+
+            <div className="song-result__controller">
+              <div className="song-result__meta-row">
+                <div className="song-result__meta">
+                  <p className="song-result__title">{song.title}</p>
+                </div>
+
+                <div className="song-result__actions">
+                  <button
+                    type="button"
+                    className={`song-result__icon-btn${liked ? ' song-result__icon-btn--active' : ''}`}
+                    onClick={() => setLiked((current) => !current)}
+                    aria-label={liked ? 'Unlike' : 'Like'}
+                  >
+                    <span className="song-result__icon" style={maskStyle(liked ? icFavoriteOn : icFavoriteOff)} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="song-result__icon-btn"
+                    onClick={() => shareOrOpenDialog(song.title, () => setShareOpen(true))}
+                    aria-label="Share"
+                  >
+                    <span className="song-result__icon" style={maskStyle(icShare)} aria-hidden="true" />
+                  </button>
+                  {/* Mobile only — desktop shows lyrics inline instead of behind
+                      a toggle (see .song-result__side-panel below). */}
+                  <button
+                    type="button"
+                    className="song-result__icon-btn song-result__icon-btn--lyrics"
+                    onClick={() => setShowLyrics(true)}
+                    aria-label="Lyrics"
+                  >
+                    <span className="song-result__icon" style={maskStyle(icSingingMic)} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="song-result__progress" ref={progressRef} onPointerDown={handleProgressPointerDown}>
+                <div className="song-result__progress-track" />
+                <div className="song-result__progress-fill" style={{ width: `${progressRatio * 100}%` }} />
+                <div className="song-result__progress-thumb" style={{ left: `${progressRatio * 100}%` }} />
+              </div>
+              <div className="song-result__time">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+
+              <div className="song-result__transport">
+                <button type="button" className="song-result__transport-btn" disabled aria-label="Previous">
+                  <span className="song-result__transport-icon" style={maskStyle(icSkipBack)} aria-hidden="true" />
+                </button>
+                <button type="button" className="song-result__play" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
+                  <span className="song-result__play-icon" style={maskStyle(playing ? icPause : icPlay)} aria-hidden="true" />
+                </button>
+                <button type="button" className="song-result__transport-btn" disabled aria-label="Next">
+                  <span className="song-result__transport-icon" style={maskStyle(icSkipForward)} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="song-result__actions">
-            <button
-              type="button"
-              className={`song-result__icon-btn${liked ? ' song-result__icon-btn--active' : ''}`}
-              onClick={() => setLiked((current) => !current)}
-              aria-label={liked ? 'Unlike' : 'Like'}
-            >
-              <span className="song-result__icon" style={maskStyle(liked ? icFavoriteOn : icFavoriteOff)} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="song-result__icon-btn"
-              onClick={() => shareOrOpenDialog(song.title, () => setShareOpen(true))}
-              aria-label="Share"
-            >
-              <span className="song-result__icon" style={maskStyle(icShare)} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="song-result__icon-btn"
-              onClick={() => setShowLyrics(true)}
-              aria-label="Lyrics"
-            >
-              <span className="song-result__icon" style={maskStyle(icSingingMic)} aria-hidden="true" />
-            </button>
+          {/* Desktop only (≥1024px) — lyrics sit inline beside the player
+              instead of behind the mic button's popup, matching Figma's
+              two-column "Song Panel". Mobile keeps the popup sheet below. */}
+          <div className="song-result__side-panel">
+            <div className="song-result__lyrics-inline">
+              <div className="song-result__lyrics-inline-lines">
+                {lyricLines.map((line, index) => (
+                  <p
+                    key={index}
+                    ref={index === activeLineIndex ? activeLineRef : undefined}
+                    className={`song-result__lyrics-inline-line${index === activeLineIndex ? ' song-result__lyrics-inline-line--active' : ''}`}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
+              <div className="song-result__lyrics-inline-fade" aria-hidden="true" />
+            </div>
+
+            <div className="song-result__ctas">
+              <a href="/mv-detail" className="song-result__cta-primary">
+                Use in Music Video
+                <span className="song-result__cta-primary-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
+              </a>
+              <button type="button" className="song-result__cta-secondary" onClick={onRecreate}>
+                Recreate
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="song-result__progress" ref={progressRef} onPointerDown={handleProgressPointerDown}>
-          <div className="song-result__progress-track" />
-          <div className="song-result__progress-fill" style={{ width: `${progressRatio * 100}%` }} />
-          <div className="song-result__progress-thumb" style={{ left: `${progressRatio * 100}%` }} />
-        </div>
-        <div className="song-result__time">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-
-        <div className="song-result__transport">
-          <button type="button" className="song-result__transport-btn" disabled aria-label="Previous">
-            <span className="song-result__transport-icon" style={maskStyle(icSkipBack)} aria-hidden="true" />
-          </button>
-          <button type="button" className="song-result__play" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
-            <span className="song-result__play-icon" style={maskStyle(playing ? icPause : icPlay)} aria-hidden="true" />
-          </button>
-          <button type="button" className="song-result__transport-btn" disabled aria-label="Next">
-            <span className="song-result__transport-icon" style={maskStyle(icSkipForward)} aria-hidden="true" />
-          </button>
         </div>
       </div>
 
-      <div className="song-result__ctas">
-        <a href="/mv-detail" className="song-result__cta-primary">
-          Use in Music Video
-          <span className="song-result__cta-primary-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
-        </a>
-        <button type="button" className="song-result__cta-secondary" onClick={onRecreate}>
-          Recreate
-        </button>
+      {/* Figma "Song Result_L" moves My Creations out of the sticky side
+          column (form stage only, see SongCreatePage.tsx) into a full-width
+          section below the player instead. No mobile frame was given for
+          this section specifically — showing it single-column on mobile
+          too, rather than dropping it, is this build's own reasonable
+          default (flagged for confirmation). */}
+      <div className="song-result__creations">
+        <p className="song-result__creations-title">My Creations</p>
+        <div className="song-result__creations-grid">
+          {MY_CREATIONS.map((creation) => (
+            <a key={creation.id} href={`/song-detail?id=${creation.id}`} className="song-result__creations-item">
+              <ListItem title={creation.title} coverImage={creation.cover} plays={0} likes={0} shares={0} />
+            </a>
+          ))}
+        </div>
       </div>
 
       {showLyrics && (
@@ -403,6 +470,8 @@ function SongCreatePage() {
   const [resultSong, setResultSong] = useState<(typeof SONGS)[number] | null>(null)
   const [mode, setMode] = useState<SongMode>('Simple')
 
+  const { isEnhancing, enhance } = useEnhance()
+
   // Simple panel state
   const [instrumentalSimple, setInstrumentalSimple] = useState(false)
   const [ideaText, setIdeaText] = useState('')
@@ -422,7 +491,7 @@ function SongCreatePage() {
   return (
     <AppLayout navbar={<RoomNavbar title="AI Song" credits={390} />}>
       <div className="song-create">
-        <div className={`song-create__panel${stage === 'processing' ? ' song-create__panel--full' : ''}`}>
+        <div className={`song-create__panel${stage !== 'form' ? ' song-create__panel--full' : ''}`}>
           {stage === 'processing' ? (
             <SongProcessing
               onComplete={() => {
@@ -443,16 +512,22 @@ function SongCreatePage() {
                 <ToggleSwitch label="Instrumental" checked={instrumentalSimple} onChange={setInstrumentalSimple} />
               </div>
 
-              <div className="song-create__input-box">
+              <div className={`song-create__input-box${isEnhancing('idea') ? ' song-create__input-box--processing' : ''}`}>
                 <textarea
                   className="song-create__textarea"
                   placeholder="e.g. A bittersweet love song about leaving a city you called home, with a melancholic yet hopeful vibe..."
                   maxLength={2500}
                   value={ideaText}
                   onChange={(e) => setIdeaText(e.target.value)}
+                  disabled={isEnhancing('idea')}
                 />
                 <div className="song-create__input-footer">
-                  <button type="button" className="song-create__idea-btn" onClick={() => setIdeaText(pickRandom(IDEA_SUGGESTIONS))}>
+                  <button
+                    type="button"
+                    className="song-create__idea-btn"
+                    onClick={() => setIdeaText(pickRandom(IDEA_SUGGESTIONS))}
+                    disabled={isEnhancing('idea')}
+                  >
                     <span className="song-create__idea-icon" style={maskStyle(icLightbulb)} aria-hidden="true" />
                     Idea
                   </button>
@@ -461,15 +536,26 @@ function SongCreatePage() {
                       <button
                         type="button"
                         className="song-create__enhance-btn"
-                        onClick={() => setIdeaText(pickRandom(ENHANCED_SUGGESTIONS))}
+                        onClick={() => enhance('idea', () => setIdeaText(pickRandom(ENHANCED_SUGGESTIONS)))}
+                        disabled={isEnhancing('idea')}
                         aria-label="Enhance"
                       >
-                        <span className="song-create__enhance-icon" style={maskStyle(icEditAi)} aria-hidden="true" />
+                        <span
+                          className={`song-create__enhance-icon${isEnhancing('idea') ? ' song-create__enhance-icon--spinning' : ''}`}
+                          style={maskStyle(isEnhancing('idea') ? icRefresh : icEditAi)}
+                          aria-hidden="true"
+                        />
                       </button>
                     )}
                     <span className="song-create__char-count">{ideaText.length}/2500</span>
                     {ideaText.length > 0 && (
-                      <button type="button" className="song-create__clear-btn" onClick={() => setIdeaText('')} aria-label="Clear">
+                      <button
+                        type="button"
+                        className="song-create__clear-btn"
+                        onClick={() => setIdeaText('')}
+                        disabled={isEnhancing('idea')}
+                        aria-label="Clear"
+                      >
                         <span className="song-create__clear-icon" style={maskStyle(icClose)} aria-hidden="true" />
                       </button>
                     )}
@@ -503,13 +589,14 @@ function SongCreatePage() {
               </div>
 
               {!instrumentalCustom && (
-                <div className="song-create__input-box">
+                <div className={`song-create__input-box${isEnhancing('lyrics') ? ' song-create__input-box--processing' : ''}`}>
                   <textarea
                     className="song-create__textarea"
                     placeholder="Write your lyrics here... Or leave blank — AI will generate them based on your chosen style and mood."
                     maxLength={2500}
                     value={lyricsText}
                     onChange={(e) => setLyricsText(e.target.value)}
+                    disabled={isEnhancing('lyrics')}
                   />
                   <div className="song-create__input-footer">
                     <div className="song-create__input-actions">
@@ -517,6 +604,7 @@ function SongCreatePage() {
                         type="button"
                         className="song-create__idea-btn"
                         onClick={() => setLyricsText(pickRandom(IDEA_SUGGESTIONS))}
+                        disabled={isEnhancing('lyrics')}
                       >
                         <span className="song-create__idea-icon" style={maskStyle(icLightbulb)} aria-hidden="true" />
                         Idea
@@ -525,6 +613,7 @@ function SongCreatePage() {
                         type="button"
                         className="song-create__idea-btn"
                         onClick={() => setLyricsText(pickRandom(LYRICS_SUGGESTIONS))}
+                        disabled={isEnhancing('lyrics')}
                       >
                         <span className="song-create__idea-icon" style={maskStyle(icSingingMic)} aria-hidden="true" />
                         Lyrics
@@ -535,10 +624,15 @@ function SongCreatePage() {
                         <button
                           type="button"
                           className="song-create__enhance-btn"
-                          onClick={() => setLyricsText(pickRandom(ENHANCED_SUGGESTIONS))}
+                          onClick={() => enhance('lyrics', () => setLyricsText(pickRandom(ENHANCED_SUGGESTIONS)))}
+                          disabled={isEnhancing('lyrics')}
                           aria-label="Enhance"
                         >
-                          <span className="song-create__enhance-icon" style={maskStyle(icEditAi)} aria-hidden="true" />
+                          <span
+                            className={`song-create__enhance-icon${isEnhancing('lyrics') ? ' song-create__enhance-icon--spinning' : ''}`}
+                            style={maskStyle(isEnhancing('lyrics') ? icRefresh : icEditAi)}
+                            aria-hidden="true"
+                          />
                         </button>
                       )}
                       <span className="song-create__char-count">{lyricsText.length}/2500</span>
@@ -547,6 +641,7 @@ function SongCreatePage() {
                           type="button"
                           className="song-create__clear-btn"
                           onClick={() => setLyricsText('')}
+                          disabled={isEnhancing('lyrics')}
                           aria-label="Clear"
                         >
                           <span className="song-create__clear-icon" style={maskStyle(icClose)} aria-hidden="true" />
@@ -654,19 +749,17 @@ function SongCreatePage() {
           )}
         </div>
 
-        {/* Hidden entirely during processing — that stage is a dedicated
-            full-width moment, not a two-column layout, on every viewport.
-            Desktop keeps it visible once a result is ready (browsing while
-            reviewing, reasonable use of the extra room); Figma's mobile
-            result frame is its own full screen with no list, so this hides
-            below 1024px instead (see SongCreatePage.css). */}
-        {stage !== 'processing' && (
-          <div className={`song-create__side${stage === 'result' ? ' song-create__side--hide-mobile' : ''}`}>
+        {/* Only the form stage uses this two-column layout — processing has
+            no side content at all, and the result stage moves "My
+            Creations" into SongResult itself as a full-width section below
+            the player instead (Figma "Song Result_L", node 1614:76597). */}
+        {stage === 'form' && (
+          <div className="song-create__side">
             <p className="song-create__side-title">My Creations</p>
             <div className="song-create__side-list">
               {MY_CREATIONS.map((song) => (
                 <a key={song.id} href={`/song-detail?id=${song.id}`} className="song-create__side-item">
-                  <ListItem variant="song" title={song.title} subtitle="AI Song" coverImage={song.cover} />
+                  <ListItem title={song.title} coverImage={song.cover} username="ScottWu" plays={0} likes={0} shares={0} cta />
                 </a>
               ))}
             </div>

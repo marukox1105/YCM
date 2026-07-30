@@ -1,0 +1,624 @@
+/*
+  Edit MV — Figma "Edit MV_L" (node 1351:28314). Same page shell/section
+  conventions as MVCreatePage/MVStoryboardPage/MVResultPage.
+*/
+
+.mv-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 20px 20px 60px;
+}
+
+@media (min-width: 768px) {
+  .mv-edit {
+    padding: 20px 32px 60px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mv-edit {
+    flex-direction: row;
+    gap: 48px;
+    padding: 20px 60px 60px;
+  }
+}
+
+.mv-edit__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .mv-edit__panel {
+    width: 600px;
+    flex-shrink: 0;
+  }
+}
+
+.mv-edit__side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .mv-edit__side {
+    width: 432px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    position: sticky;
+    top: 100px;
+  }
+}
+
+.mv-edit__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mv-edit__label {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-xs);
+}
+
+.mv-edit__sublabel {
+  margin: -8px 0 0;
+  color: var(--neutral-dark-44);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+/* =========================================================
+ * Storyboard — clip strip + preview
+ * ======================================================= */
+
+.mv-edit__clips {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mv-edit__clips::-webkit-scrollbar {
+  display: none;
+}
+
+.mv-edit__clip {
+  position: relative;
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border: 2.5px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.mv-edit__clip--active {
+  border-color: var(--color-accent-purple);
+}
+
+.mv-edit__clip img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mv-edit__clip-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 60%);
+}
+
+.mv-edit__clip-number {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.12px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.mv-edit__preview {
+  position: relative;
+  width: 100%;
+  height: 337px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mv-edit__preview-video {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.mv-edit__preview-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+.mv-edit__control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+}
+
+.mv-edit__control-icon {
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.mv-edit__time {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+}
+
+.mv-edit__progress {
+  position: relative;
+  flex: 1;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.mv-edit__progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--white-15);
+}
+
+.mv-edit__progress-fill {
+  position: absolute;
+  left: 0;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+}
+
+.mv-edit__progress-thumb {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* =========================================================
+ * Scene editor
+ * ======================================================= */
+
+.mv-edit__scene-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.mv-edit__scene-title {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.mv-edit__scene-time {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.13px;
+}
+
+.mv-edit__input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+}
+
+/* Figma "List Input / Processing" (node 1343:23937) — while Enhance is
+   running, everything but the Enhance button itself dims to look disabled. */
+.mv-edit__input-box--processing .mv-edit__textarea,
+.mv-edit__input-box--processing .mv-edit__char-count {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.mv-edit__textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 0;
+  border: none;
+  background: none;
+  resize: none;
+  outline: none;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  line-height: 20px;
+  letter-spacing: -0.14px;
+}
+
+.mv-edit__input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mv-edit__char-count {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-s);
+  font-weight: var(--font-weight-medium);
+}
+
+.mv-edit__enhance-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-purple);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+}
+
+.mv-edit__enhance-icon {
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+@keyframes mv-edit-enhance-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.mv-edit__enhance-icon--spinning {
+  animation: mv-edit-enhance-spin 1s linear infinite;
+}
+
+.mv-edit__divider {
+  height: 1px;
+  background: var(--white-15);
+}
+
+.mv-edit__recreate-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 34px;
+  box-sizing: border-box;
+  background: var(--neutral-dark-24);
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  opacity: 0.3;
+  cursor: default;
+}
+
+.mv-edit__recreate-credits {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mv-edit__recreate-credits img {
+  width: 16px;
+  height: 16px;
+}
+
+/* =========================================================
+ * Bottom CTAs
+ * ======================================================= */
+
+.mv-edit__ctas {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 20px 0 60px;
+}
+
+@media (min-width: 1024px) {
+  .mv-edit__ctas {
+    justify-content: center;
+  }
+}
+
+.mv-edit__delete-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 180px;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: 1px solid var(--white-15);
+  border-radius: 34px;
+  background: var(--neutral-dark-14);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+@media (min-width: 1024px) {
+  .mv-edit__delete-btn {
+    flex: none;
+    width: 230px;
+  }
+}
+
+.mv-edit__delete-icon {
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.mv-edit__merge-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: none;
+  border-radius: 34px;
+  background: linear-gradient(135deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (min-width: 1024px) {
+  .mv-edit__merge-btn {
+    flex: none;
+    width: 230px;
+  }
+}
+
+.mv-edit__merge-credits {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mv-edit__merge-credits img {
+  width: 16px;
+  height: 16px;
+}
+
+/* =========================================================
+ * Right — Cover Image / MV Title / Author Name / toggles
+ * ======================================================= */
+
+.mv-edit__cover-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+}
+
+.mv-edit__cover-image img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+}
+
+.mv-edit__cover-expand {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: rgba(9, 9, 11, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.mv-edit__cover-expand img {
+  width: 16px;
+  height: 16px;
+}
+
+.mv-edit__regen-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  color: var(--neutral-dark-100);
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-s);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.12px;
+}
+
+.mv-edit__regen-btn img:first-child {
+  width: 16px;
+  height: 16px;
+}
+
+.mv-edit__regen-credits {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mv-edit__regen-credits img {
+  width: 14px;
+  height: 14px;
+}
+
+.mv-edit__field-box {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px solid var(--white-15);
+  background: var(--neutral-dark-09);
+}
+
+.mv-edit__field-input {
+  width: 100%;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}
+
+.mv-edit__toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.mv-edit__toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mv-edit__toggle-title {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-l);
+  font-weight: var(--font-weight-bold);
+  line-height: 22px;
+}
+
+.mv-edit__toggle-state {
+  margin: 0;
+  color: var(--neutral-dark-64);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-body-m);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.14px;
+}

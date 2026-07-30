@@ -159,6 +159,16 @@
   background: var(--neutral-dark-09);
 }
 
+/* Figma "List Input / Processing" (node 1343:23937) — while Enhance is
+   running, everything but the Enhance button itself dims to look disabled. */
+.song-create__input-box--processing .song-create__textarea,
+.song-create__input-box--processing .song-create__idea-btn,
+.song-create__input-box--processing .song-create__char-count,
+.song-create__input-box--processing .song-create__clear-btn {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
 .song-create__textarea {
   width: 100%;
   min-height: 84px;
@@ -244,8 +254,8 @@
   padding: 4px 10px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--neutral-dark-100);
-  color: #09090b;
+  background: var(--color-accent-purple);
+  color: var(--neutral-dark-100);
   cursor: pointer;
 }
 
@@ -259,6 +269,19 @@
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
+}
+
+@keyframes song-create-enhance-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.song-create__enhance-icon--spinning {
+  animation: song-create-enhance-spin 1s linear infinite;
 }
 
 .song-create__clear-btn {
@@ -527,7 +550,7 @@
 .song-create__side-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
   width: 100%;
   max-height: 683px;
   overflow-y: auto;
@@ -679,18 +702,164 @@
 
 /* =========================================================
  * Result — Figma "Song Result" (node 50:84, mobile) + desktop
- * reference (node 1611:23120). Same meta/progress/transport structure as
- * SongDetailPage's Now Playing, reused here rather than re-invented.
+ * reference "Song Result_L" (node 1614:76597). Same meta/progress/transport
+ * structure as SongDetailPage's Now Playing, reused here rather than
+ * re-invented.
  * ======================================================= */
 
+.song-result-page {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
 .song-result {
+  position: relative;
+  display: flex;
+  width: 100%;
+  padding: 20px 0 0;
+  box-sizing: border-box;
+}
+
+/* Blurred cover-image backdrop + gradient — desktop only (node 1614:76597
+   has no mobile counterpart; node 50:84's mobile frame has no such panel,
+   so mobile keeps its plain background). Hidden by default, enabled inside
+   the ≥1024px block below alongside the panel's own box treatment. */
+.song-result__bg,
+.song-result__bg-overlay {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .song-result {
+    overflow: hidden;
+    padding: var(--spacing-24);
+    border-radius: var(--radius-2xl);
+    background: var(--neutral-dark-14);
+  }
+
+  .song-result__bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: blur(20px);
+  }
+
+  .song-result__bg-overlay {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(9, 9, 11, 0.6) 0%, rgba(9, 9, 11, 0.9) 100%);
+  }
+}
+
+.song-result__content {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 32px;
   width: 100%;
-  padding: 20px 0 0;
-  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .song-result__content {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--spacing-48);
+  }
+}
+
+/* Wraps art + controller — carries the same column/center layout the
+   player content used to have directly on .song-result__content; now
+   sized to a fixed-ish column at desktop instead of the full row width,
+   since .song-result__side-panel sits alongside it (see below). */
+.song-result__player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .song-result__player {
+    flex: 0 1 460px;
+    min-width: 0;
+  }
+}
+
+/* Desktop only (Figma "Song Panel" right column, node 1622:16942) — lyrics
+   inline + CTAs. Mobile has no such column: display:contents drops this
+   wrapper from the box tree so its children (lyrics-inline, hidden below;
+   CTAs) just flow into .song-result__content's own centered column,
+   unchanged from before this wrapper existed. */
+.song-result__side-panel {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .song-result__side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.song-result__lyrics-inline {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .song-result__lyrics-inline {
+    display: flex;
+    flex-direction: column;
+    /* Fixed height (matches Figma exactly) rather than flex:1 — this is a
+       column flex child, so flex:1 sets flex-basis:0 and wins over height,
+       which let the panel grow to fit every lyric line instead of
+       scrolling within a bounded area. */
+    height: 426px;
+  }
+}
+
+.song-result__lyrics-inline-lines {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 0;
+  scrollbar-width: none;
+}
+
+.song-result__lyrics-inline-lines::-webkit-scrollbar {
+  display: none;
+}
+
+.song-result__lyrics-inline-line {
+  margin: 0 0 8px;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 17px;
+  font-weight: var(--font-weight-bold);
+  line-height: 26px;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.song-result__lyrics-inline-line--active {
+  opacity: 1;
+}
+
+.song-result__lyrics-inline-fade {
+  flex-shrink: 0;
+  height: 1px;
+  background: var(--white-15);
 }
 
 .song-result__art {
@@ -772,6 +941,14 @@
 
 .song-result__icon-btn--active {
   color: var(--color-accent-purple);
+}
+
+/* Desktop shows lyrics inline (.song-result__lyrics-inline) instead of
+   behind this popup toggle — see .song-result__side-panel above. */
+@media (min-width: 1024px) {
+  .song-result__icon-btn--lyrics {
+    display: none;
+  }
 }
 
 .song-result__icon {
@@ -898,18 +1075,26 @@
 .song-result__ctas {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   max-width: 400px;
 }
 
-/* Same "don't stretch on desktop" rule as .song-create__cta — side-by-side,
-   auto-width with horizontal padding instead of two full-width stacked
-   buttons; mobile keeps the stacked full-width design. */
+/* Desktop: side by side, each filling half of .song-result__side-panel's
+   own (already fairly narrow, ~1/2 the panel) width — matches Figma's
+   Quick Actions row exactly, unlike .song-create__cta's single full-page-
+   width button, which is why that one stays fixed-width/non-stretching
+   while these two are allowed to split the row evenly. Mobile keeps the
+   stacked full-width design. */
 @media (min-width: 1024px) {
   .song-result__ctas {
     flex-direction: row;
-    justify-content: center;
+    max-width: none;
+  }
+
+  .song-result__cta-primary,
+  .song-result__cta-secondary {
+    flex: 1;
   }
 }
 
@@ -966,13 +1151,55 @@
   background: var(--neutral-dark-24);
 }
 
-@media (min-width: 1024px) {
-  .song-result__cta-primary,
-  .song-result__cta-secondary {
-    width: auto;
-    min-width: 230px;
-    padding: 0 16px;
+/* =========================================================
+ * Result — My Creations — Figma "New Songs Section" (node 1622:17358,
+ * within "Song Result_L"). Moved out of the sticky side column (form stage
+ * only) into a full-width section below the player. No separate mobile
+ * frame was given for this section, so single-column here is this build's
+ * own reasonable default rather than dropping the content on mobile.
+ * ======================================================= */
+
+.song-result__creations {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.song-result__creations-title {
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  line-height: 24px;
+  letter-spacing: -0.2px;
+}
+
+.song-result__creations-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .song-result__creations-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
+
+.song-result__creations-item {
+  display: block;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--white-15);
+  background: var(--black-60);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  text-decoration: none;
+  color: inherit;
 }
 
 /* =========================================================

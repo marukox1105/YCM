@@ -2,12 +2,14 @@ import { useState } from 'react'
 import ButtonPillShowcase from './ButtonPillShowcase'
 import IconButtonShowcase from './IconButtonShowcase'
 import CardShowcase from './CardShowcase'
+import ListItemShowcase from './ListItemShowcase'
 import './ComponentsPage.css'
 
 const NAV_ITEMS = [
   { key: 'button-pill', label: 'Button / Pill' },
   { key: 'icon-button', label: 'Icon Button' },
   { key: 'card', label: 'Card' },
+  { key: 'list-item', label: 'List Item' },
 ] as const
 
 type ComponentKey = (typeof NAV_ITEMS)[number]['key']
@@ -40,6 +42,7 @@ function ComponentsPage() {
           {activeKey === 'button-pill' && <ButtonPillShowcase />}
           {activeKey === 'icon-button' && <IconButtonShowcase />}
           {activeKey === 'card' && <CardShowcase />}
+          {activeKey === 'list-item' && <ListItemShowcase />}
         </div>
       </div>
     </div>

@@ -11,11 +11,16 @@
   gap: 20px;
   width: 100%;
   min-height: 420px;
-  /* No right padding here — .hero-banner__top restores it for the badge/
-     title/CTA content, but .hero-banner__thumbnails deliberately doesn't,
-     so the last thumbnail can bleed flush to the container's right edge
-     instead of getting cut off short by the padding. */
-  padding: 20px 0 20px 20px;
+  /* No horizontal padding here at all — .hero-banner__top and
+     .hero-banner__thumbnails each carry their own left/right padding
+     instead (see below). For .hero-banner__thumbnails specifically, that
+     padding has to live on the scrollable element itself: padding on this
+     outer box would just permanently offset the whole scroll viewport, so
+     the inset would never go away no matter how far you scroll. Padding on
+     the child means it's part of the scrollable content — visible at each
+     resting extreme (scrolled all the way left or all the way right), but
+     scrolled out of view once you move past the first/last thumbnail. */
+  padding: 20px 0;
   box-sizing: border-box;
   border: 1px solid var(--white-15);
   border-radius: 24px;
@@ -27,7 +32,7 @@
   .hero-banner {
     gap: 24px;
     min-height: 460px;
-    padding: 28px 0 28px 28px;
+    padding: 28px 0;
   }
 }
 
@@ -36,7 +41,7 @@
     gap: var(--spacing-28);
     height: 500px;
     min-height: unset;
-    padding: var(--spacing-40) 0 var(--spacing-40) var(--spacing-40);
+    padding: var(--spacing-40) 0;
   }
 }
 
@@ -73,17 +78,20 @@
   gap: 24px;
   flex: 1;
   min-height: 0;
+  padding-left: 20px;
   padding-right: 20px;
 }
 
 @media (min-width: 768px) {
   .hero-banner__top {
+    padding-left: 28px;
     padding-right: 28px;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-banner__top {
+    padding-left: var(--spacing-40);
     padding-right: var(--spacing-40);
   }
 }
@@ -208,6 +216,14 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  /* Matching left/right padding — see the note on .hero-banner above. This
+     is real padding on the scrollable element itself, so each side reads as
+     an inset only at its own resting extreme (scrolled all the way to that
+     side) — mid-scroll, thumbnails pass edge-to-edge with no gap. Without
+     the right side matching, the last thumbnail would sit flush against
+     the container's rounded corner and get visually clipped by it. */
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .hero-banner__thumbnails::-webkit-scrollbar {
@@ -217,6 +233,15 @@
 @media (min-width: 768px) {
   .hero-banner__thumbnails {
     gap: 20px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-banner__thumbnails {
+    padding-left: var(--spacing-40);
+    padding-right: var(--spacing-40);
   }
 }
 

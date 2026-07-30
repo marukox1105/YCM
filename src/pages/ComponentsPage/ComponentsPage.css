@@ -98,6 +98,29 @@
   gap: 16px;
 }
 
+/* Same bordered/blurred container ListItem's "song" variant already sits
+   inside on real pages (e.g. My Creations) — showing it bare here would
+   miss how it actually reads in context. --narrow caps the width low
+   enough to demonstrate Community's container-query narrow layout. */
+.components-page__list-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 700px;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: var(--radius-3xl);
+  border: 1px solid var(--white-15);
+  background: var(--black-60);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.components-page__list-demo--narrow {
+  max-width: 380px;
+}
+
 @media (min-width: 768px) {
   .components-page {
     padding: 40px 32px 80px;

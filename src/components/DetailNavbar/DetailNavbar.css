@@ -35,6 +35,22 @@
   letter-spacing: -0.12px;
 }
 
+.detail-navbar__back--icon-only {
+  flex-shrink: 0;
+}
+
+.detail-navbar__title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-size: 26px;
+  font-weight: var(--font-weight-bold);
+  line-height: 32px;
+  letter-spacing: -0.26px;
+}
+
 .detail-navbar__back-button {
   display: flex;
   align-items: center;

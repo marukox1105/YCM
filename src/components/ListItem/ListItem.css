@@ -1,10 +1,16 @@
 /*
-  ListItem — Figma "List/List Item/dt" (node 1270:21039). Default (variant=
-  "community") is Type=Community, used in New Songs Section where each item
-  is its own standalone bordered card.
+  ListItem — Figma "List/List Item/dt" (node 1270:21039). Neither the Song
+  nor the Community variant has its own border/background in Figma — both
+  are meant to sit inside ONE shared bordered container (e.g. My Creations'
+  side-list, or a wrapping card on Home's New Songs), separated by that
+  container's own `gap`, with a hover highlight instead of a permanent box
+  per row. An earlier version gave Community its own border+background
+  ("standalone card") that Figma never specified — removed so both variants
+  share the exact same borderless treatment.
 */
 
 .list-item {
+  container-type: inline-size;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -12,31 +18,17 @@
   gap: 8px;
   width: 100%;
   box-sizing: border-box;
-  padding: 12px;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--white-15);
-  background: var(--black-60);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
-
-/* variant="song" (Type=Song) — a plain row with a subtitle + chevron
-   instead of stats/actions, meant to sit inside a shared bordered list
-   container (e.g. Song Create's My Creations) rather than be its own card. */
-.list-item--song {
-  flex-wrap: nowrap;
   padding: 8px;
-  margin: -8px 0;
-  border: none;
-  background: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   border-radius: var(--radius-lg);
   transition: background-color 0.15s ease;
 }
 
-.list-item--song:hover {
+.list-item:hover {
   background-color: var(--white-15);
+}
+
+.list-item--song {
+  flex-wrap: nowrap;
 }
 
 .list-item__subtitle {
@@ -99,6 +91,20 @@
   }
 }
 
+/* Figma gives Song a smaller, squarer art box (rounded-10, p-12) than
+   Community's bigger rounder one (rounded-13.182, p-18) — a fixed 44px
+   matches Song's actual 60px row height with its 8px vertical padding. */
+.list-item__album-art--song {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+
+.list-item__album-art--song .list-item__play-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .list-item__album-image {
   position: absolute;
   inset: 0;
@@ -127,7 +133,7 @@
 }
 
 /* =========================================================
- * Info — title, user row, social row
+ * Info — Song variant's title + subtitle
  * ======================================================= */
 
 .list-item__info {
@@ -136,6 +142,47 @@
   gap: 3px;
   flex: 1;
   min-width: 0;
+}
+
+/* =========================================================
+ * Community variant's title/user/stats layout
+ *
+ * Figma gives Community a genuinely different arrangement depending on how
+ * much room it has (its own Mobile vs Desktop variants) — not just smaller
+ * text. Narrow: title, then username, then stats, all stacked in one
+ * column. Wide: title+username stay a 2-line block, but stats break out
+ * into their own side-by-side column next to it instead of stacking under
+ * the username. Driven by this component's own rendered width (container
+ * query), not viewport width — the same ListItem appears in a roomy
+ * 2-column list (Home's New Songs) and a narrow 432px sidebar (My
+ * Creations) at the same viewport size.
+ * ======================================================= */
+
+.list-item__community-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.list-item__community-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+@container (min-width: 560px) {
+  .list-item__community-body {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .list-item__community-heading {
+    flex: 1;
+  }
 }
 
 .list-item__title {
@@ -208,6 +255,13 @@
 @media (min-width: 480px) {
   .list-item__social-row {
     gap: 20px;
+  }
+}
+
+@container (min-width: 560px) {
+  .list-item__social-row {
+    flex-shrink: 0;
+    gap: 24px;
   }
 }
 
