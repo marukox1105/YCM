@@ -8,8 +8,11 @@ import MVCreatePage from './pages/MVCreatePage/MVCreatePage'
 import MVStoryboardPage from './pages/MVStoryboardPage/MVStoryboardPage'
 import MVResultPage from './pages/MVResultPage/MVResultPage'
 import MVEditPage from './pages/MVEditPage/MVEditPage'
+import HistoryPage from './pages/HistoryPage/HistoryPage'
+import BlogPage from './pages/BlogPage/BlogPage'
+import AuthProvider from './components/AuthProvider/AuthProvider'
 
-function App() {
+function AppRoutes() {
   if (window.location.pathname.startsWith('/components')) {
     return <ComponentsPage />
   }
@@ -46,10 +49,30 @@ function App() {
     return <MVEditPage />
   }
 
+  if (window.location.pathname.startsWith('/history')) {
+    return <HistoryPage />
+  }
+
+  if (window.location.pathname.startsWith('/blog3')) {
+    return <BlogPage version={3} />
+  }
+
+  if (window.location.pathname.startsWith('/blog')) {
+    return <BlogPage version={1} />
+  }
+
   return (
     <div className="page">
       <p>YCM UI Prototype</p>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   )
 }
 

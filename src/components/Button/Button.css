@@ -42,8 +42,7 @@
  * ======================================================= */
 
 .button--large {
-  width: 180px;
-  padding: 14px 12px;
+  padding: 14px 16px;
 }
 
 .button--medium {
@@ -55,14 +54,21 @@
   padding: 8px 10px;
 }
 
-/* Typography per size (Large Primary/PrimaryPayg override below) */
+@media (min-width: 1024px) {
+  .button--large.button--primary,
+  .button--large.button--primary-payg {
+    min-width: 230px;
+  }
+}
+
+/* Typography per size */
 
 .button--large .button__label,
 .button--large .button__credits-count {
-  font-size: var(--font-body-m);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-body-m);
-  letter-spacing: -0.14px;
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-xs);
+  letter-spacing: 0;
 }
 
 .button--medium .button__label {
@@ -102,15 +108,6 @@
 .button--medium.button--primary:hover:not(:disabled),
 .button--small.button--primary:hover:not(:disabled) {
   background-image: linear-gradient(var(--overlay-hover-dark), var(--overlay-hover-dark));
-}
-
-.button--large.button--primary .button__label,
-.button--large.button--primary-payg .button__label,
-.button--large.button--primary-payg .button__credits-count {
-  font-size: var(--font-title-xs);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-title-xs);
-  letter-spacing: 0;
 }
 
 .button--primary:disabled,

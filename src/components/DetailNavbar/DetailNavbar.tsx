@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import icArrowLeft from '../../assets/icons/ic_arrow_left.svg'
-import icCredit from '../../assets/icons/ic_credit.svg'
-import icAdd from '../../assets/icons/ic_add.svg'
+import Button from '../Button/Button'
+import CreditBalance from '../CreditBalance/CreditBalance'
+import { useAuth } from '../AuthProvider/AuthProvider'
 import './DetailNavbar.css'
 
 // Figma "Navbar" (device=Desktop, state="2nd Layer") — used on detail pages
@@ -28,6 +29,8 @@ function maskStyle(src: string): CSSProperties {
 }
 
 function DetailNavbar({ credits, backHref = '/home', title, tabsSlot }: DetailNavbarProps) {
+  const { isSignedIn, openSignIn } = useAuth()
+
   return (
     <header className="detail-navbar">
       <div className="detail-navbar__top">
@@ -40,11 +43,13 @@ function DetailNavbar({ credits, backHref = '/home', title, tabsSlot }: DetailNa
 
         {title && <p className="detail-navbar__title">{title}</p>}
 
-        <div className="detail-navbar__credit">
-          <img src={icCredit} alt="" className="detail-navbar__credit-icon" />
-          <span className="detail-navbar__credit-count">{credits}</span>
-          <span className="detail-navbar__credit-add" style={maskStyle(icAdd)} aria-hidden="true" />
-        </div>
+        {isSignedIn ? (
+          <CreditBalance credits={credits} />
+        ) : (
+          <Button size="Medium" variant="Tertiary" onClick={openSignIn} className="detail-navbar__login">
+            Login
+          </Button>
+        )}
       </div>
 
       {tabsSlot && <div className="detail-navbar__tabs">{tabsSlot}</div>}

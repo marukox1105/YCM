@@ -1,6 +1,7 @@
-import type { CSSProperties } from 'react'
-import icCredit from '../../assets/icons/ic_credit.svg'
-import icAdd from '../../assets/icons/ic_add.svg'
+import type { ReactNode } from 'react'
+import Button from '../Button/Button'
+import CreditBalance from '../CreditBalance/CreditBalance'
+import { useAuth } from '../AuthProvider/AuthProvider'
 import './RoomNavbar.css'
 
 // Figma "Navbar" (node 1351:28872 and siblings) — used on "Feature Room"
@@ -10,22 +11,26 @@ import './RoomNavbar.css'
 interface RoomNavbarProps {
   title: string
   credits: number
+  tabsSlot?: ReactNode
 }
 
-function maskStyle(src: string): CSSProperties {
-  return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
-}
+function RoomNavbar({ title, credits, tabsSlot }: RoomNavbarProps) {
+  const { isSignedIn, openSignIn } = useAuth()
 
-function RoomNavbar({ title, credits }: RoomNavbarProps) {
   return (
     <header className="room-navbar">
-      <p className="room-navbar__title">{title}</p>
-
-      <div className="room-navbar__credit">
-        <img src={icCredit} alt="" className="room-navbar__credit-icon" />
-        <span className="room-navbar__credit-count">{credits}</span>
-        <span className="room-navbar__credit-add" style={maskStyle(icAdd)} aria-hidden="true" />
+      <div className="room-navbar__top">
+        <p className="room-navbar__title">{title}</p>
+        {isSignedIn ? (
+          <CreditBalance credits={credits} />
+        ) : (
+          <Button size="Medium" variant="Tertiary" onClick={openSignIn} className="room-navbar__login">
+            Login
+          </Button>
+        )}
       </div>
+
+      {tabsSlot && <div className="room-navbar__tabs">{tabsSlot}</div>}
     </header>
   )
 }

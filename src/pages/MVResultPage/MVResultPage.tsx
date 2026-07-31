@@ -4,6 +4,7 @@ import AppLayout from '../../layouts/AppLayout/AppLayout'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
 import ShareDialog, { shareOrOpenDialog } from '../../components/ShareDialog/ShareDialog'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
+import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import { loadMvDraft } from '../../data/mvDraft'
 import icDownload from '../../assets/icons/ic_download.svg'
 import icShare from '../../assets/icons/ic_share.svg'
@@ -13,6 +14,7 @@ import icLikeOff from '../../assets/icons/ic_like_off.svg'
 import icLikeOn from '../../assets/icons/ic_like_on.svg'
 import icDislikeOff from '../../assets/icons/ic_dislike_off.svg'
 import icDislikeOn from '../../assets/icons/ic_dislike_on.svg'
+import icPublish from '../../assets/icons/ic_publish.svg'
 import icPlay from '../../assets/icons/ic_play.svg'
 import icPause from '../../assets/icons/ic_pause.svg'
 import icExpand from '../../assets/icons/ic_expand.svg'
@@ -37,6 +39,7 @@ function formatDate(): string {
 }
 
 function MVResultPage() {
+  const { requireSignIn } = useAuth()
   const draft = loadMvDraft()
   const isPortrait = draft.aspect === '9:16'
 
@@ -144,25 +147,35 @@ function MVResultPage() {
             <div className="mv-result__reactions">
               <button
                 type="button"
-                className="mv-result__icon-btn"
+                className={`mv-result__icon-btn${liked ? ' mv-result__icon-btn--selected' : ''}`}
                 onClick={() => {
                   setLiked((current) => !current)
                   setDisliked(false)
                 }}
                 aria-label={liked ? 'Unlike' : 'Like'}
+                aria-pressed={liked}
               >
-                <img src={liked ? icLikeOn : icLikeOff} alt="" />
+                <span
+                  className="mv-result__reaction-icon"
+                  style={maskStyle(liked ? icLikeOn : icLikeOff)}
+                  aria-hidden="true"
+                />
               </button>
               <button
                 type="button"
-                className="mv-result__icon-btn"
+                className={`mv-result__icon-btn${disliked ? ' mv-result__icon-btn--selected' : ''}`}
                 onClick={() => {
                   setDisliked((current) => !current)
                   setLiked(false)
                 }}
                 aria-label={disliked ? 'Remove dislike' : 'Dislike'}
+                aria-pressed={disliked}
               >
-                <img src={disliked ? icDislikeOn : icDislikeOff} alt="" />
+                <span
+                  className="mv-result__reaction-icon"
+                  style={maskStyle(disliked ? icDislikeOn : icDislikeOff)}
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
@@ -171,7 +184,7 @@ function MVResultPage() {
             <p className="mv-result__label">QUICK ACTIONS</p>
             <div className="mv-result__actions">
               <div className="mv-result__actions-row">
-                <a href={draft.resultVideo.video} download className="mv-result__action mv-result__action--primary">
+                <a href={draft.resultVideo.video} download className="mv-result__action">
                   <img src={icDownload} alt="" />
                   Download
                 </a>
@@ -185,14 +198,19 @@ function MVResultPage() {
                   <img src={icEdit} alt="" />
                   Edit MV
                 </a>
-                <a href="/mv-create" className="mv-result__action">
+                <button
+                  type="button"
+                  className="mv-result__action"
+                  onClick={() => requireSignIn(() => { window.location.href = '/mv-create' })}
+                >
                   <img src={icVideoAi} alt="" />
                   Recreate
-                </a>
+                </button>
               </div>
             </div>
 
             <div className="mv-result__publish">
+              <span className="mv-result__publish-icon" style={maskStyle(icPublish)} aria-hidden="true" />
               <div className="mv-result__publish-text">
                 <p className="mv-result__publish-title">Publish</p>
                 <p className="mv-result__publish-state">{publish ? 'On' : 'Off'}</p>

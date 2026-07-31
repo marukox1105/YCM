@@ -3,6 +3,8 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
+import FloatingCTA from '../../components/FloatingCTA/FloatingCTA'
+import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import Tabs from '../../components/Tabs/Tabs'
 import Chip from '../../components/Chip/Chip'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
@@ -25,6 +27,10 @@ import icPause from '../../assets/icons/ic_pause.svg'
 import icSkipBack from '../../assets/icons/ic_skip_back.svg'
 import icSkipForward from '../../assets/icons/ic_skip_forward.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
+import icDownload from '../../assets/icons/ic_download.svg'
+import icSpeakerOn from '../../assets/icons/ic_speaker_on.svg'
+import icSpeakerOff from '../../assets/icons/ic_speaker_off.svg'
+import icPublish from '../../assets/icons/ic_publish.svg'
 import './SongCreatePage.css'
 
 // Figma "AI Song — Feature Room" (Simple/Custom states, nodes 1351:28869,
@@ -38,6 +44,7 @@ type SongMode = 'Simple' | 'Custom'
 const GENRES = ['Pop', 'R&B', 'Electronic', 'Hip-Hop', 'Acoustic', 'Jazz', 'Classical', 'Lo-fi']
 const MOODS = ['Uplifting', 'Melancholic', 'Romantic', 'Energetic', 'Calm', 'Dark']
 const VOCALS = ['Male', 'Female']
+const SHOW_SONG_LENGTH = false
 
 // Canned mock text for the "Idea"/"Lyrics" generate buttons — no real AI call.
 const IDEA_SUGGESTIONS = [
@@ -156,9 +163,7 @@ function SongProcessing({ onComplete }: { onComplete: () => void }) {
         <p className="song-processing__status">{PROCESSING_STATUS_MESSAGES[statusIndex]}</p>
       </div>
 
-      {/* No History page exists yet — same "#" stand-in Sidebar already uses
-          for that nav item, not a guessed destination. */}
-      <a href="#" className="song-processing__view-later">
+      <a href="/history" className="song-processing__view-later">
         View Later
       </a>
     </div>
@@ -176,6 +181,9 @@ function SongProcessing({ onComplete }: { onComplete: () => void }) {
 // app's existing RoomNavbar/MobileHeader chrome, which stays visible here
 // the same way it did through the Processing stage.
 function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecreate: () => void }) {
+  const [playlist] = useState(() => [song, ...MY_CREATIONS.filter((creation) => creation.id !== song.id)])
+  const [activeSongIndex, setActiveSongIndex] = useState(0)
+  const activeSong = playlist[activeSongIndex]
   const audioRef = useRef<HTMLAudioElement>(null)
   const progressRef = useRef<HTMLDivElement>(null)
   const [playing, setPlaying] = useState(true)
@@ -184,16 +192,43 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
   const [duration, setDuration] = useState(0)
   const [showLyrics, setShowLyrics] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [volume, setVolume] = useState(1)
+  const [muted, setMuted] = useState(false)
+  const [publish, setPublish] = useState(false)
 
   useEffect(() => {
-    audioRef.current?.play().catch(() => {})
-  }, [])
+    const audio = audioRef.current
+    if (!audio) return
+    setCurrentTime(0)
+    setDuration(0)
+    setLiked(false)
+    audio.currentTime = 0
+    audio.load()
+    audio.play().catch(() => {})
+  }, [activeSong.id])
 
   function togglePlay() {
     const audio = audioRef.current
     if (!audio) return
     if (audio.paused) audio.play()
     else audio.pause()
+  }
+
+  function toggleMute() {
+    const audio = audioRef.current
+    if (!audio) return
+    const nextMuted = !muted
+    audio.muted = nextMuted
+    setMuted(nextMuted)
+  }
+
+  function handleVolumeChange(nextVolume: number) {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.volume = nextVolume
+    audio.muted = nextVolume === 0
+    setVolume(nextVolume)
+    setMuted(nextVolume === 0)
   }
 
   function seekFromClientX(clientX: number) {
@@ -218,9 +253,20 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
     window.addEventListener('pointerup', handleUp)
   }
 
+  function selectSong(index: number) {
+    if (index === activeSongIndex) {
+      const audio = audioRef.current
+      if (!audio) return
+      audio.currentTime = 0
+      audio.play().catch(() => {})
+      return
+    }
+    setActiveSongIndex(index)
+  }
+
   const progressRatio = duration ? currentTime / duration : 0
 
-  const lyricLines = song.lyricLines.length ? song.lyricLines : FALLBACK_LYRICS
+  const lyricLines = activeSong.lyricLines.length ? activeSong.lyricLines : FALLBACK_LYRICS
   const activeLineIndex = Math.min(
     lyricLines.length - 1,
     Math.floor((duration ? currentTime / duration : 0) * lyricLines.length),
@@ -240,13 +286,13 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
             Figma's oversized/offset source layer. Desktop-only (≥1024px):
             the mobile Result frame (node 50:84) has no such panel/backdrop,
             so mobile keeps its existing plain background untouched. */}
-        <img src={song.cover} alt="" className="song-result__bg" aria-hidden="true" />
+        <img src={activeSong.cover} alt="" className="song-result__bg" aria-hidden="true" />
         <div className="song-result__bg-overlay" aria-hidden="true" />
 
         <div className="song-result__content">
           <audio
             ref={audioRef}
-            src={song.audio}
+            src={activeSong.audio}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
@@ -254,14 +300,14 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
           />
 
           <div className="song-result__player">
-            <div className="song-result__art">
-              <img src={song.cover} alt="" />
+            <div className={`song-result__art${playing ? ' song-result__art--playing' : ''}`}>
+              <img src={activeSong.cover} alt="" />
             </div>
 
             <div className="song-result__controller">
               <div className="song-result__meta-row">
                 <div className="song-result__meta">
-                  <p className="song-result__title">{song.title}</p>
+                  <p className="song-result__title">{activeSong.title}</p>
                 </div>
 
                 <div className="song-result__actions">
@@ -276,11 +322,44 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
                   <button
                     type="button"
                     className="song-result__icon-btn"
-                    onClick={() => shareOrOpenDialog(song.title, () => setShareOpen(true))}
+                    onClick={() => shareOrOpenDialog(activeSong.title, () => setShareOpen(true))}
                     aria-label="Share"
                   >
                     <span className="song-result__icon" style={maskStyle(icShare)} aria-hidden="true" />
                   </button>
+                  <a
+                    href={activeSong.audio}
+                    download
+                    className="song-result__icon-btn song-result__icon-btn--desktop"
+                    aria-label="Download"
+                  >
+                    <span className="song-result__icon" style={maskStyle(icDownload)} aria-hidden="true" />
+                  </a>
+                  <div className="song-result__volume song-result__icon-btn--desktop">
+                    <div className="song-result__volume-slider">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={muted ? 0 : volume}
+                        onChange={(event) => handleVolumeChange(Number(event.target.value))}
+                        aria-label="Volume"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="song-result__icon-btn"
+                      onClick={toggleMute}
+                      aria-label={muted ? 'Unmute' : 'Mute'}
+                    >
+                      <span
+                        className="song-result__icon"
+                        style={maskStyle(muted || volume === 0 ? icSpeakerOff : icSpeakerOn)}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
                   {/* Mobile only — desktop shows lyrics inline instead of behind
                       a toggle (see .song-result__side-panel below). */}
                   <button
@@ -305,13 +384,25 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
               </div>
 
               <div className="song-result__transport">
-                <button type="button" className="song-result__transport-btn" disabled aria-label="Previous">
+                <button
+                  type="button"
+                  className="song-result__transport-btn"
+                  disabled={activeSongIndex === 0}
+                  onClick={() => selectSong(activeSongIndex - 1)}
+                  aria-label="Previous"
+                >
                   <span className="song-result__transport-icon" style={maskStyle(icSkipBack)} aria-hidden="true" />
                 </button>
                 <button type="button" className="song-result__play" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
                   <span className="song-result__play-icon" style={maskStyle(playing ? icPause : icPlay)} aria-hidden="true" />
                 </button>
-                <button type="button" className="song-result__transport-btn" disabled aria-label="Next">
+                <button
+                  type="button"
+                  className="song-result__transport-btn"
+                  disabled={activeSongIndex === playlist.length - 1}
+                  onClick={() => selectSong(activeSongIndex + 1)}
+                  aria-label="Next"
+                >
                   <span className="song-result__transport-icon" style={maskStyle(icSkipForward)} aria-hidden="true" />
                 </button>
               </div>
@@ -346,6 +437,15 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
                 Recreate
               </button>
             </div>
+
+            <div className="song-result__publish">
+              <span className="song-result__publish-icon" style={maskStyle(icPublish)} aria-hidden="true" />
+              <div className="song-result__publish-text">
+                <p className="song-result__publish-title">Publish</p>
+                <p className="song-result__publish-state">{publish ? 'On' : 'Off'}</p>
+              </div>
+              <ToggleSwitch checked={publish} onChange={setPublish} />
+            </div>
           </div>
         </div>
       </div>
@@ -359,17 +459,22 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
       <div className="song-result__creations">
         <p className="song-result__creations-title">My Creations</p>
         <div className="song-result__creations-grid">
-          {MY_CREATIONS.map((creation) => (
-            <a key={creation.id} href={`/song-detail?id=${creation.id}`} className="song-result__creations-item">
+          {playlist.map((creation, index) => (
+            <button
+              key={creation.id}
+              type="button"
+              className={`song-result__creations-item${index === activeSongIndex ? ' song-result__creations-item--active' : ''}`}
+              onClick={() => selectSong(index)}
+            >
               <ListItem title={creation.title} coverImage={creation.cover} plays={0} likes={0} shares={0} />
-            </a>
+            </button>
           ))}
         </div>
       </div>
 
       {showLyrics && (
         <SongResultLyrics
-          song={song}
+          song={activeSong}
           currentTime={currentTime}
           duration={duration}
           playing={playing}
@@ -378,7 +483,7 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
         />
       )}
 
-      <ShareDialog title={song.title} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
+      <ShareDialog title={activeSong.title} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   )
 }
@@ -466,6 +571,7 @@ function SongResultLyrics({
 }
 
 function SongCreatePage() {
+  const { requireSignIn } = useAuth()
   const [stage, setStage] = useState<'form' | 'processing' | 'result'>('form')
   const [resultSong, setResultSong] = useState<(typeof SONGS)[number] | null>(null)
   const [mode, setMode] = useState<SongMode>('Simple')
@@ -479,6 +585,7 @@ function SongCreatePage() {
   // Custom panel state
   const [instrumentalCustom, setInstrumentalCustom] = useState(false)
   const [lyricsText, setLyricsText] = useState('')
+  const [instrumentalText, setInstrumentalText] = useState('')
   const [genre, setGenre] = useState('Pop')
   const [mood, setMood] = useState('Uplifting')
   const [vocal, setVocal] = useState<string | null>(null)
@@ -588,8 +695,34 @@ function SongCreatePage() {
                 <ToggleSwitch label="Instrumental" checked={instrumentalCustom} onChange={setInstrumentalCustom} />
               </div>
 
-              {!instrumentalCustom && (
-                <div className={`song-create__input-box${isEnhancing('lyrics') ? ' song-create__input-box--processing' : ''}`}>
+              <div className={`song-create__input-box${isEnhancing('lyrics') ? ' song-create__input-box--processing' : ''}`}>
+                {instrumentalCustom ? (
+                  <>
+                    <textarea
+                      className="song-create__textarea"
+                      placeholder={'Describe the mood or vibe of your instrumental…\n\nNo lyrics needed — AI will create a pure instrumental track.'}
+                      maxLength={2500}
+                      value={instrumentalText}
+                      onChange={(e) => setInstrumentalText(e.target.value)}
+                    />
+                    <div className="song-create__input-footer">
+                      <div className="song-create__input-actions">
+                        <button
+                          type="button"
+                          className="song-create__idea-btn"
+                          onClick={() => setInstrumentalText(pickRandom(IDEA_SUGGESTIONS))}
+                        >
+                          <span className="song-create__idea-icon" style={maskStyle(icLightbulb)} aria-hidden="true" />
+                          Idea
+                        </button>
+                      </div>
+                      <div className="song-create__footer-right">
+                        <span className="song-create__char-count">{instrumentalText.length}/2500</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
                   <textarea
                     className="song-create__textarea"
                     placeholder="Write your lyrics here... Or leave blank — AI will generate them based on your chosen style and mood."
@@ -649,8 +782,9 @@ function SongCreatePage() {
                       )}
                     </div>
                   </div>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
 
               <div className="song-create__style">
                 <p className="song-create__label">STYLE</p>
@@ -690,8 +824,7 @@ function SongCreatePage() {
                 </div>
               </div>
 
-              {/* Only relevant once there's no lyrics driving the song's natural length. */}
-              {instrumentalCustom && (
+              {SHOW_SONG_LENGTH && (
                 <div className="song-create__length">
                   <p className="song-create__label">SONG LENGTH</p>
                   <div className="song-create__length-card">
@@ -733,18 +866,20 @@ function SongCreatePage() {
             </div>
           )}
 
-          <button
-            type="button"
-            className={`song-create__cta${canCreate ? ' song-create__cta--active' : ''}`}
-            disabled={!canCreate}
-            onClick={() => setStage('processing')}
-          >
-            <span>Create Song</span>
-            <span className="song-create__cta-credits">
-              <img src={icCredit} alt="" className="song-create__cta-credit-icon" />
-              10
-            </span>
-          </button>
+          <FloatingCTA alignToParent>
+            <button
+              type="button"
+              className={`song-create__cta${canCreate ? ' song-create__cta--active' : ''}`}
+              disabled={!canCreate}
+              onClick={() => requireSignIn(() => setStage('processing'))}
+            >
+              <span>Create Song</span>
+              <span className="song-create__cta-credits">
+                <img src={icCredit} alt="" className="song-create__cta-credit-icon" />
+                10
+              </span>
+            </button>
+          </FloatingCTA>
             </>
           )}
         </div>
@@ -759,7 +894,7 @@ function SongCreatePage() {
             <div className="song-create__side-list">
               {MY_CREATIONS.map((song) => (
                 <a key={song.id} href={`/song-detail?id=${song.id}`} className="song-create__side-item">
-                  <ListItem title={song.title} coverImage={song.cover} username="ScottWu" plays={0} likes={0} shares={0} cta />
+                  <ListItem title={song.title} coverImage={song.cover} username="ScottWu" plays={0} likes={0} shares={0} />
                 </a>
               ))}
             </div>

@@ -45,6 +45,8 @@ src/
   data/               Mock data assembled from real asset files via import.meta.glob
                      (songs.ts, musicVideos.ts). No manual re-registration needed when new
                      asset folders are added that match the existing naming pattern.
+                     storyboardClips.ts assembles the storyboard media catalog used by
+                     Edit MV and Storyboard screens.
                      mvDraft.ts is different: a sessionStorage-backed draft object that
                      bridges state between separately-routed MV Create/Storyboard/Result/
                      Edit pages, since routing here is full-page navigation, not client-side
@@ -67,9 +69,12 @@ src/
 Routing today (`src/App.tsx`): `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
 `/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
 MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
-`/mv-edit*` → MVEditPage, `/components*` → ComponentsPage (internal style-guide page, not
-part of the product), anything else → a plain fallback placeholder. `vercel.json` rewrites
-all paths to `/index.html` so these routes survive a hard refresh/deep link on Vercel.
+`/mv-edit*` → MVEditPage, `/history*` → HistoryPage, `/blog*` → BlogPage concept 1,
+`/blog3*` → BlogPage concept 3, and `/components*` → ComponentsPage (internal style-guide
+page, not part of the product). Anything else → a plain fallback placeholder.
+`vercel.json` rewrites all paths to `/index.html` so these routes survive a hard
+refresh/deep link on Vercel. `AppRoutes` is wrapped by `AuthProvider`, which supplies the
+prototype-only signed-in state and global LoginModal.
 
 ## Coding and naming conventions
 
@@ -104,8 +109,11 @@ all paths to `/index.html` so these routes survive a hard refresh/deep link on V
 | Button | Pill CTA button — sizes Large/Medium/Small, variants Primary/PrimaryPayg/Secondary/Tertiary/Ghost, optional icon + credits badge |
 | Card | Video/song grid card — Video (3:4 or 4:3) or Song (1:1), community vs. own-content variants, play/pause, favorite, badge |
 | Chip | Small selectable pill (Genre/Mood/Vocal pickers on Song Create) |
+| AuthProvider | App-wide prototype auth context — session-scoped mock sign-in state, global LoginModal, and `requireSignIn()` gate for generate/recreate actions |
+| CreditBalance | Shared signed-in credit pill used by marketing, room, and detail navbars |
 | DetailNavbar | Sticky detail-page header — back button, credits, optional slotted second row for tabs |
 | Footer | Site footer — brand/tagline + Studio/Company link columns (mock links) |
+| FloatingCTA | Fixed-bottom CTA shell with a layout spacer, optional parent-column alignment, and automatic footer avoidance |
 | IconButton | Icon-only button — sizes Large/Medium/Small/XSmall, variants Primary/Secondary/Tertiary/Ghost |
 | ListItem | List row for songs/videos — `variant="community"` (avatar/stats/actions, narrow-vs-wide layout driven by a CSS container query on its own rendered width, not viewport) or `variant="song"` (subtitle + chevron, used in My Creations) |
 | LoginModal | Mobile bottom-sheet / desktop dialog sign-in mock — Apple/Google buttons, mocked "signed in" success stage, no real auth |
@@ -161,6 +169,9 @@ Rules that must hold at every tier (not just at 1440, the design baseline):
 - Images/video support landscape, portrait, and square source material without stretching
 - Layout re-flows (column count, nav treatment, component widths) — never just a scaled-down
   copy of the desktop layout
+- Primary large generate CTAs on long creation forms use `FloatingCTA`: align to the form
+  column rather than the whole viewport, reserve the full overlay height with its spacer,
+  and move above the Footer instead of covering content.
 
 ## Rules for modifying this project
 

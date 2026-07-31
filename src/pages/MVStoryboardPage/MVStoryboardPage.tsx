@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
+import FloatingCTA from '../../components/FloatingCTA/FloatingCTA'
+import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import { loadMvDraft, MOCK_LYRICS, MOCK_SCENES, MOCK_STORY, MOCK_VISUAL_STYLE } from '../../data/mvDraft'
 import { SONGS } from '../../data/songs'
-import icEdit from '../../assets/icons/ic_edit.svg'
 import icEditAi from '../../assets/icons/ic_edit_ai.svg'
 import icRefresh from '../../assets/icons/ic_refresh.svg'
 import icChevronRight from '../../assets/icons/ic_chevron-right.svg'
@@ -14,6 +15,9 @@ import icPlay from '../../assets/icons/ic_play.svg'
 import icPause from '../../assets/icons/ic_pause.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
 import icScript from '../../assets/icons/ic_script.svg'
+import icClose from '../../assets/icons/ic_close.svg'
+import icDownload from '../../assets/icons/ic_download.svg'
+import storyboardClip1 from '../../assets/covers/storyboard-clips/clip_1.jpg'
 import './MVStoryboardPage.css'
 
 // Figma "Edit Storyboard_L" (node 1344:26880). Flow/behavior reference is
@@ -23,16 +27,18 @@ import './MVStoryboardPage.css'
 // and lyrics themselves are fixed mock content (Figma's own "Starlight In
 // Your Eyes" mock), not derived from what the user actually typed.
 //
-// Visual Style/Story are shown as plain read-only cards (the edit pencil is
-// decorative) — the reference HTML opens a full editor sheet for these, but
-// Figma's own desktop frame just shows a static card with a pencil icon, no
-// visible edit affordance beyond that. The 4 Scene cards ARE real editable
-// textareas (Figma explicitly shows them as an Input Box with char count +
-// Enhance), since that's the page's actual point: reviewing/adjusting the
-// storyboard before rendering.
+// Visual Style and the 4 Scene cards use the same editable Input Box with
+// char count + Enhance pattern; Story remains a plain read-only summary.
 
 function maskStyle(src: string): CSSProperties {
   return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
+}
+
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = Math.floor(seconds % 60)
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
 const STORYBOARD_PROCESSING_DURATION_MS = 3000
@@ -82,9 +88,7 @@ function MVStoryboardProcessing({ onComplete }: { onComplete: () => void }) {
         <p className="mv-storyboard-processing__eta-value">~1 minute</p>
       </div>
 
-      {/* No History page exists yet — same "#" stand-in Sidebar/Song
-          Processing already use, not a guessed destination. */}
-      <a href="#" className="mv-storyboard-processing__view-later">
+      <a href="/history" className="mv-storyboard-processing__view-later">
         View Later
       </a>
     </div>
@@ -92,17 +96,31 @@ function MVStoryboardProcessing({ onComplete }: { onComplete: () => void }) {
 }
 
 function MVStoryboardPage() {
+  const { requireSignIn } = useAuth()
   const draft = loadMvDraft()
   const [stage, setStage] = useState<'processing' | 'edit'>('processing')
   // Imported-audio titles won't have a matching catalog entry — fall back
   // to the first song rather than leaving the preview silent.
   const songAudio = SONGS.find((song) => song.title === draft.songTitle)?.audio ?? SONGS[0]?.audio
 
+  const [visualStyle, setVisualStyle] = useState(MOCK_VISUAL_STYLE)
   const [scenes, setScenes] = useState(MOCK_SCENES.map((scene) => scene.text))
   const { isEnhancing, enhance } = useEnhance()
   const [storylineExpanded, setStorylineExpanded] = useState(true)
   const [songPlaying, setSongPlaying] = useState(false)
+  const [songCurrentTime, setSongCurrentTime] = useState(0)
+  const [songDuration, setSongDuration] = useState(0)
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false)
   const songAudioRef = useRef<HTMLAudioElement>(null)
+
+  useEffect(() => {
+    if (!imagePreviewOpen) return
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setImagePreviewOpen(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [imagePreviewOpen])
 
   function updateScene(index: number, value: string) {
     setScenes((current) => current.map((text, i) => (i === index ? value : text)))
@@ -125,9 +143,36 @@ function MVStoryboardPage() {
         <div className="mv-storyboard__panel">
           <div className="mv-storyboard__section">
             <p className="mv-storyboard__label">VISUAL STYLE</p>
-            <div className="mv-storyboard__display-card">
-              <p className="mv-storyboard__display-text">{MOCK_VISUAL_STYLE}</p>
-              <span className="mv-storyboard__display-edit" style={maskStyle(icEdit)} aria-hidden="true" />
+            <div
+              className={`mv-storyboard__input-box${isEnhancing('visual-style') ? ' mv-storyboard__input-box--processing' : ''}`}
+            >
+              <textarea
+                className="mv-storyboard__textarea"
+                maxLength={2500}
+                value={visualStyle}
+                onChange={(e) => setVisualStyle(e.target.value)}
+                disabled={isEnhancing('visual-style')}
+              />
+              <div className="mv-storyboard__input-footer">
+                <button
+                  type="button"
+                  className="mv-storyboard__enhance-btn"
+                  onClick={() =>
+                    enhance('visual-style', () =>
+                      setVisualStyle(`${visualStyle} Refined with cinematic lighting and cohesive visual details.`),
+                    )
+                  }
+                  disabled={isEnhancing('visual-style')}
+                  aria-label="Enhance"
+                >
+                  <span
+                    className={`mv-storyboard__enhance-icon${isEnhancing('visual-style') ? ' mv-storyboard__enhance-icon--spinning' : ''}`}
+                    style={maskStyle(isEnhancing('visual-style') ? icRefresh : icEditAi)}
+                    aria-hidden="true"
+                  />
+                </button>
+                <span className="mv-storyboard__char-count">{visualStyle.length}/2500</span>
+              </div>
             </div>
           </div>
 
@@ -171,7 +216,6 @@ function MVStoryboardPage() {
                         disabled={isEnhancing(`scene-${index}`)}
                       />
                       <div className="mv-storyboard__input-footer">
-                        <span className="mv-storyboard__char-count">{scenes[index].length}/2500</span>
                         <button
                           type="button"
                           className="mv-storyboard__enhance-btn"
@@ -189,6 +233,7 @@ function MVStoryboardPage() {
                             aria-hidden="true"
                           />
                         </button>
+                        <span className="mv-storyboard__char-count">{scenes[index].length}/2500</span>
                       </div>
                     </div>
                   </div>
@@ -197,20 +242,41 @@ function MVStoryboardPage() {
             )}
           </div>
 
-          <a href="/mv-result" className="mv-storyboard__cta">
-            <span>Create MV</span>
-            <span className="mv-storyboard__cta-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
-          </a>
+          <FloatingCTA alignToParent>
+            <button
+              type="button"
+              className="mv-storyboard__cta"
+              onClick={() => requireSignIn(() => {
+                window.location.href = '/mv-result'
+              })}
+            >
+              <span>Create MV</span>
+              <span className="mv-storyboard__cta-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
+            </button>
+          </FloatingCTA>
         </div>
 
         <div className="mv-storyboard__side">
           <div className="mv-storyboard__section">
             <p className="mv-storyboard__label">CHARACTER IMAGE</p>
             <div className="mv-storyboard__char-image">
-              <img src={draft.characterPhoto} alt="" />
-              <span className="mv-storyboard__char-expand" aria-hidden="true">
+              <img src={storyboardClip1} alt="Storyboard character" className="mv-storyboard__char-photo" />
+              <a
+                href={storyboardClip1}
+                download="clip_1.jpg"
+                className="mv-storyboard__char-download"
+                aria-label="Download character image"
+              >
+                <img src={icDownload} alt="" />
+              </a>
+              <button
+                type="button"
+                className="mv-storyboard__char-expand"
+                onClick={() => setImagePreviewOpen(true)}
+                aria-label="Expand character image"
+              >
                 <img src={icExpand} alt="" />
-              </span>
+              </button>
             </div>
           </div>
 
@@ -222,6 +288,13 @@ function MVStoryboardPage() {
                 src={songAudio}
                 onPlay={() => setSongPlaying(true)}
                 onPause={() => setSongPlaying(false)}
+                onLoadedMetadata={(event) => setSongDuration(event.currentTarget.duration)}
+                onDurationChange={(event) => setSongDuration(event.currentTarget.duration)}
+                onTimeUpdate={(event) => setSongCurrentTime(event.currentTarget.currentTime)}
+                onEnded={() => {
+                  setSongPlaying(false)
+                  setSongCurrentTime(0)
+                }}
               />
               <button type="button" className="mv-storyboard__song-art" onClick={toggleSongPlay}>
                 <img src={draft.songCover} alt="" />
@@ -232,7 +305,19 @@ function MVStoryboardPage() {
                   aria-hidden="true"
                 />
               </button>
-              <p className="mv-storyboard__song-title">{draft.songTitle}</p>
+              <div className="mv-storyboard__song-info">
+                <p className="mv-storyboard__song-title">{draft.songTitle}</p>
+                <p className="mv-storyboard__song-duration">
+                  {songPlaying ? (
+                    <>
+                      <span className="mv-storyboard__song-current-time">{formatTime(songCurrentTime)}</span>
+                      <span>{` / ${formatTime(songDuration)}`}</span>
+                    </>
+                  ) : (
+                    formatTime(songDuration)
+                  )}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -251,6 +336,28 @@ function MVStoryboardPage() {
           </>
         )}
       </div>
+
+      {imagePreviewOpen && (
+        <div
+          className="mv-storyboard__image-preview-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Character image preview"
+          onClick={() => setImagePreviewOpen(false)}
+        >
+          <div className="mv-storyboard__image-preview" onClick={(event) => event.stopPropagation()}>
+            <img src={storyboardClip1} alt="Storyboard character enlarged" />
+            <button
+              type="button"
+              className="mv-storyboard__image-preview-close"
+              onClick={() => setImagePreviewOpen(false)}
+              aria-label="Close image preview"
+            >
+              <img src={icClose} alt="" />
+            </button>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

@@ -10,6 +10,7 @@ import './LoginModal.css'
 interface LoginModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 type Provider = 'Apple' | 'Google'
@@ -28,7 +29,7 @@ const SUCCESS_DURATION_MS = 1800
 // UI-only prototype — no backend to authenticate against, so both buttons
 // are a mock stand-in: clicking one shows the success state (matching
 // Figma's mock name "Scott"), then auto-closes.
-function LoginModal({ isOpen, onClose }: LoginModalProps) {
+function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [provider, setProvider] = useState<Provider | null>(null)
 
   useEffect(() => {
@@ -88,11 +89,25 @@ function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
 
           <div className="login-modal__buttons">
-            <button type="button" className="login-modal__social" onClick={() => setProvider('Apple')}>
+            <button
+              type="button"
+              className="login-modal__social"
+              onClick={() => {
+                setProvider('Apple')
+                onSuccess?.()
+              }}
+            >
               <img src={icAppleLogo} alt="" className="login-modal__social-icon" />
               Continue with Apple
             </button>
-            <button type="button" className="login-modal__social" onClick={() => setProvider('Google')}>
+            <button
+              type="button"
+              className="login-modal__social"
+              onClick={() => {
+                setProvider('Google')
+                onSuccess?.()
+              }}
+            >
               <img src={icGoogleLogo} alt="" className="login-modal__social-icon" />
               Continue with Google
             </button>

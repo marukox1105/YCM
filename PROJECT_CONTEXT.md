@@ -25,6 +25,100 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
+## Current checkpoint — 2026-07-31
+
+Latest committed checkpoint before this working tree:
+`896048f` — "Add AI Music Video flow (Create/Storyboard/Result/Edit), rebuild ListItem,
+add shared Enhance hook" (2026-07-30).
+
+### Work completed since that checkpoint
+
+- Refined Home interactions: Tool Selector default/hover typography and circular action;
+  New Music Videos and Top Picks horizontal navigation, reverse arrows, hidden scrollbars,
+  and additional mock items; Hero thumbnail auto-scroll now uses local `scrollTo()`
+  calculations so it never moves the whole document, and first/last items retain their
+  edge padding.
+- Standardized Large buttons globally to bold typography and 16px horizontal padding;
+  desktop Primary/PrimaryPayg buttons have a 230px minimum width.
+- Added `FloatingCTA` and applied it to Song Create, MV Create, Storyboard, and Edit MV.
+  It aligns to the form column, reserves the full overlay height in layout, and raises
+  above the Footer instead of obscuring the last fields.
+- Expanded Song Create/Result: Song Length is intentionally hidden in both Instrumental
+  states; the result player uses a responsive 542:442 baseline ratio, circular
+  rotating-while-playing art, current/total time, playlist-based previous/next, download,
+  Publish, and a vertical volume slider whose icon and slider share a stable hover target.
+  My Creations is a full-width two-column list below the player and swaps the active song
+  in place rather than navigating away.
+- Refined the MV creation flow: responsive 700:332 create layout, contain-fit user
+  uploads, corrected popup/header/processing states, storyboard image preview/download
+  and song timing, and responsive 700px media column on MV Result.
+- Expanded Edit MV to use the real storyboard videos 1–11, horizontal thumbnail history
+  with an edge gradient, download/fullscreen/volume controls, scene-specific prompt text,
+  disabled Recreate when unchanged or empty, and appended/selected mock generations after
+  Recreate.
+- Added `AuthProvider` and `CreditBalance`. Unsigned users see Login rather than credits;
+  Start for Free opens MV Create; generate/recreate actions call `requireSignIn()` and
+  open one global LoginModal. Mock sign-in persists in `sessionStorage` for the current
+  browser session only.
+- Added the current grid-based History page (`/history`) with All/Music Videos/Songs/Liked
+  tabs, done/generating/failed/storyboard-ready states, Create MV, and an action menu.
+- Added Blog concepts 1 and 3 (`/blog1`, `/blog3`); the discarded Blog 2 concept and
+  exploratory History alternatives were removed. Blog category controls are slotted into
+  the sticky first-layer header. Every category has complete feature, Trending Now, and
+  grid data. Cards use Neutral/Dark/09 and image-only hover scaling.
+- Added storyboard media catalogs under `src/assets/covers/storyboard-clips/` and
+  `src/assets/storyboard-clips/`, assembled by `src/data/storyboardClips.ts`.
+
+### Pages and shared components changed
+
+- Pages: Home, Song Create/Result, MV Create, MV Storyboard, MV Result, MV Edit, History,
+  Blog 1/3, plus manual routing in `src/App.tsx`.
+- Shared components: Button, DetailNavbar, LoginModal, Navbar, RoomNavbar, Sidebar.
+- New shared components: AuthProvider, CreditBalance, FloatingCTA.
+- New mock-data module: `src/data/storyboardClips.ts`.
+
+### Important implementation decisions
+
+- Auth remains prototype-only and centralized: no API/OAuth. `AuthProvider` owns one
+  LoginModal and exposes `openSignIn()` / `requireSignIn()`.
+- Long-form generate CTAs must use `FloatingCTA`; fixed positioning alone is not
+  sufficient because it covers fields and the Footer.
+- Song Length is retained in code but gated with `SHOW_SONG_LENGTH = false` for the
+  current product phase, regardless of Instrumental state.
+- History and Blog are now formal routed screens. Blog shares one catalog across both
+  retained concepts; category filtering must still leave enough records for every layout
+  region.
+- Home Hero keeps one real thumbnail list. Do not use cloned infinite rails or
+  `scrollIntoView()`; both previously caused visible jumps or document scrolling.
+- New storyboard media is registered through `storyboardClips.ts`; do not hand-maintain a
+  second parallel array inside a page.
+
+### Known issues and unfinished items
+
+- MV/Song Detail Back still defaults to Home. The approved but unimplemented solution is
+  to add and preserve `from=home|mv-create|song-create` in entry/detail links and derive
+  `DetailNavbar.backHref` from it.
+- Trim Audio still needs the inspected Figma node `90:1600` precision pass: fixed 45-bar
+  geometry, handle grips/hit areas, selection geometry, and a moving playhead. The current
+  trimmer remains interactive but visually approximate.
+- Song Result/Lyrics and the newest MV Result/Edit refinements still benefit from a final
+  pixel-by-pixel Figma pass at all six responsive tiers.
+- No automated test suite exists; verification is build/type-check plus manual browser
+  checks.
+- The working tree contains tracked deletions of older top-level cover assets. These are
+  separate from `src/assets/covers/Ｘ/` and must be explicitly reviewed before staging.
+- `src/assets/covers/Ｘ/` is an untracked manual holding area owned by the product owner.
+  Do not inspect, stage, delete, move, rename, restore, or duplicate its contents without
+  a new explicit instruction.
+
+### Recommended next steps
+
+1. Implement the agreed MV/Song Detail Back-origin query parameter flow.
+2. Apply the inspected Figma node `90:1600` trimmer geometry/playhead pass.
+3. Do a six-width visual pass over the newly refined Song Result and MV flow.
+4. Confirm whether the tracked top-level cover deletions belong in the next commit; keep
+   the untracked `Ｘ/` folder excluded either way.
+
 ## Pages and features completed
 
 **HomePage** (`/` or `/home`) — landing page:
@@ -57,7 +151,8 @@ elaborate flow, reachable from Home's "AI Song Composer" card and the Sidebar's 
 link:
 - **Simple** mode: idea textarea + Instrumental toggle + Idea (suggestion) button + char
   count; **Custom** mode: lyrics textarea + Idea/Lyrics generate buttons + Genre/Mood/Vocal
-  chip pickers + Song Length slider (instrumental only) + optional Song Title field.
+  chip pickers + optional Song Title field. Song Length is retained for a later phase but
+  hidden in the current UI in both Instrumental states.
 - Both textareas grow an Enhance ("polish this text") button and a Clear (×) button once
   they have a value, matching a specific Figma micro-state (node 1357:30384).
 - "Create Song" CTA (disabled until valid input in Simple mode; always enabled in Custom).
@@ -143,9 +238,8 @@ tests exist; verification throughout this project has been manual — browser ch
 spot-checked mainly at 1440px/375px via direct DOM/JS assertions, since the browser
 screenshot tool was unreliable for parts of this session — see Known issues).
 
-Latest commit on `main` before this handoff: `33f47ee` — "Add AGENTS.md and
-PROJECT_CONTEXT.md for agent handoff". This handoff's own commit (see the log below) adds
-the entire AI Music Video flow described above on top of that.
+The authoritative latest-commit marker for the current checkpoint is recorded near the top
+of this file. Older commit IDs in the dated logs below are historical handoff references.
 
 ## Important design decisions from this project's history
 
@@ -183,8 +277,9 @@ the entire AI Music Video flow described above on top of that.
   the thumbnail row three times back-to-back and silently recentered scroll position to
   fake an infinite loop — this had a padding-math bug that could show up as a visible gap
   during the silent recenter jump. It was replaced with a single real copy of the row plus
-  a `scrollIntoView` on the active thumbnail whenever selection changes (including the
-  wrap from last item back to first). Do not reintroduce the copy-and-recenter trick.
+  local horizontal `scrollTo()` calculations whenever selection changes. This avoids
+  `scrollIntoView()` moving the whole document and explicitly restores edge padding at the
+  first/last items. Do not reintroduce the copy-and-recenter trick.
 - **Figma access requires the user to re-authorize the MCP connection.** During the Song
   Result build, Figma's Dev Mode MCP was unavailable (needs interactive OAuth via `/mcp`).
   `SongResult`'s layout was built by closely mirroring the already-Figma-verified
@@ -230,16 +325,23 @@ the entire AI Music Video flow described above on top of that.
 - Stray `.DS_Store` files exist in several `src/assets` subfolders (harmless, gitignored,
   but worth a cleanup pass if the next agent wants a tidy diff sometime).
 - **`src/assets/covers/Ｘ/` (fullwidth-X folder name) exists on disk, untracked, and must
-  stay that way.** It's a set of ~29 duplicate/orphaned cover PNGs (the same
-  `album_*.png`/`mv_*.png` files already live, correctly, under `covers/New Music Videos/`
-  and are the only copies actually referenced via `import.meta.glob`) that the product owner
-  moved into this folder themselves as a manual "trash" step — they are **not** ready to be
-  deleted from the repo yet. Do not `git add` this folder, do not delete it, and do not
-  restore/duplicate these files elsewhere without the user's explicit go-ahead.
+  stay that way.** The product owner uses it as a manual holding area and has added more
+  files since the first audit. Do not inspect, `git add`, delete, move, rename, restore, or
+  duplicate anything in this folder without a new explicit request.
+- **Tracked top-level cover deletions are present in the current working tree.** They are
+  separate from the untracked `Ｘ/` folder and must be reviewed in the checkpoint file list
+  before staging; do not silently restore or stage them as part of unrelated UI work.
 - **Trim Audio doesn't actually trim anything.** The sheet has a real audio duration, a
   real draggable two-handle selection over a (decorative, Figma-sourced) waveform, and
   Confirm really does commit the song choice — but no audio processing happens; this is
   visual/interaction fidelity only, consistent with the rest of the app's mock-data scope.
+- **Trim Audio still needs the approved Figma-precision pass** for node `90:1600`: fixed
+  45-bar geometry, handle grips/hit areas, selection geometry, and a moving playhead were
+  inspected and planned but were not implemented before this checkpoint.
+- **Detail-page Back origin handling is not implemented yet.** MV/Song Detail still fall
+  back to `/home` when entered from the corresponding Create page's My Creations panel.
+  The agreed approach is to add and preserve `from=home|mv-create|song-create` query
+  parameters and derive `DetailNavbar.backHref` from them.
 - **MV Result / Storyboard / Edit MV were built once each, not yet re-verified against a
   fresh Figma pull in this same pass** the way MV Create's individual pieces were (Storyboard
   Processing, Templates sheet, Trim Audio, and the desktop popup convention were all built
@@ -361,3 +463,30 @@ the entire AI Music Video flow described above on top of that.
   `useEnhance` refactors, the Sidebar/App.tsx routing changes, and this documentation
   update — it deliberately excludes the cover-image deletions (restored, not staged) and
   does not touch the untracked `Ｘ/` folder.
+
+## Handoff Log — 2026-07-31
+
+- Refined Home interactions: Tool Selector visual states, horizontally scrollable New
+  Music Videos/Top Picks rows with correct two-way arrows and hidden scrollbars, more mock
+  content, and Hero thumbnail auto-scroll that retains first/last padding without moving
+  the document.
+- Standardized Large button typography/sizing and added the shared `FloatingCTA` used by
+  Song Create, MV Create, Storyboard, and Edit MV. Floating CTAs align to the form column,
+  reserve overlay space, and avoid the Footer.
+- Expanded Song Create/Result with the responsive player, rotating circular art, list-based
+  song selection/transport, Publish/download/volume interactions, and a full-width My
+  Creations list. Song Length is hidden in both Instrumental states for the current phase.
+- Refined MV Create/Storyboard/Result/Edit against the latest supplied frames, including
+  responsive 700:332 layouts, contain-fit uploads, storyboard image/song details, real
+  storyboard media 1–11, and prompt/recreate generation states.
+- Added the app-wide mock `AuthProvider`, shared `CreditBalance`, signed-out Login states,
+  session-scoped sign-in, Start for Free routing, and sign-in gating for generate/recreate
+  actions.
+- Added the formal History grid with All/Music Videos/Songs/Liked filters and mixed
+  completion states, plus retained Blog concepts 1/3 with sticky header tabs, complete
+  per-category article data, and History-style card hover treatment.
+- Added `storyboardClips.ts` and the associated cover/video assets. The working tree also
+  contains tracked deletions of older top-level covers; these must be explicitly reviewed
+  before staging. The separate untracked `src/assets/covers/Ｘ/` folder was not touched.
+- Left two approved follow-ups intentionally unfinished: source-aware MV/Song Detail Back
+  navigation and the Figma node `90:1600` trimmer precision pass.

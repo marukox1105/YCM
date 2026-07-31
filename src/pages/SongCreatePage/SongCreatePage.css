@@ -46,15 +46,18 @@
 
 @media (min-width: 1024px) {
   .song-create__panel {
-    width: 600px;
-    flex-shrink: 0;
+    flex: 700 1 0;
+    width: auto;
+    max-width: 700px;
   }
 
   /* Processing has no My Creations column beside it (see SongCreatePage.tsx)
      — the panel takes the full row and centers its content instead of
-     staying pinned to the form's fixed 600px width. */
+     staying pinned to the form's desktop width. */
   .song-create__panel--full {
+    flex: none;
     width: 100%;
+    max-width: none;
   }
 }
 
@@ -254,9 +257,14 @@
   padding: 4px 10px;
   border: none;
   border-radius: var(--radius-pill);
+  background: var(--neutral-dark-100);
+  color: var(--neutral-dark-04);
+  cursor: pointer;
+}
+
+.song-create__input-box--processing .song-create__enhance-btn {
   background: var(--color-accent-purple);
   color: var(--neutral-dark-100);
-  cursor: pointer;
 }
 
 .song-create__enhance-icon {
@@ -511,14 +519,14 @@
   min-width: 0;
 }
 
-/* Fixed width (not flex-grow) — matches Figma's "My Creations" instance
-   (432px) and SongDetailPage's Now Playing panel, rather than stretching
-   to fill the remaining row width. Sticky for the same reason Now Playing
+/* Desktop caps at 332px and shrinks in a 700:332 ratio with the form when
+   the available row is narrower. Sticky for the same reason Now Playing
    is: stays in view while the left panel's content scrolls past it. */
 @media (min-width: 1024px) {
   .song-create__side {
-    width: 432px;
-    flex-shrink: 0;
+    flex: 332 1 0;
+    width: auto;
+    max-width: 332px;
     align-self: flex-start;
     position: sticky;
     top: 100px;
@@ -552,10 +560,11 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-height: 683px;
+  height: 599px;
   overflow-y: auto;
+  scrollbar-width: none;
   box-sizing: border-box;
-  padding: 16px;
+  padding: 8px;
   border-radius: 26px;
   border: 1px solid var(--white-15);
   background: var(--black-60);
@@ -563,10 +572,18 @@
   -webkit-backdrop-filter: blur(2px);
 }
 
+.song-create__side-list::-webkit-scrollbar {
+  display: none;
+}
+
 .song-create__side-item {
   display: block;
   text-decoration: none;
   color: inherit;
+}
+
+.song-create__side-list .list-item__main {
+  gap: 12px;
 }
 
 /* =========================================================
@@ -700,6 +717,67 @@
   background: var(--neutral-dark-24);
 }
 
+@media (min-width: 1024px) {
+  .song-processing {
+    gap: 48px;
+    min-height: 520px;
+    padding: 80px 24px;
+  }
+
+  .song-processing__wave {
+    gap: 4px;
+    height: 76px;
+  }
+
+  .song-processing__wave-bar {
+    width: 8px;
+    height: calc(var(--peak-height) * 1.25);
+    border-radius: 4px;
+  }
+
+  .song-processing__message {
+    gap: 8px;
+    max-width: 440px;
+  }
+
+  .song-processing__title {
+    font-size: var(--font-title-l);
+    line-height: var(--line-height-title-l);
+    letter-spacing: -0.26px;
+  }
+
+  .song-processing__subtitle {
+    font-size: var(--font-body-l);
+    line-height: var(--line-height-body-l);
+    letter-spacing: -0.17px;
+  }
+
+  .song-processing__progress {
+    gap: 12px;
+    max-width: 360px;
+  }
+
+  .song-processing__progress-track {
+    height: 4px;
+  }
+
+  .song-processing__status {
+    font-size: var(--font-body-s);
+    line-height: 16px;
+    letter-spacing: 0;
+  }
+
+  .song-processing__view-later {
+    min-width: 230px;
+    padding: 0 16px;
+    border-radius: var(--radius-pill);
+    font-size: var(--font-title-xs);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-title-xs);
+    letter-spacing: 0;
+  }
+}
+
 /* =========================================================
  * Result — Figma "Song Result" (node 50:84, mobile) + desktop
  * reference "Song Result_L" (node 1614:76597). Same meta/progress/transport
@@ -734,6 +812,8 @@
 @media (min-width: 1024px) {
   .song-result {
     overflow: hidden;
+    max-width: none;
+    margin: 0 auto;
     padding: var(--spacing-24);
     border-radius: var(--radius-2xl);
     background: var(--neutral-dark-14);
@@ -771,7 +851,7 @@
   .song-result__content {
     flex-direction: row;
     align-items: stretch;
-    gap: var(--spacing-48);
+    gap: clamp(24px, 3.333vw, var(--spacing-48));
   }
 }
 
@@ -789,7 +869,7 @@
 
 @media (min-width: 1024px) {
   .song-result__player {
-    flex: 0 1 460px;
+    flex: 542 1 0;
     min-width: 0;
   }
 }
@@ -808,7 +888,7 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    flex: 1;
+    flex: 442 1 0;
     min-width: 0;
   }
 }
@@ -865,9 +945,21 @@
 .song-result__art {
   width: 200px;
   height: 200px;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-pill);
   overflow: hidden;
   box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.45);
+  animation: song-result-cover-spin 12s linear infinite;
+  animation-play-state: paused;
+}
+
+.song-result__art--playing {
+  animation-play-state: running;
+}
+
+@keyframes song-result-cover-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -888,7 +980,7 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 400px;
+  max-width: 542px;
 }
 
 .song-result__meta-row {
@@ -937,18 +1029,73 @@
   background: none;
   cursor: pointer;
   color: var(--neutral-dark-100);
+  text-decoration: none;
 }
 
 .song-result__icon-btn--active {
   color: var(--color-accent-purple);
 }
 
+.song-result__icon-btn--desktop {
+  display: none;
+}
+
 /* Desktop shows lyrics inline (.song-result__lyrics-inline) instead of
    behind this popup toggle — see .song-result__side-panel above. */
 @media (min-width: 1024px) {
+  .song-result__icon-btn--desktop {
+    display: flex;
+  }
+
   .song-result__icon-btn--lyrics {
     display: none;
   }
+}
+
+.song-result__volume {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.song-result__volume-slider {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 112px;
+  box-sizing: border-box;
+  padding: 12px 0;
+  border: 1px solid var(--white-15);
+  border-radius: var(--radius-pill);
+  background: var(--neutral-dark-14);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.song-result__volume:hover .song-result__volume-slider,
+.song-result__volume:focus-within .song-result__volume-slider {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.song-result__volume-slider input {
+  width: 4px;
+  height: 88px;
+  margin: 0;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  accent-color: var(--neutral-dark-100);
+  cursor: pointer;
 }
 
 .song-result__icon {
@@ -1151,6 +1298,59 @@
   background: var(--neutral-dark-24);
 }
 
+.song-result__publish {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .song-result__publish {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+}
+
+.song-result__publish-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background-color: var(--neutral-dark-100);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.song-result__publish-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.song-result__publish-title,
+.song-result__publish-state {
+  margin: 0;
+  font-family: var(--font-family-primary);
+}
+
+.song-result__publish-title {
+  color: var(--neutral-dark-100);
+  font-size: var(--font-title-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-xs);
+}
+
+.song-result__publish-state {
+  color: var(--neutral-dark-64);
+  font-size: var(--font-body-s);
+  font-weight: var(--font-weight-medium);
+}
+
 /* =========================================================
  * Result — My Creations — Figma "New Songs Section" (node 1622:17358,
  * within "Song Result_L"). Moved out of the sticky side column (form stage
@@ -1191,15 +1391,35 @@
 
 .song-result__creations-item {
   display: block;
+  width: 100%;
   box-sizing: border-box;
-  padding: 16px;
+  padding: 0;
+  overflow: hidden;
   border-radius: var(--radius-2xl);
   border: 1px solid var(--white-15);
   background: var(--black-60);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   text-decoration: none;
+  text-align: left;
   color: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.song-result__creations-item:hover,
+.song-result__creations-item--active {
+  background: var(--white-15);
+}
+
+.song-result__creations-item .list-item {
+  min-height: 100%;
+  padding: 16px;
+  border-radius: inherit;
+}
+
+.song-result__creations-item .list-item:hover {
+  background: transparent;
 }
 
 /* =========================================================

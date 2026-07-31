@@ -17,8 +17,8 @@ const NAV_ITEMS = [
   { key: 'mv', label: 'AI Music Video', icon: icVideoAi, href: '/mv-create' },
   { key: 'song', label: 'AI Song', icon: icSongAi, href: '/song-create' },
   { key: 'story', label: 'AI Storybook', icon: icStoryAi, badge: 'NEW', href: '#' },
-  { key: 'history', label: 'History', icon: icHistory, href: '#' },
-  { key: 'blog', label: 'Blog', icon: icFileText, href: '#' },
+  { key: 'history', label: 'History', icon: icHistory, href: '/history' },
+  { key: 'blog', label: 'Blog', icon: icFileText, href: '/blog1' },
 ]
 
 // Below Laptop (1024px), the sidebar collapses to icon-only by default.
@@ -53,6 +53,8 @@ function Sidebar() {
   function isActive(href: string) {
     if (href === '#') return false
     if (href === '/home') return pathname === '/' || pathname.startsWith('/home')
+    if (href === '/history') return pathname.startsWith('/history')
+    if (href === '/blog1') return pathname.startsWith('/blog')
     return pathname.startsWith(href)
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Button from '../Button/Button'
-import LoginModal from '../LoginModal/LoginModal'
+import CreditBalance from '../CreditBalance/CreditBalance'
+import { useAuth } from '../AuthProvider/AuthProvider'
 import icChevronDown from '../../assets/icons/ic_chevron-down.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
 import './Navbar.css'
@@ -67,21 +68,30 @@ function LanguagePicker() {
 }
 
 function Navbar() {
-  const [loginOpen, setLoginOpen] = useState(false)
+  const { isSignedIn, openSignIn } = useAuth()
 
   return (
     <header className="navbar">
       <div className="navbar__actions">
-        <LanguagePicker />
-        <Button size="Medium" variant="Tertiary" onClick={() => setLoginOpen(true)}>
-          Login
-        </Button>
-        <Button size="Medium" variant="Primary" leadingIcon={icArrowRight}>
-          Start for Free
-        </Button>
+        {isSignedIn ? (
+          <CreditBalance credits={390} />
+        ) : (
+          <>
+            <LanguagePicker />
+            <Button size="Medium" variant="Tertiary" onClick={openSignIn}>
+              Login
+            </Button>
+            <Button
+              size="Medium"
+              variant="Primary"
+              leadingIcon={icArrowRight}
+              onClick={() => { window.location.href = '/mv-create' }}
+            >
+              Start for Free
+            </Button>
+          </>
+        )}
       </div>
-
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
     </header>
   )
 }

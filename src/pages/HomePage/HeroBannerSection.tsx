@@ -192,6 +192,7 @@ function HeroBannerSection() {
   const [displayedIndex, setDisplayedIndex] = useState(1)
   const [isFading, setIsFading] = useState(false)
   const fadeTimeoutRef = useRef<number | undefined>(undefined)
+  const thumbnailsRef = useRef<HTMLDivElement>(null)
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([])
   // setInterval's closure would otherwise see a stale activeIndex, since it's
   // only ever created once on mount.
@@ -221,11 +222,27 @@ function HeroBannerSection() {
 
   useEffect(() => () => window.clearTimeout(fadeTimeoutRef.current), [])
 
-  // Keeps the active thumbnail in view as selection moves — including the
-  // last-to-first wrap, which just scrolls back to the start like any other
-  // step (no separate "reset" case needed).
+  // Keep the active thumbnail visible without scrollIntoView(), which can
+  // also move the page vertically when the user is reading below the hero.
   useEffect(() => {
-    thumbRefs.current[activeIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+    const row = thumbnailsRef.current
+    const thumb = thumbRefs.current[activeIndex]
+    if (!row || !thumb) return
+
+    const visibleLeft = row.scrollLeft
+    const visibleRight = visibleLeft + row.clientWidth
+    const thumbLeft = thumb.offsetLeft
+    const thumbRight = thumbLeft + thumb.offsetWidth
+
+    if (activeIndex === 0) {
+      row.scrollTo({ left: 0, behavior: 'smooth' })
+    } else if (activeIndex === HERO_ITEMS.length - 1) {
+      row.scrollTo({ left: row.scrollWidth - row.clientWidth, behavior: 'smooth' })
+    } else if (thumbLeft < visibleLeft) {
+      row.scrollTo({ left: thumbLeft, behavior: 'smooth' })
+    } else if (thumbRight > visibleRight) {
+      row.scrollTo({ left: thumbRight - row.clientWidth, behavior: 'smooth' })
+    }
   }, [activeIndex])
 
   function goPrev() {
@@ -276,7 +293,7 @@ function HeroBannerSection() {
           </div>
         </div>
 
-        <div className="hero-banner__thumbnails">
+        <div className="hero-banner__thumbnails" ref={thumbnailsRef}>
           {HERO_ITEMS.map((item, index) => (
             <button
               key={item.title}

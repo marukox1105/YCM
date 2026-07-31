@@ -3,11 +3,12 @@ import type { ChangeEvent, CSSProperties, PointerEvent as ReactPointerEvent } fr
 import { createPortal } from 'react-dom'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
+import FloatingCTA from '../../components/FloatingCTA/FloatingCTA'
+import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
 import ListItem from '../../components/ListItem/ListItem'
 import { SONGS } from '../../data/songs'
 import { MUSIC_VIDEOS } from '../../data/musicVideos'
-import type { MvRatio } from '../../data/musicVideos'
 import { saveMvDraft } from '../../data/mvDraft'
 import type { MvDraft } from '../../data/mvDraft'
 import icLightbulb from '../../assets/icons/ic_lightbulb.svg'
@@ -44,6 +45,14 @@ import sample8 from '../../assets/covers/Avatar/Sample_P8.png'
 import styleVideoSinging from '../../assets/create-mv/type/feature_intro_ai_mv_singing_480x640.mp4?url'
 import styleVideoStorytelling from '../../assets/create-mv/type/feature_intro_ai_mv_storytelling_480x640.mp4?url'
 import styleVideoHybrid from '../../assets/create-mv/type/feature_intro_ai_mv_hybrid_480x640.mp4?url'
+import templateVintage from '../../assets/hero/hero_01_Vintage Car-tmp-tmp.mp4?url'
+import templateSplash from '../../assets/hero/hero_02_Splash-tmp-tmp.mp4?url'
+import templateUrban from '../../assets/hero/hero_03_Urban Fashion-tmp-tmp.mp4?url'
+import templateMidnight from '../../assets/hero/hero_04_midnight_static-tmp-tmp.mp4?url'
+import templatePastel from '../../assets/hero/hero_05_pastel_film_converted.mp4?url'
+import templateAlice from '../../assets/hero/hero_06_alice_in_wonderland.mp4?url'
+import templateJpop from '../../assets/hero/hero_07_jpop.mp4?url'
+import templatePaper from '../../assets/hero/hero_08_paper_wonderland_converted.mp4?url'
 import './MVCreatePage.css'
 
 // Figma "AI MV — Feature Room" (nodes 1330:24550, 1344:25723). Flow/behavior
@@ -113,51 +122,58 @@ interface VideoTemplate {
   key: string
   label: string
   video: string
-  ratio: MvRatio
   description: string
 }
 
-// Figma "Select a Template" (node 346:5071) shows 5 named style templates
-// (J-Pop, Midnight Static, Paper Wonderland, Pastel Film, Alice in
-// Wonderland — corrected from the Figma source's own "Wonderlnad" typo) each
-// with their own preview VIDEO. No such per-template footage exists in this
-// catalog, so this reuses MUSIC_VIDEOS' actual clips (and their real
-// portrait/landscape `ratio`, so the preview never stretches/crops oddly)
-// as stand-ins — flagged here, not a guess presented as final content.
+// Figma "Select a Template" (node 346:5071), expanded for desktop with the
+// eight matching hero preview videos already provided by the project.
 const VIDEO_TEMPLATES: VideoTemplate[] = [
+  {
+    key: 'vintage-drive',
+    label: 'Vintage Drive',
+    video: templateVintage,
+    description: 'A nostalgic vintage drive with warm film tones, classic styling, and cinematic road-trip energy.',
+  },
+  {
+    key: 'splash-zone',
+    label: 'Splash Zone',
+    video: templateSplash,
+    description: 'A high-energy visual filled with water, motion, and punchy transitions that follow the beat.',
+  },
+  {
+    key: 'urban-runway',
+    label: 'Urban Runway',
+    video: templateUrban,
+    description: 'A bold urban fashion film with confident movement, graphic city textures, and runway-inspired framing.',
+  },
   {
     key: 'j-pop',
     label: 'J-Pop',
-    video: MUSIC_VIDEOS[0]?.video ?? '',
-    ratio: MUSIC_VIDEOS[0]?.ratio ?? '3:4',
+    video: templateJpop,
     description: 'A vibrant J-Pop music video with neon stage lighting, dynamic camera moves, and high-energy choreography.',
   },
   {
     key: 'midnight-static',
     label: 'Midnight Static',
-    video: MUSIC_VIDEOS[1]?.video ?? '',
-    ratio: MUSIC_VIDEOS[1]?.ratio ?? '3:4',
+    video: templateMidnight,
     description: 'A moody, static-noise-drenched night scene with flickering lights and a melancholic atmosphere.',
   },
   {
     key: 'paper-wonderland',
     label: 'Paper Wonderland',
-    video: MUSIC_VIDEOS[2]?.video ?? '',
-    ratio: MUSIC_VIDEOS[2]?.ratio ?? '3:4',
+    video: templatePaper,
     description: 'A whimsical paper-craft wonderland brought to life with soft pastel textures and gentle motion.',
   },
   {
     key: 'pastel-film',
     label: 'Pastel Film',
-    video: MUSIC_VIDEOS[3]?.video ?? '',
-    ratio: MUSIC_VIDEOS[3]?.ratio ?? '3:4',
+    video: templatePastel,
     description: 'A dreamy pastel-toned film look with soft grain, warm light leaks, and a nostalgic indie feel.',
   },
   {
     key: 'alice-in-wonderland',
     label: 'Alice in Wonderland',
-    video: MUSIC_VIDEOS[4]?.video ?? '',
-    ratio: MUSIC_VIDEOS[4]?.ratio ?? '3:4',
+    video: templateAlice,
     description: 'A surreal Wonderland-inspired story full of oversized props, curious characters, and vivid color.',
   },
 ]
@@ -352,12 +368,15 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
   const [tab, setTab] = useState<'my' | 'sample'>('my')
   const [activeSongId, setActiveSongId] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [durations, setDurations] = useState<Record<string, number>>({})
   const audioRef = useRef<HTMLAudioElement>(null)
   const songs = tab === 'my' ? MY_SONGS : SAMPLE_SONGS
 
   function switchTab(next: 'my' | 'sample') {
     setTab(next)
     setActiveSongId(null)
+    setCurrentTime(0)
     audioRef.current?.pause()
   }
 
@@ -369,6 +388,7 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
       else audio.pause()
     } else {
       setActiveSongId(song.id)
+      setCurrentTime(0)
       audio.src = song.audio
       audio.play()
     }
@@ -377,7 +397,7 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
   return createPortal(
     <div className="mv-sheet-overlay">
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="mv-sheet" role="dialog" aria-label="Choose Song">
+      <div className="mv-sheet mv-song-picker" role="dialog" aria-label="Choose Song">
         <div className="mv-sheet__handle" aria-hidden="true" />
         <div className="mv-sheet__header">
           <button type="button" className="mv-sheet__close" onClick={onClose} aria-label="Close">
@@ -404,11 +424,22 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
           </button>
         </div>
 
-        <audio ref={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />
+        <audio
+          ref={audioRef}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+          onLoadedMetadata={(e) => {
+            if (!activeSongId) return
+            const duration = e.currentTarget.duration
+            setDurations((current) => ({ ...current, [activeSongId]: duration }))
+          }}
+        />
 
         <div className="mv-sheet__body mv-sheet__body--list">
           {songs.map((song) => {
             const active = activeSongId === song.id
+            const duration = durations[song.id] ?? 0
             return (
               <div
                 key={song.id}
@@ -424,7 +455,28 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
                     aria-hidden="true"
                   />
                 </span>
-                <span className="mv-song-picker__title">{song.title}</span>
+                <audio
+                  className="mv-song-picker__metadata"
+                  src={song.audio}
+                  preload="metadata"
+                  onLoadedMetadata={(e) => {
+                    const duration = e.currentTarget.duration
+                    setDurations((current) => ({ ...current, [song.id]: duration }))
+                  }}
+                />
+                <span className="mv-song-picker__info">
+                  <span className="mv-song-picker__title">{song.title}</span>
+                  <span className="mv-song-picker__duration">
+                    {active && isPlaying ? (
+                      <>
+                        <span className="mv-song-picker__duration-current">{formatTime(currentTime)}</span>
+                        <span> / {formatTime(duration)}</span>
+                      </>
+                    ) : (
+                      formatTime(duration)
+                    )}
+                  </span>
+                </span>
                 <button
                   type="button"
                   className="mv-song-picker__use"
@@ -475,13 +527,7 @@ function TemplateSheet({ selectedKey, onSelect, onApply, onClose }: TemplateShee
           </button>
         </div>
 
-        <div
-          className="mv-template-sheet__preview"
-          style={{
-            aspectRatio: selected.ratio === '3:4' ? '3 / 4' : '4 / 3',
-            maxWidth: selected.ratio === '3:4' ? '200px' : '100%',
-          }}
-        >
+        <div className="mv-template-sheet__preview">
           <video key={selected.key} src={selected.video} muted loop autoPlay playsInline />
         </div>
 
@@ -709,11 +755,6 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
           <button type="button" className="mv-sheet__close" onClick={onClose} aria-label="Close">
             <img src={icClose} alt="" className="mv-sheet__close-icon" />
           </button>
-          <div className="mv-sheet__header-spacer" aria-hidden="true" />
-          <div className="mv-mode-sheet__credit">
-            <img src={icCredit} alt="" className="mv-mode-sheet__credit-icon" />
-            <span>390</span>
-          </div>
         </div>
 
         <div className="mv-mode-sheet__intro">
@@ -762,12 +803,15 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
 }
 
 function MVCreatePage() {
+  const { requireSignIn } = useAuth()
   const [selectedStyle, setSelectedStyle] = useState(0)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
 
   const [song, setSong] = useState<ChosenSong | null>(null)
   const [songSource, setSongSource] = useState<SongSource>(null)
   const [songPlaying, setSongPlaying] = useState(false)
+  const [songCurrentTime, setSongCurrentTime] = useState(0)
+  const [songDuration, setSongDuration] = useState(0)
   const songAudioRef = useRef<HTMLAudioElement>(null)
 
   const [ideaText, setIdeaText] = useState('')
@@ -798,6 +842,8 @@ function MVCreatePage() {
   function handlePickLibrarySong(picked: (typeof SONGS)[number]) {
     setSong(songToChosen(picked))
     setSongSource('library')
+    setSongCurrentTime(0)
+    setSongDuration(0)
     setSongPickerOpen(false)
   }
 
@@ -825,6 +871,8 @@ function MVCreatePage() {
     if (!file) return
     setSong({ title: file.name, cover: '', audio: URL.createObjectURL(file), duration: '' })
     setSongSource('import')
+    setSongCurrentTime(0)
+    setSongDuration(0)
     event.target.value = ''
   }
 
@@ -832,6 +880,8 @@ function MVCreatePage() {
     setSong(null)
     setSongSource(null)
     setSongPlaying(false)
+    setSongCurrentTime(0)
+    setSongDuration(0)
   }
 
   function toggleSongPlay() {
@@ -849,7 +899,7 @@ function MVCreatePage() {
     event.target.value = ''
   }
 
-  function useSamplePhoto(slot: number, sample: string) {
+  function handleUseSamplePhoto(slot: number, sample: string) {
     setPhotos((current) => current.map((p, i) => (i === slot ? sample : p)))
     setPhotoNames((current) => current.map((n, i) => (i === slot ? '' : n)))
   }
@@ -965,6 +1015,8 @@ function MVCreatePage() {
                     src={song.audio}
                     onPlay={() => setSongPlaying(true)}
                     onPause={() => setSongPlaying(false)}
+                    onTimeUpdate={(e) => setSongCurrentTime(e.currentTarget.currentTime)}
+                    onLoadedMetadata={(e) => setSongDuration(e.currentTarget.duration)}
                   />
                   <button type="button" className="mv-create__song-art" onClick={toggleSongPlay}>
                     {song.cover && <img src={song.cover} alt="" />}
@@ -977,6 +1029,16 @@ function MVCreatePage() {
                   </button>
                   <div className="mv-create__song-info">
                     <p className="mv-create__song-title">{song.title}</p>
+                    <p className="mv-create__song-duration">
+                      {songPlaying ? (
+                        <>
+                          <span className="mv-create__song-duration-current">{formatTime(songCurrentTime)}</span>
+                          <span> / {formatTime(songDuration)}</span>
+                        </>
+                      ) : (
+                        formatTime(songDuration)
+                      )}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -1136,7 +1198,7 @@ function MVCreatePage() {
                   key={index}
                   type="button"
                   className="mv-create__sample"
-                  onClick={() => useSamplePhoto(photos[0] ? 1 : 0, sample)}
+                  onClick={() => handleUseSamplePhoto(photos[0] ? 1 : 0, sample)}
                 >
                   <img src={sample} alt="" />
                 </button>
@@ -1159,15 +1221,17 @@ function MVCreatePage() {
             </button>
           </div>
 
-          <button
-            type="button"
-            className={`mv-create__cta${canCreate ? ' mv-create__cta--active' : ''}`}
-            disabled={!canCreate}
-            onClick={() => setModeSheetOpen(true)}
-          >
-            <span>Create Music Video</span>
-            <span className="mv-create__cta-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
-          </button>
+          <FloatingCTA alignToParent>
+            <button
+              type="button"
+              className={`mv-create__cta${canCreate ? ' mv-create__cta--active' : ''}`}
+              disabled={!canCreate}
+              onClick={() => requireSignIn(() => setModeSheetOpen(true))}
+            >
+              <span>Create Music Video</span>
+              <span className="mv-create__cta-icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
+            </button>
+          </FloatingCTA>
         </div>
 
         <div className="mv-create__side">
@@ -1175,7 +1239,7 @@ function MVCreatePage() {
           <div className="mv-create__side-list">
             {MY_CREATIONS.map((mv) => (
               <a key={mv.id} href={`/mv-detail?id=${mv.id}`} className="mv-create__side-item">
-                <ListItem title={mv.title} coverImage={mv.cover} username="ScottWu" plays={0} likes={mv.likes} shares={0} cta />
+                <ListItem title={mv.title} coverImage={mv.cover} username="ScottWu" plays={0} likes={mv.likes} shares={0} />
               </a>
             ))}
           </div>
