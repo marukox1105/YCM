@@ -608,7 +608,9 @@
 }
 
 /* Figma "Photo Slot 1 added" (node 1344:25777) — delete top-right, editable
-   name + edit pencil bottom-left/right. */
+   name + edit pencil bottom-left/right. Keeps the same 1px border the empty
+   "add" state has (solid here, matching Figma, vs. dashed for the empty
+   affordance) so the slot doesn't lose its outline once a photo is added. */
 .mv-create__photo-filled {
   position: relative;
   display: flex;
@@ -616,6 +618,9 @@
   justify-content: space-between;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--white-15);
+  border-radius: 14px;
 }
 
 .mv-create__photo-top {
@@ -879,6 +884,16 @@
   }
 }
 
+/* Figma "Community" (node 1341:2170) — signed-out state shows "Trending
+   MVs" + a "See all" link (to MV Detail) instead of "My Creations". */
+.mv-create__side-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
 .mv-create__side-title {
   margin: 0;
   padding: 4px 0;
@@ -888,6 +903,39 @@
   font-weight: var(--font-weight-bold);
   line-height: 24px;
   letter-spacing: -0.2px;
+}
+
+.mv-create__side-see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  margin: -6px -10px;
+  border-radius: var(--radius-md);
+  color: var(--color-accent-purple);
+  text-decoration: none;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-s);
+  transition: background-color 0.15s ease;
+}
+
+.mv-create__side-see-all:hover {
+  background-color: var(--white-15);
+}
+
+.mv-create__side-see-all-icon {
+  width: 24px;
+  height: 24px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
 
 .mv-create__side-list {

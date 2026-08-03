@@ -544,6 +544,17 @@
   }
 }
 
+/* Signed-out state shows "Trending Songs" + a "See all" link (to Song
+   Detail) instead of "My Creations" — same convention as MV Create's side
+   panel. */
+.song-create__side-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
 .song-create__side-title {
   margin: 0;
   padding: 4px 0;
@@ -553,6 +564,39 @@
   font-weight: var(--font-weight-bold);
   line-height: 24px;
   letter-spacing: -0.2px;
+}
+
+.song-create__side-see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  margin: -6px -10px;
+  border-radius: var(--radius-md);
+  color: var(--color-accent-purple);
+  text-decoration: none;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-title-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-s);
+  transition: background-color 0.15s ease;
+}
+
+.song-create__side-see-all:hover {
+  background-color: var(--white-15);
+}
+
+.song-create__side-see-all-icon {
+  width: 24px;
+  height: 24px;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
 
 .song-create__side-list {

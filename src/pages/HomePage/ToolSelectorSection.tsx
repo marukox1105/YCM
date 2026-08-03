@@ -1,17 +1,17 @@
 import icVideoAi from '../../assets/icons/ic_video_ai.svg'
 import icSongAi from '../../assets/icons/ic_song_ai.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
-import IconButton from '../../components/IconButton/IconButton'
 import './ToolSelectorSection.css'
 
+// The whole tile navigates (not just the arrow badge), so each card is a
+// real <a> — the arrow is now purely decorative (reusing IconButton's own
+// visual classes directly, since a <button> can't legally nest inside an
+// <a>), matching the "click area = whole tile" behavior everywhere else on
+// this section.
 function ToolSelectorSection() {
-  const navigateTo = (href: string) => {
-    window.location.href = href
-  }
-
   return (
     <section className="tool-selector">
-      <div className="tool-selector__card tool-selector__card--bright">
+      <a href="/mv-create" className="tool-selector__card tool-selector__card--bright">
         <div className="tool-selector__icon-badge tool-selector__icon-badge--mv">
           <span className="tool-selector__icon" style={maskStyle(icVideoAi)} aria-hidden="true" />
         </div>
@@ -21,17 +21,15 @@ function ToolSelectorSection() {
             Upload your selfie, choose a style, and watch AI craft a stunning music video in minutes.
           </p>
         </div>
-        <IconButton
-          size="Medium"
-          variant="Secondary"
-          icon={icArrowRight}
-          label="Create Music Video"
-          className="tool-selector__action"
-          onClick={() => navigateTo('/mv-create')}
-        />
-      </div>
+        <span
+          className="icon-button icon-button--medium icon-button--secondary tool-selector__action"
+          aria-hidden="true"
+        >
+          <span className="icon-button__icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
+        </span>
+      </a>
 
-      <div className="tool-selector__card">
+      <a href="/song-create" className="tool-selector__card">
         <div className="tool-selector__icon-badge tool-selector__icon-badge--song">
           <span className="tool-selector__icon" style={maskStyle(icSongAi)} aria-hidden="true" />
         </div>
@@ -41,15 +39,13 @@ function ToolSelectorSection() {
             Write your lyrics, pick a style, and AI generates a full song ready to share or use in your MV.
           </p>
         </div>
-        <IconButton
-          size="Medium"
-          variant="Secondary"
-          icon={icArrowRight}
-          label="Create AI Song"
-          className="tool-selector__action"
-          onClick={() => navigateTo('/song-create')}
-        />
-      </div>
+        <span
+          className="icon-button icon-button--medium icon-button--secondary tool-selector__action"
+          aria-hidden="true"
+        >
+          <span className="icon-button__icon" style={maskStyle(icArrowRight)} aria-hidden="true" />
+        </span>
+      </a>
     </section>
   )
 }

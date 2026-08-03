@@ -796,7 +796,7 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
 }
 
 function MVCreatePage() {
-  const { requireSignIn } = useAuth()
+  const { requireSignIn, isSignedIn } = useAuth()
   const [selectedStyle, setSelectedStyle] = useState(0)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
 
@@ -1219,11 +1219,26 @@ function MVCreatePage() {
         </div>
 
         <div className="mv-create__side">
-          <p className="mv-create__side-title">My Creations</p>
+          <div className="mv-create__side-header">
+            <p className="mv-create__side-title">{isSignedIn ? 'My Creations' : 'Trending MVs'}</p>
+            {!isSignedIn && (
+              <a href="/mv-detail?from=mv-create" className="mv-create__side-see-all">
+                See all
+                <span className="mv-create__side-see-all-icon" style={maskStyle(icChevronRight)} aria-hidden="true" />
+              </a>
+            )}
+          </div>
           <div className="mv-create__side-list">
             {MY_CREATIONS.map((mv) => (
               <a key={mv.id} href={`/mv-detail?id=${mv.id}&from=mv-create`} className="mv-create__side-item">
-                <ListItem title={mv.title} coverImage={mv.cover} username="ScottWu" plays={0} likes={mv.likes} shares={0} />
+                <ListItem
+                  title={mv.title}
+                  coverImage={mv.cover}
+                  username={isSignedIn ? 'ScottWu' : mv.username}
+                  plays={0}
+                  likes={mv.likes}
+                  shares={0}
+                />
               </a>
             ))}
           </div>

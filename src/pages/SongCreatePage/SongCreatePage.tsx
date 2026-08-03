@@ -28,6 +28,7 @@ import icPause from '../../assets/icons/ic_pause.svg'
 import icSkipBack from '../../assets/icons/ic_skip_back.svg'
 import icSkipForward from '../../assets/icons/ic_skip_forward.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
+import icChevronRight from '../../assets/icons/ic_chevron-right.svg'
 import icDownload from '../../assets/icons/ic_download.svg'
 import icSpeakerOn from '../../assets/icons/ic_speaker_on.svg'
 import icSpeakerOff from '../../assets/icons/ic_speaker_off.svg'
@@ -579,7 +580,7 @@ function SongResultLyrics({
 }
 
 function SongCreatePage() {
-  const { requireSignIn } = useAuth()
+  const { requireSignIn, isSignedIn } = useAuth()
   const params = new URLSearchParams(window.location.search)
   const requestedResultSong = params.get('stage') === 'result'
     ? SONGS.find((song) => song.id === params.get('id')) ?? null
@@ -607,6 +608,21 @@ function SongCreatePage() {
   const [showLyricsTooltip, setShowLyricsTooltip] = useState(false)
 
   const canCreate = mode === 'Custom' || ideaText.trim().length > 0
+
+  const createSongButton = (
+    <button
+      type="button"
+      className={`song-create__cta${canCreate ? ' song-create__cta--active' : ''}`}
+      disabled={!canCreate}
+      onClick={() => requireSignIn(() => setStage('processing'))}
+    >
+      <span>Create Song</span>
+      <span className="song-create__cta-credits">
+        <img src={icCredit} alt="" className="song-create__cta-credit-icon" />
+        10
+      </span>
+    </button>
+  )
 
   return (
     <AppLayout
@@ -885,20 +901,7 @@ function SongCreatePage() {
             </div>
           )}
 
-          <FloatingCTA alignToParent>
-            <button
-              type="button"
-              className={`song-create__cta${canCreate ? ' song-create__cta--active' : ''}`}
-              disabled={!canCreate}
-              onClick={() => requireSignIn(() => setStage('processing'))}
-            >
-              <span>Create Song</span>
-              <span className="song-create__cta-credits">
-                <img src={icCredit} alt="" className="song-create__cta-credit-icon" />
-                10
-              </span>
-            </button>
-          </FloatingCTA>
+          {mode === 'Simple' ? createSongButton : <FloatingCTA alignToParent>{createSongButton}</FloatingCTA>}
             </>
           )}
         </div>
@@ -909,7 +912,15 @@ function SongCreatePage() {
             the player instead (Figma "Song Result_L", node 1614:76597). */}
         {stage === 'form' && (
           <div className="song-create__side">
-            <p className="song-create__side-title">My Creations</p>
+            <div className="song-create__side-header">
+              <p className="song-create__side-title">{isSignedIn ? 'My Creations' : 'Trending Songs'}</p>
+              {!isSignedIn && (
+                <a href="/song-detail?from=song-create" className="song-create__side-see-all">
+                  See all
+                  <span className="song-create__side-see-all-icon" style={maskStyle(icChevronRight)} aria-hidden="true" />
+                </a>
+              )}
+            </div>
             <div className="song-create__side-list">
               {MY_CREATIONS.map((song) => (
                 <a key={song.id} href={`/song-detail?id=${song.id}&from=song-create`} className="song-create__side-item">

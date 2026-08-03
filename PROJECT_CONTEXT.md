@@ -25,7 +25,98 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-03
+## Current checkpoint — 2026-08-03 (session 2)
+
+Latest committed checkpoint before this working tree:
+`6c0f3be` — "Add account flows, shared badges, and source-aware history navigation".
+This is a same-day follow-up session on top of that commit — see "Previous checkpoint —
+2026-08-03" below for the work that landed *in* `6c0f3be`.
+
+### Work completed since that checkpoint
+
+- **Sign-in dialog logo** (`LoginModal`): changed from a perfect circle (`border-radius:
+  28px` on a 56px box — exactly half, i.e. a full circle) to a rounded-square/squircle
+  shape (`var(--radius-lg)`, 16px), matching how Figma node 1724:43347 actually renders.
+  Figma's auto-extracted code for this shape still says `rounded-[28px]` even though the
+  node visually renders as a squircle — Figma's corner-smoothing isn't representable as a
+  plain CSS `border-radius`, so the value had to be picked by eye against the reference
+  screenshot rather than copied literally from the exported code.
+- **Home's two Tool Selector tiles** ("Music Video Creator" / "AI Song Composer"): the
+  entire tile is now the clickable link (`<a href="/mv-create">` / `<a href="/song-create">`
+  wrapping the whole card), not just the small arrow icon button that only appeared on
+  hover. The arrow badge is now decorative markup reusing `IconButton`'s own CSS classes
+  directly (a `<button>` can't legally nest inside an `<a>`), so its exact look/hover-reveal
+  animation is unchanged.
+- **MV Create's "My Creations" side panel**: signed-out visitors now see a **"Trending
+  MVs"** heading + a **"See all"** link to `/mv-detail?from=mv-create` (Figma node
+  1341:2170), with each row showing its own mock creator username (from
+  `MUSIC_VIDEOS[].username`, e.g. "StarryNights", "ChasingWaves") instead of the hardcoded
+  `"ScottWu"` used for the signed-in "My Creations" case. Signed-in behavior is unchanged.
+- **Song Create's equivalent side panel**: same treatment — signed-out shows **"Trending
+  Songs"** + **"See all"** to `/song-detail?from=song-create`. Song data has no per-song
+  username/stat fields to swap in (unlike `MUSIC_VIDEOS`), so the row content itself is
+  unchanged either way — only the heading text and the conditional see-all link differ by
+  sign-in state.
+- **MV Create's uploaded character-photo slot**: restored a `1px solid` border (matching
+  Figma node 1344:25777, `rgba(255,255,255,0.15)`) that was being lost entirely once a
+  photo was uploaded. The empty "add" state already had a dashed border as an affordance;
+  the filled state had none at all, so the slot visually lost its outline on upload.
+- **Song Create's Simple-mode "Create Song" button** no longer uses the fixed/floating
+  `FloatingCTA` wrapper. Figma (node 1762:41594) shows it as a plain inline button directly
+  under the prompt box for Simple mode, not pinned to the viewport bottom — the floating
+  version was leaving a large empty gap below the short Simple-mode form. Custom mode's CTA
+  is untouched (still wrapped in `FloatingCTA`, appropriate for its longer form).
+
+### Pages and components changed
+
+- Pages: MV Create, Song Create.
+- Shared components: `LoginModal`, `ToolSelectorSection` (Home).
+
+### Important implementation decisions
+
+- **Figma's exported code for a squircle shape can't be trusted for its `border-radius`
+  value.** A shape that visually reads as a rounded square in the Figma screenshot can
+  still export as `rounded-[N]` where `N` is exactly half the box's width (i.e., a
+  mathematically perfect circle) — Figma's corner-smoothing/squircle rendering has no CSS
+  equivalent. When a design-to-code fetch's code and screenshot visually disagree like
+  this, trust the screenshot and pick a `border-radius` by eye (checked against the
+  existing token scale) instead of the extracted value.
+- **"Trending X / See all" is now an established pattern for signed-out Feature Room side
+  panels** (MV Create, Song Create). Both key off `useAuth().isSignedIn` to swap the
+  heading and conditionally render a `<a>` "See all" link, reusing the exact CSS shape
+  already used by `SectionHeader`'s see-all link (purple `Title/S` text + 24px chevron)
+  but as page-scoped classes rather than importing `SectionHeader` itself, since this
+  panel's title uses a different type scale (20px Inter) than `SectionHeader`'s (24px
+  Roboto, for Home's marketing sections). Extend this same pattern if another Feature Room
+  page gains a similar side panel.
+- **`FloatingCTA` is not a blanket rule for every generate button** — AGENTS.md's existing
+  wording ("long creation forms") already implicitly scopes it to forms long enough that
+  the button could scroll out of view. Song Create's Simple mode is a short form (one
+  toggle + one textarea) and Figma places its CTA inline, not floating; Custom mode (more
+  fields) keeps `FloatingCTA`. No AGENTS.md change was needed — this is a data point
+  confirming the existing rule's own scoping, not a new rule.
+
+### Known issues and unfinished items
+
+- These 6 fixes were spot-checked only at 1440px this session, via a mix of screenshots
+  and direct DOM/computed-style JS assertions (the Browser pane's screenshot tool
+  intermittently rendered at a visibly wrong scale/crop for part of the session, same
+  known issue noted in the 2026-07-30 checkpoint). No explicit 375px/768px check was done
+  for these specific changes yet.
+- Everything already logged as unfinished in the checkpoint below (Sidebar Upgrade/Credits
+  Buy More pages, Community Profile's missing `from=community-profile`, the Trim Audio
+  Figma-precision pass, six-width visual passes on Account/Credits/Community
+  Profile/History, `SongResult` Figma re-verify) remains open and untouched by this
+  session.
+
+### Recommended next steps
+
+1. Do a quick 375px/768px check on the 6 fixes above (only 1440px was checked this
+   session).
+2. Continue carrying forward the previous checkpoint's outstanding items (see the
+   Recommended next steps list under "Previous checkpoint — 2026-08-03" below).
+
+## Previous checkpoint — 2026-08-03
 
 Latest committed checkpoint before this working tree:
 `cb1ada0` — "Add History and Blog flows, shared auth, and creation UI refinements".
