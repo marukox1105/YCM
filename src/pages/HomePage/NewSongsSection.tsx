@@ -12,10 +12,10 @@ const COLUMN_1 = NEXT_SONGS.slice(0, 3)
 const COLUMN_2 = NEXT_SONGS.slice(3, 6)
 
 // Same Song Detail page as Top Picks Songs, just landing on a different tab.
-const SEE_ALL_HREF = `/song-detail?tab=${encodeURIComponent('New Releases')}`
+const SEE_ALL_HREF = `/song-detail?tab=${encodeURIComponent('New Releases')}&from=home`
 
 function songHref(id: string) {
-  return `/song-detail?id=${id}&tab=${encodeURIComponent('New Releases')}`
+  return `/song-detail?id=${id}&tab=${encodeURIComponent('New Releases')}&from=home`
 }
 
 // App-mobile layout only (see layoutMode.ts) — Figma "New Songs" (node

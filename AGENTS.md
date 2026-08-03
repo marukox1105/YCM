@@ -70,8 +70,10 @@ Routing today (`src/App.tsx`): `/` or `/home*` → HomePage, `/mv-detail*` → M
 `/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
 MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
 `/mv-edit*` → MVEditPage, `/history*` → HistoryPage, `/blog*` → BlogPage concept 1,
-`/blog3*` → BlogPage concept 3, and `/components*` → ComponentsPage (internal style-guide
-page, not part of the product). Anything else → a plain fallback placeholder.
+`/blog3*` → BlogPage concept 3, `/account*` → AccountPage, `/account/credits*` →
+CreditsPage, `/community-profile*` → CommunityProfilePage, and `/components*` →
+ComponentsPage (internal style-guide page, not part of the product). Anything else → a
+plain fallback placeholder.
 `vercel.json` rewrites all paths to `/index.html` so these routes survive a hard
 refresh/deep link on Vercel. `AppRoutes` is wrapped by `AuthProvider`, which supplies the
 prototype-only signed-in state and global LoginModal.
@@ -110,6 +112,7 @@ prototype-only signed-in state and global LoginModal.
 | Card | Video/song grid card — Video (3:4 or 4:3) or Song (1:1), community vs. own-content variants, play/pause, favorite, badge |
 | Chip | Small selectable pill (Genre/Mood/Vocal pickers on Song Create) |
 | AuthProvider | App-wide prototype auth context — session-scoped mock sign-in state, global LoginModal, and `requireSignIn()` gate for generate/recreate actions |
+| Badge | Shared status/promotional badge — Purple/Gold/Done/Failed/Processing/Hot/New/Sale/Popular |
 | CreditBalance | Shared signed-in credit pill used by marketing, room, and detail navbars |
 | DetailNavbar | Sticky detail-page header — back button, credits, optional slotted second row for tabs |
 | Footer | Site footer — brand/tagline + Studio/Company link columns (mock links) |

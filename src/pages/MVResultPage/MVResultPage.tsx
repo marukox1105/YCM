@@ -88,9 +88,12 @@ function MVResultPage() {
   }
 
   const progressRatio = duration ? currentTime / duration : 0
+  const fromHistory = new URLSearchParams(window.location.search).get('from') === 'history'
+  const backHref = fromHistory ? '/history' : '/mv-create'
+  const editHref = fromHistory ? '/mv-edit?from=history' : '/mv-edit'
 
   return (
-    <AppLayout navbar={<DetailNavbar title="Result" credits={390} backHref="/mv-create" />}>
+    <AppLayout navbar={<DetailNavbar title="Result" credits={390} backHref={backHref} />}>
       <div className="mv-result">
         <div className="mv-result__panel">
           <div
@@ -194,7 +197,7 @@ function MVResultPage() {
                 </button>
               </div>
               <div className="mv-result__actions-row">
-                <a href="/mv-edit" className="mv-result__action">
+                <a href={editHref} className="mv-result__action">
                   <img src={icEdit} alt="" />
                   Edit MV
                 </a>

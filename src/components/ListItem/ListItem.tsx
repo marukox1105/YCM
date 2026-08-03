@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import Button from '../Button/Button'
 import ShareDialog, { shareOrOpenDialog } from '../ShareDialog/ShareDialog'
 import icPlay from '../../assets/icons/ic_play.svg'
+import icPause from '../../assets/icons/ic_pause.svg'
 import icAccount from '../../assets/icons/ic_account.svg'
 import icHeadphones from '../../assets/icons/ic_headphones.svg'
 import icFavoriteOff from '../../assets/icons/ic_favorite_off.svg'
@@ -51,6 +52,7 @@ interface ListItemProps {
   defaultLiked?: boolean
   /** song variant only — e.g. "AI Song" (no real genre/mood data exists per song yet). */
   subtitle?: string
+  isPlaying?: boolean
 }
 
 function maskStyle(src: string): CSSProperties {
@@ -69,6 +71,7 @@ function ListItem({
   shares = 0,
   defaultLiked = false,
   subtitle,
+  isPlaying = false,
 }: ListItemProps) {
   const [liked, setLiked] = useState(defaultLiked)
   const [shareOpen, setShareOpen] = useState(false)
@@ -80,7 +83,7 @@ function ListItem({
         <div className={`list-item__album-art${isSong ? ' list-item__album-art--song' : ''}`}>
           {coverImage && <img src={coverImage} alt="" className="list-item__album-image" />}
           <div className="list-item__album-scrim" aria-hidden="true" />
-          <span className="list-item__play-icon" style={maskStyle(icPlay)} aria-hidden="true" />
+          <span className="list-item__play-icon" style={maskStyle(isPlaying ? icPause : icPlay)} aria-hidden="true" />
         </div>
 
         {isSong ? (

@@ -251,6 +251,9 @@ function SongDetailPage() {
   const initialId = SONGS.some((song) => song.id === requestedId) ? requestedId! : SONGS[0].id
   const requestedTab = params.get('tab')
   const initialTab = TABS.includes(requestedTab ?? '') ? requestedTab! : TABS[0]
+  const requestedSource = params.get('from')
+  const source = requestedSource === 'song-create' || requestedSource === 'history' ? requestedSource : 'home'
+  const backHref = source === 'song-create' ? '/song-create' : source === 'history' ? '/history' : '/home'
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const [activeTab, setActiveTab] = useState(initialTab)
@@ -288,7 +291,11 @@ function SongDetailPage() {
   return (
     <AppLayout
       navbar={
-        <DetailNavbar credits={390} tabsSlot={<Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />} />
+        <DetailNavbar
+          credits={390}
+          backHref={backHref}
+          tabsSlot={<Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />}
+        />
       }
     >
       <audio

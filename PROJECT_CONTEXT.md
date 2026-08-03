@@ -25,7 +25,86 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-07-31
+## Current checkpoint — 2026-08-03
+
+Latest committed checkpoint before this working tree:
+`cb1ada0` — "Add History and Blog flows, shared auth, and creation UI refinements".
+
+### Work completed since that checkpoint
+
+- Added the signed-in account surface: a fixed-bottom Sidebar profile and Upgrade
+  treatment, Account overview, Edit Profile dialog, Settings, Sign Out confirmation,
+  Delete Account confirmation, Credits history, and a tabbed Community Profile for music
+  videos and songs. `AuthProvider` now exposes prototype-only `signOut()` behavior.
+- Added the reusable `Badge` component for Purple, Gold, Done, Failed, Processing, Hot,
+  New, Sale, and Popular states; documented it on ComponentsPage and switched History's
+  status badges to the shared component. Failed-state artwork now uses White/40.
+- Corrected shared Large Primary/PrimaryPayg disabled styling: the solid disabled
+  background stays fully opaque while only the label, icon, and credit content are dimmed.
+  ComponentsPage reflects the same shared rule.
+- Updated LoginModal to the latest centered Figma dialog treatment with pill social
+  buttons and responsive sizing while retaining the mocked success stage.
+- Expanded History behavior: generating cards hide More; Storyboards open directly in
+  edit mode; Songs open the AI Song result surface; Liked Songs open See All Songs;
+  Storyboard/Song/MV More menus now use type-specific actions, publish review/unpublish,
+  confirmations, deletion, and a mobile bottom-sheet treatment.
+- Implemented source-aware navigation. Home, MV Create, Song Create, and History add a
+  stable `from` query value; MV/Song Detail and the MV Storyboard/Result/Edit chain derive
+  their Back destination from it and preserve it through in-flow navigation.
+- Song Result can initialize from History with `stage=result&id=...`, and its My Creations
+  row reflects the active song's play/pause state. MV Create's prompt no longer includes
+  the Idea shortcut.
+
+### Pages and components changed
+
+- Pages: Account/Settings, Credits, Community Profile, History, Components, Home entry
+  sections, Song Create/Result, Song Detail, MV Create, MV Detail, MV Storyboard, MV Result,
+  MV Edit, plus manual routes in `src/App.tsx`.
+- Shared components: AuthProvider, Button, ListItem, LoginModal, Sidebar, plus the new
+  reusable Badge component.
+- New local assets in this working tree: `ic_user.svg` and the supplied untracked History
+  option-menu ZIP under `src/assets/backgrounds/`.
+
+### Important implementation decisions
+
+- Account, sign-out, profile edits, credits, publish state, and deletion remain local mock
+  interactions. No backend, OAuth, payment, or persistence layer was introduced.
+- Back navigation uses explicit `from=home|mv-create|song-create|history` query parameters
+  instead of `history.back()`, with `/home` as the safe fallback after a direct deep link.
+- `Badge` is the single shared status-badge source. Extend it rather than adding another
+  History-only badge implementation.
+- History actions depend on content type: Storyboard and Song use Primary Create MV;
+  unpublished MV uses Secondary Edit MV; published MV hides Edit until unpublished; and
+  generating cards intentionally expose no More menu.
+- History-origin Song results reuse `/song-create` with `stage=result`, `id`, and
+  `from=history` so the full AI Song player can return reliably to History.
+
+### Known issues and unfinished items
+
+- Sidebar Upgrade and Credits Buy More are visual controls only. The requested upgrade
+  and credit-purchase pages/routes are not yet implemented or wired.
+- Community Profile uses local mock interactions and does not yet carry a dedicated
+  `from=community-profile` source into detail pages.
+- `src/assets/backgrounds/History_Option_Menu_Spec.zip` is untracked. Decide explicitly
+  whether it is a repository reference artifact or should remain local before staging.
+- Account/Credits/Community Profile and the expanded History menus still need a complete
+  six-width visual pass. This checkpoint performs compile/build validation only.
+- Trim Audio still needs the inspected Figma node `90:1600` geometry/playhead precision
+  pass. No automated test suite exists.
+- `src/assets/covers/Ｘ/` is outside this checkpoint and was not inspected. Do not inspect,
+  stage, delete, move, rename, restore, or duplicate it without a new explicit instruction.
+
+### Recommended next steps
+
+1. Build and wire the approved Upgrade and Buy More desktop/mobile pages and connect all
+   three entry points: Sidebar Upgrade, Credits Buy More, and the header credit balance.
+2. Run a six-width visual/interaction pass over Account, Credits, Community Profile, and
+   every History content-type menu and publish state.
+3. Apply the inspected Figma node `90:1600` trimmer geometry/playhead pass.
+4. Decide whether `History_Option_Menu_Spec.zip` belongs in Git; keep
+   `src/assets/covers/Ｘ/` excluded regardless.
+
+## Previous checkpoint — 2026-07-31
 
 Latest committed checkpoint before this working tree:
 `896048f` — "Add AI Music Video flow (Create/Storyboard/Result/Edit), rebuild ListItem,
@@ -490,3 +569,22 @@ of this file. Older commit IDs in the dated logs below are historical handoff re
   before staging. The separate untracked `src/assets/covers/Ｘ/` folder was not touched.
 - Left two approved follow-ups intentionally unfinished: source-aware MV/Song Detail Back
   navigation and the Figma node `90:1600` trimmer precision pass.
+
+## Handoff Log — 2026-08-03
+
+- Added the Account, Settings, Credits, and Community Profile prototype routes and the
+  signed-in Sidebar profile surface. Added mock sign-out support to AuthProvider.
+- Added and documented the shared Badge component, applied it to History, corrected the
+  failed-state artwork color, and fixed the shared Large Primary disabled-opacity rule.
+- Updated LoginModal to the newest supplied sign-in dialog design and preserved the
+  existing prototype-only session sign-in flow.
+- Completed the approved `from` query navigation for Home, MV Create, Song Create, and
+  History entries, including source-aware Back behavior throughout MV and Song details.
+- Expanded History's mixed content/state interactions: direct Storyboard edit, History-
+  origin AI Song result playback, Liked Song routing, type-specific More menus, publish
+  review/unpublish, delete confirmation, and mobile bottom-sheet actions.
+- Removed the MV Create prompt's Idea shortcut and added active play/pause state to the
+  shared ListItem presentation used by AI Song My Creations.
+- Prepared this documentation checkpoint without making new UI changes. Build/type-check
+  results and the exact file list are reported to the product owner before any staging,
+  commit, or push.

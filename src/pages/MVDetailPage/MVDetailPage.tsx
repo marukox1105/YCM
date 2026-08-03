@@ -283,7 +283,7 @@ function computeJustifiedRows(items: readonly MusicVideoWithMeta[], containerWid
 // Reused by both sections below — same catalog, just a different order per
 // section (see NEWLY_RELEASED) so the page doesn't read as two copies of one
 // grid when there's no separate content to fill it with.
-function MvGrid({ items }: { items: readonly MusicVideoWithMeta[] }) {
+function MvGrid({ items, source }: { items: readonly MusicVideoWithMeta[]; source: 'home' | 'mv-create' | 'history' }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [isDesktop, setIsDesktop] = useState(() =>
@@ -314,7 +314,7 @@ function MvGrid({ items }: { items: readonly MusicVideoWithMeta[] }) {
         {items.map((mv) => (
           <a
             key={mv.id}
-            href={`/mv-detail?id=${mv.id}`}
+            href={`/mv-detail?id=${mv.id}&from=${source}`}
             className={`mv-detail__grid-item mv-detail__grid-item--${mv.ratio.replace(':', '-')}`}
           >
             <Card
@@ -342,7 +342,7 @@ function MvGrid({ items }: { items: readonly MusicVideoWithMeta[] }) {
           {row.items.map((mv) => (
             <a
               key={mv.id}
-              href={`/mv-detail?id=${mv.id}`}
+              href={`/mv-detail?id=${mv.id}&from=${source}`}
               className="mv-detail__grid-item"
               style={{ width: row.coverHeight * aspectRatioOf(mv.ratio) }}
             >
@@ -371,9 +371,12 @@ const NEWLY_RELEASED = [...MV_CATALOG].reverse()
 function MVDetailPage() {
   const params = new URLSearchParams(window.location.search)
   const selected = MV_CATALOG.find((mv) => mv.id === params.get('id'))
+  const requestedSource = params.get('from')
+  const source = requestedSource === 'mv-create' || requestedSource === 'history' ? requestedSource : 'home'
+  const backHref = source === 'mv-create' ? '/mv-create' : source === 'history' ? '/history' : '/home'
 
   return (
-    <AppLayout navbar={<DetailNavbar credits={390} />}>
+    <AppLayout navbar={<DetailNavbar credits={390} backHref={backHref} />}>
       <div className="mv-detail">
         {selected && <VideoPlayer item={selected} />}
 
@@ -381,12 +384,12 @@ function MVDetailPage() {
             section links anywhere further. */}
         <section className="mv-detail__grid-section">
           <SectionHeader title="Top Picks Music Videos" showSeeAll={false} />
-          <MvGrid items={MV_CATALOG} />
+          <MvGrid items={MV_CATALOG} source={source} />
         </section>
 
         <section className="mv-detail__grid-section">
           <SectionHeader title="Newly Released Music Video" showSeeAll={false} />
-          <MvGrid items={NEWLY_RELEASED} />
+          <MvGrid items={NEWLY_RELEASED} source={source} />
         </section>
       </div>
     </AppLayout>

@@ -145,6 +145,9 @@ function MVEditPage() {
     sceneText !== generatedSceneTexts[selectedClip] &&
     !isEnhancing('scene')
   const progressRatio = duration ? currentTime / duration : 0
+  const fromHistory = new URLSearchParams(window.location.search).get('from') === 'history'
+  const backHref = fromHistory ? '/history' : '/mv-result'
+  const resultHref = fromHistory ? '/mv-result?from=history' : '/mv-result'
 
   useEffect(() => {
     if (selectedVersion !== currentSceneVersions.length - 1) return
@@ -156,7 +159,7 @@ function MVEditPage() {
   }, [currentSceneVersions.length, selectedVersion])
 
   return (
-    <AppLayout navbar={<DetailNavbar title="Edit Music Video" credits={390} backHref="/mv-result" />}>
+    <AppLayout navbar={<DetailNavbar title="Edit Music Video" credits={390} backHref={backHref} />}>
       <div className="mv-edit">
         <div className="mv-edit__panel">
           <div className="mv-edit__section">
@@ -334,7 +337,7 @@ function MVEditPage() {
             <button
               type="button"
               className="mv-edit__merge-btn"
-              onClick={() => requireSignIn(() => { window.location.href = '/mv-result' })}
+              onClick={() => requireSignIn(() => { window.location.href = resultHref })}
             >
               <span>Merge MV</span>
               <span className="mv-edit__merge-credits">

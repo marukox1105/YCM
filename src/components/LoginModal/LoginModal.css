@@ -34,6 +34,15 @@
   box-shadow: 0 24px 60px 0 rgba(0, 0, 0, 0.5);
 }
 
+.login-modal--sign-in {
+  max-width: 380px;
+  gap: 12px;
+  padding: 40px 32px;
+  border: none;
+  border-radius: var(--radius-3xl);
+  background: var(--neutral-dark-14);
+}
+
 /* Drag handle — mobile bottom-sheet only, see the breakpoint below. */
 .login-modal__handle {
   display: none;
@@ -64,6 +73,27 @@
   width: 56px;
   height: 56px;
   border-radius: 28px;
+}
+
+.login-modal__content,
+.login-modal__app-message,
+.login-modal__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.login-modal__content {
+  gap: 24px;
+}
+
+.login-modal__app-message {
+  gap: 16px;
+}
+
+.login-modal__cta {
+  gap: 10px;
 }
 
 .login-modal__message {
@@ -108,7 +138,7 @@
   box-sizing: border-box;
   padding: 12px;
   border: none;
-  border-radius: 14px;
+  border-radius: 34px;
   background: #fff;
   color: #09090b;
   cursor: pointer;
@@ -227,7 +257,12 @@
     padding: 0;
   }
 
-  .login-modal {
+  .login-modal-overlay--sign-in {
+    align-items: center;
+    padding: 16px;
+  }
+
+  .login-modal:not(.login-modal--sign-in) {
     max-width: none;
     width: 100%;
     padding: 12px 16px 40px;
@@ -235,8 +270,11 @@
     border: none;
     box-shadow: none;
   }
+  .login-modal--sign-in {
+    width: min(100% - 32px, 380px);
+  }
 
-  .login-modal__handle {
+  .login-modal:not(.login-modal--sign-in) .login-modal__handle {
     display: block;
     width: 36px;
     height: 4px;
@@ -244,7 +282,7 @@
     background: rgba(255, 255, 255, 0.15);
   }
 
-  .login-modal__close {
+  .login-modal:not(.login-modal--sign-in) .login-modal__close {
     display: none;
   }
 }

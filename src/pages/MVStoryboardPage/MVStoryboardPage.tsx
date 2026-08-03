@@ -98,7 +98,8 @@ function MVStoryboardProcessing({ onComplete }: { onComplete: () => void }) {
 function MVStoryboardPage() {
   const { requireSignIn } = useAuth()
   const draft = loadMvDraft()
-  const [stage, setStage] = useState<'processing' | 'edit'>('processing')
+  const requestedStage = new URLSearchParams(window.location.search).get('stage')
+  const [stage, setStage] = useState<'processing' | 'edit'>(requestedStage === 'edit' ? 'edit' : 'processing')
   // Imported-audio titles won't have a matching catalog entry — fall back
   // to the first song rather than leaving the preview silent.
   const songAudio = SONGS.find((song) => song.title === draft.songTitle)?.audio ?? SONGS[0]?.audio
@@ -133,8 +134,12 @@ function MVStoryboardPage() {
     else audio.pause()
   }
 
+  const fromHistory = new URLSearchParams(window.location.search).get('from') === 'history'
+  const backHref = fromHistory ? '/history' : '/mv-create'
+  const resultHref = fromHistory ? '/mv-result?from=history' : '/mv-result'
+
   return (
-    <AppLayout navbar={<DetailNavbar title="Edit Storyboard" credits={390} backHref="/mv-create" />}>
+    <AppLayout navbar={<DetailNavbar title="Edit Storyboard" credits={390} backHref={backHref} />}>
       <div className={`mv-storyboard${stage === 'processing' ? ' mv-storyboard--processing' : ''}`}>
         {stage === 'processing' ? (
           <MVStoryboardProcessing onComplete={() => setStage('edit')} />
@@ -247,7 +252,7 @@ function MVStoryboardPage() {
               type="button"
               className="mv-storyboard__cta"
               onClick={() => requireSignIn(() => {
-                window.location.href = '/mv-result'
+                window.location.href = resultHref
               })}
             >
               <span>Create MV</span>

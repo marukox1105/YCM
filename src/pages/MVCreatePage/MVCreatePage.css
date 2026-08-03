@@ -821,17 +821,18 @@
   font-family: var(--font-family-primary);
   font-size: var(--font-title-xs);
   font-weight: var(--font-weight-bold);
-  opacity: 0.3;
-  transition:
-    opacity 0.15s ease,
-    background-color 0.15s ease;
+  transition: background-color 0.15s ease;
+}
+
+.mv-create__cta:disabled > span {
+  opacity: var(--opacity-disabled);
+  transition: opacity 0.15s ease;
 }
 
 .mv-create__cta--active {
   background: linear-gradient(135deg, #ffb347 0%, #ff4e50 50%, #d63af9 100%);
   box-shadow: 0 8px 12px 0 rgba(168, 85, 247, 0.32);
   cursor: pointer;
-  opacity: 1;
 }
 
 .mv-create__cta-icon {

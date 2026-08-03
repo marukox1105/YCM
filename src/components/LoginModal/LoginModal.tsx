@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import icClose from '../../assets/icons/ic_close.svg'
 import icAppleLogo from '../../assets/icons/ic_apple_logo.svg'
 import icGoogleLogo from '../../assets/icons/ic_google_logo.svg'
 import icCheck from '../../assets/icons/ic_check.svg'
@@ -19,12 +18,8 @@ type Provider = 'Apple' | 'Google'
 // read "Signed in successfully!", short enough not to feel stuck.
 const SUCCESS_DURATION_MS = 1800
 
-// Figma "Sign In — Sheet" (node 309:4720) + "Sign In — Successful" (node
-// 310:4720) — third-party sign-in only, no email/password fields. Both are
-// mobile bottom sheets; used as-is below 768px (see LoginModal.css), with a
-// plain centered dialog above that (no desktop frame was provided, so the
-// close button + centered card reuse this app's existing dialog convention
-// instead of guessing one).
+// Figma "Popup/Dialog - Sign In" (node 1724:43347) + "Sign In — Successful"
+// (node 310:4720) — third-party sign-in only, no email/password fields.
 //
 // UI-only prototype — no backend to authenticate against, so both buttons
 // are a mock stand-in: clicking one shows the success state (matching
@@ -45,7 +40,7 @@ function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   if (!isOpen) return null
 
   return createPortal(
-    <div className="login-modal-overlay">
+    <div className={`login-modal-overlay${provider ? '' : ' login-modal-overlay--sign-in'}`}>
       <div className="login-modal-backdrop" onClick={onClose} aria-hidden="true" />
       {provider ? (
         <div className="login-modal login-modal--success" role="dialog" aria-label="Signed in successfully">
@@ -70,50 +65,52 @@ function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
           </div>
         </div>
       ) : (
-        <div className="login-modal" role="dialog" aria-label="Sign in to YouCam Muse">
+        <div className="login-modal login-modal--sign-in" role="dialog" aria-label="Sign in to YouCam Muse">
           <div className="login-modal__handle" aria-hidden="true" />
 
-          <button type="button" className="login-modal__close" onClick={onClose} aria-label="Close">
-            <img src={icClose} alt="" className="login-modal__close-icon" />
-          </button>
+          <div className="login-modal__content">
+            <div className="login-modal__app-message">
+              <img src={appIcon} alt="" className="login-modal__logo" />
 
-          <img src={appIcon} alt="" className="login-modal__logo" />
+              <div className="login-modal__message">
+                <p className="login-modal__title">Sign in to YouCam Muse</p>
+                <p className="login-modal__subtitle">
+                  Save your creations, sync across devices,
+                  <br />
+                  and unlock your full creative history.
+                </p>
+              </div>
+            </div>
 
-          <div className="login-modal__message">
-            <p className="login-modal__title">Sign in to YouCam Muse</p>
-            <p className="login-modal__subtitle">
-              Save your creations, sync across devices,
-              <br />
-              and unlock your full creative history.
-            </p>
+            <div className="login-modal__cta">
+              <div className="login-modal__buttons">
+                <button
+                  type="button"
+                  className="login-modal__social"
+                  onClick={() => {
+                    setProvider('Apple')
+                    onSuccess?.()
+                  }}
+                >
+                  <img src={icAppleLogo} alt="" className="login-modal__social-icon" />
+                  Continue with Apple
+                </button>
+                <button
+                  type="button"
+                  className="login-modal__social"
+                  onClick={() => {
+                    setProvider('Google')
+                    onSuccess?.()
+                  }}
+                >
+                  <img src={icGoogleLogo} alt="" className="login-modal__social-icon" />
+                  Continue with Google
+                </button>
+              </div>
+
+              <p className="login-modal__footer">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
+            </div>
           </div>
-
-          <div className="login-modal__buttons">
-            <button
-              type="button"
-              className="login-modal__social"
-              onClick={() => {
-                setProvider('Apple')
-                onSuccess?.()
-              }}
-            >
-              <img src={icAppleLogo} alt="" className="login-modal__social-icon" />
-              Continue with Apple
-            </button>
-            <button
-              type="button"
-              className="login-modal__social"
-              onClick={() => {
-                setProvider('Google')
-                onSuccess?.()
-              }}
-            >
-              <img src={icGoogleLogo} alt="" className="login-modal__social-icon" />
-              Continue with Google
-            </button>
-          </div>
-
-          <p className="login-modal__footer">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
         </div>
       )}
     </div>,

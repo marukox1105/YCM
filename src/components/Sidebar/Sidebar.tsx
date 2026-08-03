@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import IconButton from '../IconButton/IconButton'
+import Button from '../Button/Button'
+import { useAuth } from '../AuthProvider/AuthProvider'
 import logo from '../../assets/brand/Logo.svg'
 import icPanelLeft from '../../assets/icons/ic_panel_left.svg'
 import icCompass from '../../assets/icons/ic_compass_OL.svg'
@@ -9,6 +11,8 @@ import icSongAi from '../../assets/icons/ic_song_ai.svg'
 import icStoryAi from '../../assets/icons/ic_story_ai.svg'
 import icHistory from '../../assets/icons/ic_history_OL.svg'
 import icFileText from '../../assets/icons/ic_file_text.svg'
+import icUser from '../../assets/icons/ic_user.svg'
+import icChevronRight from '../../assets/icons/ic_chevron-right.svg'
 import './Sidebar.css'
 
 // href "#" means that page doesn't exist in the prototype yet.
@@ -30,6 +34,7 @@ function maskStyle(src: string): CSSProperties {
 }
 
 function Sidebar() {
+  const { isSignedIn } = useAuth()
   const [collapsed, setCollapsed] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(COLLAPSE_QUERY).matches : false,
   )
@@ -60,36 +65,59 @@ function Sidebar() {
 
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
-      <div className="sidebar__logo-row">
-        {!collapsed && (
-          <a href="/home" className="sidebar__logo">
-            <img src={logo} alt="MUSE" />
-          </a>
-        )}
-        <IconButton
-          size="Small"
-          variant="Ghost"
-          icon={icPanelLeft}
-          label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={toggleCollapsed}
-        />
+      <div className="sidebar__top">
+        <div className="sidebar__logo-row">
+          {!collapsed && (
+            <a href="/home" className="sidebar__logo">
+              <img src={logo} alt="MUSE" />
+            </a>
+          )}
+          <IconButton
+            size="Small"
+            variant="Ghost"
+            icon={icPanelLeft}
+            label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={toggleCollapsed}
+          />
+        </div>
+
+        <nav className="sidebar__nav">
+          {NAV_ITEMS.map((item) => (
+            <a
+              key={item.key}
+              href={item.href}
+              className={`sidebar__nav-item${isActive(item.href) ? ' sidebar__nav-item--active' : ''}`}
+            >
+              <span className="sidebar__nav-icon" style={maskStyle(item.icon)} aria-hidden="true" />
+              <span className="sidebar__nav-label">
+                <span className="sidebar__nav-label-text">{item.label}</span>
+                {item.badge && <span className="sidebar__nav-badge">{item.badge}</span>}
+              </span>
+            </a>
+          ))}
+        </nav>
       </div>
 
-      <nav className="sidebar__nav">
-        {NAV_ITEMS.map((item) => (
+      {isSignedIn && (
+        <div className="sidebar__bottom">
           <a
-            key={item.key}
-            href={item.href}
-            className={`sidebar__nav-item${isActive(item.href) ? ' sidebar__nav-item--active' : ''}`}
+            href="/account"
+            className="sidebar__profile"
           >
-            <span className="sidebar__nav-icon" style={maskStyle(item.icon)} aria-hidden="true" />
-            <span className="sidebar__nav-label">
-              <span className="sidebar__nav-label-text">{item.label}</span>
-              {item.badge && <span className="sidebar__nav-badge">{item.badge}</span>}
+            <span className="sidebar__profile-avatar">
+              <span className="sidebar__profile-avatar-icon" style={maskStyle(icUser)} aria-hidden="true" />
             </span>
+            <span className="sidebar__profile-copy">
+              <span className="sidebar__profile-name">Scott Wu</span>
+              <span className="sidebar__profile-plan">Weekly Pro</span>
+            </span>
+            <span className="sidebar__profile-chevron" style={maskStyle(icChevronRight)} aria-hidden="true" />
           </a>
-        ))}
-      </nav>
+          <Button size="Medium" variant="Tertiary" className="sidebar__upgrade-button">
+            Upgrade
+          </Button>
+        </div>
+      )}
     </aside>
   )
 }

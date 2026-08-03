@@ -57,14 +57,14 @@ function TopPicksSection() {
 
   return (
     <section className="top-picks">
-      <SectionHeader title="Top Picks Songs" seeAllHref="/song-detail" />
+      <SectionHeader title="Top Picks Songs" seeAllHref="/song-detail?from=home" />
 
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
 
       <div className="top-picks__row-wrapper">
         <div className="top-picks__row" ref={rowRef} onScroll={updateScrollState}>
           {TOP_PICKS.map((song) => (
-            <a key={song.id} href={`/song-detail?id=${song.id}`} className="top-picks__item">
+            <a key={song.id} href={`/song-detail?id=${song.id}&from=home`} className="top-picks__item">
               <Card
                 type="Song"
                 title={song.title}

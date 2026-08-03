@@ -10,6 +10,9 @@ import MVResultPage from './pages/MVResultPage/MVResultPage'
 import MVEditPage from './pages/MVEditPage/MVEditPage'
 import HistoryPage from './pages/HistoryPage/HistoryPage'
 import BlogPage from './pages/BlogPage/BlogPage'
+import AccountPage from './pages/AccountPage/AccountPage'
+import CreditsPage from './pages/CreditsPage/CreditsPage'
+import CommunityProfilePage from './pages/CommunityProfilePage/CommunityProfilePage'
 import AuthProvider from './components/AuthProvider/AuthProvider'
 
 function AppRoutes() {
@@ -51,6 +54,18 @@ function AppRoutes() {
 
   if (window.location.pathname.startsWith('/history')) {
     return <HistoryPage />
+  }
+
+  if (window.location.pathname.startsWith('/account/credits')) {
+    return <CreditsPage />
+  }
+
+  if (window.location.pathname.startsWith('/community-profile')) {
+    return <CommunityProfilePage />
+  }
+
+  if (window.location.pathname.startsWith('/account')) {
+    return <AccountPage />
   }
 
   if (window.location.pathname.startsWith('/blog3')) {

@@ -11,7 +11,6 @@ import { SONGS } from '../../data/songs'
 import { MUSIC_VIDEOS } from '../../data/musicVideos'
 import { saveMvDraft } from '../../data/mvDraft'
 import type { MvDraft } from '../../data/mvDraft'
-import icLightbulb from '../../assets/icons/ic_lightbulb.svg'
 import icVideo from '../../assets/icons/ic_video.svg'
 import icEditAi from '../../assets/icons/ic_edit_ai.svg'
 import icClose from '../../assets/icons/ic_close.svg'
@@ -93,12 +92,6 @@ const MV_STYLES: StyleOption[] = [
 ]
 
 const SAMPLE_PHOTOS = [sample1, sample2, sample3, sample4, sample5, sample6, sample7, sample8]
-
-const IDEA_SUGGESTIONS = [
-  'A cinematic story of two strangers who keep crossing paths in a neon-lit city, set to the rhythm of the song.',
-  'An upbeat performance video in a sunlit studio, full of energy and movement that matches the beat.',
-  'A dreamy narrative about chasing a memory through changing seasons.',
-]
 
 const ENHANCED_SUGGESTIONS = [
   'A slow-burn cinematic story: two strangers keep crossing paths under neon signs, the city breathing in time with the song, until a final glance says everything words couldn\'t.',
@@ -1077,15 +1070,6 @@ function MVCreatePage() {
                     <span className="mv-create__idea-icon" style={maskStyle(icVideo)} aria-hidden="true" />
                     Templates
                   </button>
-                  <button
-                    type="button"
-                    className="mv-create__idea-btn"
-                    onClick={() => setIdeaText(pickRandom(IDEA_SUGGESTIONS))}
-                    disabled={isEnhancing('idea')}
-                  >
-                    <span className="mv-create__idea-icon" style={maskStyle(icLightbulb)} aria-hidden="true" />
-                    Idea
-                  </button>
                 </div>
                 <div className="mv-create__footer-right">
                   {ideaText.length > 0 && (
@@ -1238,7 +1222,7 @@ function MVCreatePage() {
           <p className="mv-create__side-title">My Creations</p>
           <div className="mv-create__side-list">
             {MY_CREATIONS.map((mv) => (
-              <a key={mv.id} href={`/mv-detail?id=${mv.id}`} className="mv-create__side-item">
+              <a key={mv.id} href={`/mv-detail?id=${mv.id}&from=mv-create`} className="mv-create__side-item">
                 <ListItem title={mv.title} coverImage={mv.cover} username="ScottWu" plays={0} likes={mv.likes} shares={0} />
               </a>
             ))}

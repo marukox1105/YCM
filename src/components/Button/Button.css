@@ -115,6 +115,11 @@
   background: var(--neutral-dark-24);
 }
 
+.button--large.button--primary:disabled,
+.button--large.button--primary-payg:disabled {
+  opacity: 1;
+}
+
 .button--primary:disabled .button__label,
 .button--primary:disabled .button__icon,
 .button--primary-payg:disabled .button__label,

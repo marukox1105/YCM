@@ -6,6 +6,7 @@ interface AuthContextValue {
   isSignedIn: boolean
   openSignIn: () => void
   requireSignIn: (action: () => void) => void
+  signOut: () => void
 }
 
 const STORAGE_KEY = 'ycm-prototype-signed-in'
@@ -32,8 +33,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setIsSignedIn(true)
   }
 
+  function signOut() {
+    sessionStorage.removeItem(STORAGE_KEY)
+    setIsSignedIn(false)
+  }
+
   return (
-    <AuthContext.Provider value={{ isSignedIn, openSignIn, requireSignIn }}>
+    <AuthContext.Provider value={{ isSignedIn, openSignIn, requireSignIn, signOut }}>
       {children}
       <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} onSuccess={handleSignedIn} />
     </AuthContext.Provider>

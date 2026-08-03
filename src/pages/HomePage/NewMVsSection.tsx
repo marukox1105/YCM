@@ -51,12 +51,12 @@ function NewMVsSection() {
 
   return (
     <section className="new-mvs">
-      <SectionHeader title="New Music Videos" mobileTitle="New MVs" seeAllHref="/mv-detail" />
+      <SectionHeader title="New Music Videos" mobileTitle="New MVs" seeAllHref="/mv-detail?from=home" />
 
       <div className="new-mvs__row-wrapper">
         <div className="new-mvs__row" ref={rowRef} onScroll={updateScrollState}>
           {NEW_MVS.map((mv, index) => (
-            <a key={mv.id} href={`/mv-detail?id=${mv.id}`} className="new-mvs__item">
+            <a key={mv.id} href={`/mv-detail?id=${mv.id}&from=home`} className="new-mvs__item">
               <Card
                 type="Video"
                 ratio={mv.ratio}

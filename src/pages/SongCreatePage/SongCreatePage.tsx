@@ -3,6 +3,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
+import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
 import FloatingCTA from '../../components/FloatingCTA/FloatingCTA'
 import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import Tabs from '../../components/Tabs/Tabs'
@@ -466,7 +467,14 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
               className={`song-result__creations-item${index === activeSongIndex ? ' song-result__creations-item--active' : ''}`}
               onClick={() => selectSong(index)}
             >
-              <ListItem title={creation.title} coverImage={creation.cover} plays={0} likes={0} shares={0} />
+              <ListItem
+                title={creation.title}
+                coverImage={creation.cover}
+                plays={0}
+                likes={0}
+                shares={0}
+                isPlaying={index === activeSongIndex && playing}
+              />
             </button>
           ))}
         </div>
@@ -572,8 +580,13 @@ function SongResultLyrics({
 
 function SongCreatePage() {
   const { requireSignIn } = useAuth()
-  const [stage, setStage] = useState<'form' | 'processing' | 'result'>('form')
-  const [resultSong, setResultSong] = useState<(typeof SONGS)[number] | null>(null)
+  const params = new URLSearchParams(window.location.search)
+  const requestedResultSong = params.get('stage') === 'result'
+    ? SONGS.find((song) => song.id === params.get('id')) ?? null
+    : null
+  const isHistoryResult = params.get('from') === 'history' && requestedResultSong !== null
+  const [stage, setStage] = useState<'form' | 'processing' | 'result'>(requestedResultSong ? 'result' : 'form')
+  const [resultSong, setResultSong] = useState<(typeof SONGS)[number] | null>(requestedResultSong)
   const [mode, setMode] = useState<SongMode>('Simple')
 
   const { isEnhancing, enhance } = useEnhance()
@@ -596,7 +609,13 @@ function SongCreatePage() {
   const canCreate = mode === 'Custom' || ideaText.trim().length > 0
 
   return (
-    <AppLayout navbar={<RoomNavbar title="AI Song" credits={390} />}>
+    <AppLayout
+      navbar={
+        isHistoryResult
+          ? <DetailNavbar title="AI Song" credits={390} backHref="/history" />
+          : <RoomNavbar title="AI Song" credits={390} />
+      }
+    >
       <div className="song-create">
         <div className={`song-create__panel${stage !== 'form' ? ' song-create__panel--full' : ''}`}>
           {stage === 'processing' ? (
@@ -893,7 +912,7 @@ function SongCreatePage() {
             <p className="song-create__side-title">My Creations</p>
             <div className="song-create__side-list">
               {MY_CREATIONS.map((song) => (
-                <a key={song.id} href={`/song-detail?id=${song.id}`} className="song-create__side-item">
+                <a key={song.id} href={`/song-detail?id=${song.id}&from=song-create`} className="song-create__side-item">
                   <ListItem title={song.title} coverImage={song.cover} username="ScottWu" plays={0} likes={0} shares={0} />
                 </a>
               ))}
