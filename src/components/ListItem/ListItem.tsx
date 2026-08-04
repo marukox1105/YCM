@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import Button from '../Button/Button'
 import ShareDialog, { shareOrOpenDialog } from '../ShareDialog/ShareDialog'
+import { communityProfileHref } from '../../data/profile'
 import icPlay from '../../assets/icons/ic_play.svg'
 import icPause from '../../assets/icons/ic_pause.svg'
 import icAccount from '../../assets/icons/ic_account.svg'
@@ -96,7 +97,21 @@ function ListItem({
             <div className="list-item__community-heading">
               <p className="list-item__title">{title}</p>
               {username && (
-                <div className="list-item__user-row">
+                // ListItem is often wrapped in a link to the item's own detail
+                // page (e.g. My Creations) — preventDefault (blocks that
+                // anchor's own navigation) + stopPropagation (blocks any
+                // other click listener further up), same as .list-item__actions
+                // below, so clicking the avatar/name goes to their profile
+                // instead of the card's own destination.
+                <button
+                  type="button"
+                  className="list-item__user-row"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    window.location.href = communityProfileHref(username)
+                  }}
+                >
                   <span className="list-item__avatar">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt="" className="list-item__avatar-image" />
@@ -105,7 +120,7 @@ function ListItem({
                     )}
                   </span>
                   <span className="list-item__username">{username}</span>
-                </div>
+                </button>
               )}
             </div>
 

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { createPortal } from 'react-dom'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
@@ -11,6 +10,8 @@ import Chip from '../../components/Chip/Chip'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
 import ListItem from '../../components/ListItem/ListItem'
 import ShareDialog, { shareOrOpenDialog } from '../../components/ShareDialog/ShareDialog'
+import LyricsSheet from '../../components/LyricsSheet/LyricsSheet'
+import Toast from '../../components/Toast/Toast'
 import { SONGS } from '../../data/songs'
 import icLightbulb from '../../assets/icons/ic_lightbulb.svg'
 import icSingingMic from '../../assets/icons/ic_singing_mic.svg'
@@ -197,6 +198,14 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
   const [volume, setVolume] = useState(1)
   const [muted, setMuted] = useState(false)
   const [publish, setPublish] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  // Song publish never confirms first — just toasts (unlike MV, which shows
+  // PublishDialog's "Ready to Go Public?" — see MVResultPage).
+  function handlePublishToggle(next: boolean) {
+    setPublish(next)
+    setToastMessage(next ? 'Published success' : 'Unpublished success')
+  }
 
   useEffect(() => {
     const audio = audioRef.current
@@ -446,7 +455,7 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
                 <p className="song-result__publish-title">Publish</p>
                 <p className="song-result__publish-state">{publish ? 'On' : 'Off'}</p>
               </div>
-              <ToggleSwitch checked={publish} onChange={setPublish} />
+              <ToggleSwitch checked={publish} onChange={handlePublishToggle} />
             </div>
           </div>
         </div>
@@ -481,101 +490,21 @@ function SongResult({ song, onRecreate }: { song: (typeof SONGS)[number]; onRecr
         </div>
       </div>
 
-      {showLyrics && (
-        <SongResultLyrics
-          song={activeSong}
-          currentTime={currentTime}
-          duration={duration}
-          playing={playing}
-          onTogglePlay={togglePlay}
-          onClose={() => setShowLyrics(false)}
-        />
-      )}
+      <LyricsSheet
+        isOpen={showLyrics}
+        title={activeSong.title}
+        cover={activeSong.cover}
+        lyricLines={lyricLines}
+        currentTime={currentTime}
+        duration={duration}
+        playing={playing}
+        onTogglePlay={togglePlay}
+        onClose={() => setShowLyrics(false)}
+      />
 
       <ShareDialog title={activeSong.title} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
+      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
     </div>
-  )
-}
-
-// Figma "Song Result — Lyrics" (node 881:19546, mobile bottom sheet) — no
-// separate desktop frame was given, so this reuses this app's existing
-// pattern (LoginModal/ShareDialog) of the same sheet becoming a centered
-// dialog above the mobile breakpoint instead of guessing a new desktop
-// layout. Synced-line highlighting matches SongDetailPage's Now Playing.
-function SongResultLyrics({
-  song,
-  currentTime,
-  duration,
-  playing,
-  onTogglePlay,
-  onClose,
-}: {
-  song: (typeof SONGS)[number]
-  currentTime: number
-  duration: number
-  playing: boolean
-  onTogglePlay: () => void
-  onClose: () => void
-}) {
-  const activeLineRef = useRef<HTMLParagraphElement>(null)
-  const lyricLines = song.lyricLines.length ? song.lyricLines : FALLBACK_LYRICS
-  const activeLineIndex = Math.min(
-    lyricLines.length - 1,
-    Math.floor((duration ? currentTime / duration : 0) * lyricLines.length),
-  )
-
-  useEffect(() => {
-    activeLineRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-  }, [activeLineIndex])
-
-  return createPortal(
-    <div className="song-result-lyrics-overlay">
-      <div className="song-result-lyrics-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="song-result-lyrics" role="dialog" aria-label="Lyrics">
-        <div className="song-result-lyrics__handle" aria-hidden="true" />
-
-        <div className="song-result-lyrics__header">
-          <button type="button" className="song-result-lyrics__close" onClick={onClose} aria-label="Close">
-            <img src={icClose} alt="" className="song-result-lyrics__close-icon" />
-          </button>
-          <p className="song-result-lyrics__title">Lyrics</p>
-          <div className="song-result-lyrics__header-spacer" aria-hidden="true" />
-        </div>
-
-        <div className="song-result-lyrics__song-row">
-          <img src={song.cover} alt="" className="song-result-lyrics__song-art" />
-          <div className="song-result-lyrics__song-info">
-            <p className="song-result-lyrics__song-title">{song.title}</p>
-            <p className="song-result-lyrics__song-time">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="song-result-lyrics__play"
-            onClick={onTogglePlay}
-            aria-label={playing ? 'Pause' : 'Play'}
-          >
-            <span className="song-result-lyrics__play-icon" style={maskStyle(playing ? icPause : icPlay)} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="song-result-lyrics__divider" />
-
-        <div className="song-result-lyrics__lines">
-          {lyricLines.map((line, index) => (
-            <p
-              key={index}
-              ref={index === activeLineIndex ? activeLineRef : undefined}
-              className={`song-result-lyrics__line${index === activeLineIndex ? ' song-result-lyrics__line--active' : ''}`}
-            >
-              {line}
-            </p>
-          ))}
-        </div>
-      </div>
-    </div>,
-    document.body,
   )
 }
 
@@ -687,6 +616,7 @@ function SongCreatePage() {
                           style={maskStyle(isEnhancing('idea') ? icRefresh : icEditAi)}
                           aria-hidden="true"
                         />
+                        Enhance
                       </button>
                     )}
                     <span className="song-create__char-count">{ideaText.length}/2500</span>
@@ -801,6 +731,7 @@ function SongCreatePage() {
                             style={maskStyle(isEnhancing('lyrics') ? icRefresh : icEditAi)}
                             aria-hidden="true"
                           />
+                          Enhance
                         </button>
                       )}
                       <span className="song-create__char-count">{lyricsText.length}/2500</span>

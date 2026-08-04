@@ -9,11 +9,11 @@
 .credits-page__balance strong span { font-size: var(--font-body-s); font-weight: var(--font-weight-medium); }
 .credits-page__balance .button { min-width: auto; }
 .credits-page__tabs { margin: 20px 0 10px; }
-.credits-page__tabs .tabs__tab { border-radius: var(--radius-pill); }
 .credits-page__list { display: flex; flex-direction: column; }
 .credits-page__entry { display: flex; min-height: 70px; padding: 8px 0; align-items: center; gap: 12px; box-sizing: border-box; }
 .credits-page__entry-icon { display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; flex: 0 0 44px; border: 1px solid var(--white-15); border-radius: 10px; background: var(--neutral-dark-09); color: white; }
 .credits-page__entry-icon > span { width: 22px; height: 22px; background: currentColor; mask-repeat: no-repeat; mask-position: center; mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; }
+.credits-page__entry-icon > img { width: 22px; height: 22px; }
 .credits-page__entry-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
 .credits-page__entry-copy strong { font-size: var(--font-body-m); line-height: var(--line-height-body-m); }
 .credits-page__entry-copy time { color: var(--neutral-dark-64); font-size: var(--font-caption-m); line-height: var(--line-height-caption-m); }

@@ -96,38 +96,6 @@
   }
 }
 
-.hero-banner__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  align-self: flex-start;
-  padding: 6px 8px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  color: var(--neutral-dark-100);
-  font-family: var(--font-family-primary);
-  font-size: var(--font-label-m);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-label-m);
-  letter-spacing: -0.13px;
-  white-space: nowrap;
-}
-
-.hero-banner__badge-icon {
-  width: 12px;
-  height: 12px;
-  background-color: currentColor;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-}
-
 .hero-banner__text-cta {
   display: flex;
   flex-direction: column;
@@ -153,24 +121,10 @@
   margin: 0;
   color: var(--neutral-dark-100);
   font-family: var(--font-family-primary);
-  font-size: 22px;
-  font-weight: var(--font-weight-extrabold);
-  line-height: 28px;
-  letter-spacing: -0.3px;
-}
-
-@media (min-width: 768px) {
-  .hero-banner__title {
-    font-size: 26px;
-    line-height: 32px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero-banner__title {
-    font-size: var(--font-title-xl);
-    line-height: var(--line-height-title-xl);
-  }
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  line-height: 24px;
+  letter-spacing: -0.2px;
 }
 
 .hero-banner__subtitle {
@@ -181,6 +135,88 @@
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-body-m);
   letter-spacing: -0.14px;
+}
+
+/* Fixed rotating headline (Figma "Text + CTA", node 1819:32304) — cycles
+   between 2 lines every 5s, sliding up like a odometer/flip-clock: the mask
+   clips to one line's height, and the track (holding a leading + trailing
+   clone so it can always slide the same direction) translates by 100% per
+   step — see HeroHeadline in HeroBannerSection.tsx. */
+.hero-banner__headline-mask {
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  height: 56px;
+}
+
+.hero-banner__headline-track {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+/* Each headline is 2 lines — the plain lead-in on its own line, the
+   gradient-accent phrase ("Cinematic Video" / "Music Video") always on the
+   line below it. Single-line nowrap was cutting the accent phrase off
+   mid-word since it never fit next to the lead-in inside the mask width. */
+.hero-banner__headline {
+  display: flex;
+  flex-direction: column;
+  height: 56px;
+  margin: 0;
+  color: var(--neutral-dark-100);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.hero-banner__headline-line {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.3px;
+}
+
+.hero-banner__headline-accent {
+  background: linear-gradient(90deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (min-width: 768px) {
+  .hero-banner__headline-mask,
+  .hero-banner__headline {
+    height: 68px;
+  }
+
+  .hero-banner__headline-line {
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.35px;
+  }
+}
+
+/* Only the 1024px+ frame exists in Figma (fixed 480px width, 42px/50px per
+   line) — the mobile/tablet sizes above scale it down proportionally as a
+   reasonable default, not a confirmed design. */
+@media (min-width: 1024px) {
+  .hero-banner__headline-mask {
+    max-width: 480px;
+  }
+
+  .hero-banner__headline-mask,
+  .hero-banner__headline {
+    height: 100px;
+  }
+
+  .hero-banner__headline-line {
+    font-size: 42px;
+    line-height: 50px;
+    letter-spacing: -0.42px;
+  }
 }
 
 .hero-banner__action-row {

@@ -60,6 +60,45 @@
   min-width: 0;
 }
 
+/*
+  Mobile-only reorder — Figma "Edit Script" (node 287:3967) interleaves the
+  two desktop columns into one sequence: Character Image → MV Song →
+  Visual Style → Story → Story Line → Lyrics (Lyrics ends up last, not
+  bundled with Character Image/MV Song, so this can't just move the whole
+  .mv-storyboard__side block — same display:contents + per-section `order`
+  technique as MVEditPage's mobile reorder).
+*/
+@media (max-width: 1023px) {
+  .mv-storyboard__panel,
+  .mv-storyboard__side {
+    display: contents;
+  }
+
+  .mv-storyboard__section--char-image {
+    order: 1;
+  }
+
+  .mv-storyboard__section--mv-song {
+    order: 2;
+  }
+
+  .mv-storyboard__section--visual-style {
+    order: 3;
+  }
+
+  .mv-storyboard__section--story {
+    order: 4;
+  }
+
+  .mv-storyboard__section--story-line {
+    order: 5;
+  }
+
+  .mv-storyboard__section--lyrics {
+    order: 6;
+  }
+}
+
 @media (min-width: 1024px) {
   .mv-storyboard__side {
     flex: 332 1 0;
@@ -243,6 +282,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   height: 24px;
   padding: 4px 10px;
   border: none;
@@ -250,6 +290,11 @@
   background: var(--neutral-dark-100);
   color: var(--neutral-dark-04);
   cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.11px;
+  white-space: nowrap;
 }
 
 .mv-storyboard__input-box--processing .mv-storyboard__enhance-btn {

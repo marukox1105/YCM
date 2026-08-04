@@ -450,6 +450,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   height: 24px;
   padding: 4px 10px;
   border: none;
@@ -457,6 +458,11 @@
   background: var(--neutral-dark-100);
   color: var(--neutral-dark-04);
   cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.11px;
+  white-space: nowrap;
 }
 
 .mv-create__input-box--processing .mv-create__enhance-btn {
@@ -984,6 +990,14 @@
   justify-content: center;
   padding: 20px;
   box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mv-sheet-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .mv-sheet-backdrop {
@@ -1003,11 +1017,17 @@
   max-width: 380px;
   max-height: 80vh;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 32px;
   border-radius: var(--radius-2xl);
   border: 1px solid var(--white-15);
   background: var(--neutral-dark-09);
   box-shadow: 0 24px 60px 0 rgba(0, 0, 0, 0.5);
+  transform: scale(0.96);
+  transition: transform 0.3s ease;
+}
+
+.mv-sheet-overlay--visible .mv-sheet {
+  transform: scale(1);
 }
 
 .mv-sheet__handle {
@@ -1086,6 +1106,11 @@
     padding: 0;
   }
 
+  .mv-template-sheet__list {
+    margin: 16px -20px 0;
+    padding: 0 20px;
+  }
+
   .mv-sheet {
     max-width: none;
     max-height: 80vh;
@@ -1093,6 +1118,12 @@
     border-radius: 26px 26px 0 0;
     border: none;
     box-shadow: none;
+    /* Bottom sheet slides up instead of the desktop dialog's scale-in. */
+    transform: translateY(100%);
+  }
+
+  .mv-sheet-overlay--visible .mv-sheet {
+    transform: translateY(0);
   }
 
   .mv-sheet__handle {
@@ -1496,10 +1527,16 @@
   object-fit: cover;
 }
 
+/* Bleeds to the dialog's true edges (rather than stopping at the dialog's
+   own 32px padding) so the row can scroll all the way to a fully-inset last
+   item instead of that item sitting cramped right at the padding boundary.
+   Mobile's .mv-sheet uses 20px side padding instead — see the matching
+   override below. */
 .mv-template-sheet__list {
   display: flex;
   gap: 12px;
-  margin-top: 16px;
+  margin: 16px -32px 0;
+  padding: 0 32px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1844,8 +1881,16 @@
   cursor: pointer;
 }
 
+/* Gradient stroke ("Color/Gradient/MV") — border-color can't take a
+   gradient directly, so this uses the double-background trick: an opaque
+   padding-box layer paints the card's own background, leaving only the
+   1.5px border-box ring for the gradient layer underneath to show through. */
 .mv-mode-card--featured {
-  border-color: #ff6bce;
+  border-width: 1.5px;
+  border-color: transparent;
+  background:
+    linear-gradient(var(--neutral-dark-09), var(--neutral-dark-09)) padding-box,
+    linear-gradient(135deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%) border-box;
 }
 
 .mv-mode-card__top {
@@ -1868,8 +1913,11 @@
 
 .mv-mode-card__badge {
   padding: 4px 6px;
-  border-radius: 13px;
-  background: linear-gradient(90deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 20px;
+  background: rgba(145, 50, 255, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   color: var(--neutral-dark-100);
   font-family: var(--font-family-primary);
   font-size: 9px;
@@ -1898,6 +1946,7 @@
 .mv-mode-card__tags {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 4px;
   flex-wrap: wrap;
 }
@@ -1920,16 +1969,16 @@
   height: 12px;
 }
 
+/* Both cards share the same gradient "Pricing Badge" now — the higher-priced
+   Create-MV-Directly option no longer gets a distinct gold treatment, per
+   the simplified design. */
 .mv-mode-card__tag--credit {
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  background: rgba(168, 85, 247, 0.2);
-  color: var(--color-accent-purple);
-  font-weight: var(--font-weight-bold);
-}
-
-.mv-mode-card__tag--gold {
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  padding: 6px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: var(--neutral-dark-100);
   font-weight: var(--font-weight-bold);
 }

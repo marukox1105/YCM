@@ -12,6 +12,7 @@ function ToolSelectorSection() {
   return (
     <section className="tool-selector">
       <a href="/mv-create" className="tool-selector__card tool-selector__card--bright">
+        <span className="tool-selector__glow" aria-hidden="true" />
         <div className="tool-selector__icon-badge tool-selector__icon-badge--mv">
           <span className="tool-selector__icon" style={maskStyle(icVideoAi)} aria-hidden="true" />
         </div>
@@ -30,6 +31,7 @@ function ToolSelectorSection() {
       </a>
 
       <a href="/song-create" className="tool-selector__card">
+        <span className="tool-selector__glow" aria-hidden="true" />
         <div className="tool-selector__icon-badge tool-selector__icon-badge--song">
           <span className="tool-selector__icon" style={maskStyle(icSongAi)} aria-hidden="true" />
         </div>

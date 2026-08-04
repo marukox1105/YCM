@@ -6,6 +6,8 @@ import SectionHeader from '../../components/SectionHeader/SectionHeader'
 import Card from '../../components/Card/Card'
 import Button from '../../components/Button/Button'
 import IconButton from '../../components/IconButton/IconButton'
+import ShareDialog, { shareOrOpenDialog } from '../../components/ShareDialog/ShareDialog'
+import { communityProfileHref } from '../../data/profile'
 import icAccount from '../../assets/icons/ic_account.svg'
 import icFavoriteOff from '../../assets/icons/ic_favorite_off.svg'
 import icFavoriteOn from '../../assets/icons/ic_favorite_on.svg'
@@ -49,6 +51,7 @@ function VideoPlayer({ item }: { item: (typeof MV_CATALOG)[number] }) {
   const [liked, setLiked] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [shareOpen, setShareOpen] = useState(false)
 
   function handleLoadedMetadata() {
     const video = videoRef.current
@@ -136,24 +139,44 @@ function VideoPlayer({ item }: { item: (typeof MV_CATALOG)[number] }) {
         <div className="mv-player__meta-row">
           <div className="mv-player__meta">
             <p className="mv-player__title">{item.title}</p>
-            <div className="mv-player__user">
+            <button
+              type="button"
+              className="mv-player__user"
+              onClick={() => (window.location.href = communityProfileHref(item.username))}
+            >
               <span className="mv-player__avatar">
                 <span className="mv-player__avatar-icon" style={maskStyle(icAccount)} aria-hidden="true" />
               </span>
               <span className="mv-player__username">{item.username}</span>
-            </div>
+            </button>
           </div>
 
           <div className="mv-player__actions">
-            <IconButton
+            <div className="mv-player__like-share">
+              <IconButton
+                size="Medium"
+                variant="Ghost"
+                icon={liked ? icFavoriteOn : icFavoriteOff}
+                label={liked ? 'Unlike' : 'Like'}
+                onClick={() => setLiked((current) => !current)}
+                className={`mv-player__action-icon${liked ? ' mv-player__action-icon--active' : ''}`}
+              />
+              <IconButton
+                size="Medium"
+                variant="Ghost"
+                icon={icShare}
+                label="Share"
+                onClick={() => shareOrOpenDialog(item.title, () => setShareOpen(true))}
+                className="mv-player__action-icon"
+              />
+            </div>
+            <Button
               size="Medium"
-              variant="Ghost"
-              icon={liked ? icFavoriteOn : icFavoriteOff}
-              label={liked ? 'Unlike' : 'Like'}
-              onClick={() => setLiked((current) => !current)}
-            />
-            <IconButton size="Medium" variant="Ghost" icon={icShare} label="Share" />
-            <Button size="Medium" variant="Primary" trailingIcon={icArrowRight} className="mv-player__cta">
+              variant="Primary"
+              trailingIcon={icArrowRight}
+              className="mv-player__cta"
+              onClick={() => { window.location.href = '/mv-create' }}
+            >
               Create MV
             </Button>
           </div>
@@ -169,13 +192,15 @@ function VideoPlayer({ item }: { item: (typeof MV_CATALOG)[number] }) {
             <span className="mv-player__control-icon" style={maskStyle(playing ? icPause : icPlay)} aria-hidden="true" />
           </button>
 
+          <span className="mv-player__time">{formatTime(currentTime)}</span>
+
           <div className="mv-player__progress" ref={progressRef} onPointerDown={handleProgressPointerDown}>
             <div className="mv-player__progress-track" />
             <div className="mv-player__progress-fill" style={{ width: `${progressRatio * 100}%` }} />
             <div className="mv-player__progress-thumb" style={{ left: `${progressRatio * 100}%` }} />
           </div>
 
-          <span className="mv-player__time">{formatTime(currentTime)}</span>
+          <span className="mv-player__time">{formatTime(duration)}</span>
 
           <button
             type="button"
@@ -195,6 +220,8 @@ function VideoPlayer({ item }: { item: (typeof MV_CATALOG)[number] }) {
           </button>
         </div>
       </div>
+
+      <ShareDialog title={item.title} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   )
 }
@@ -283,7 +310,7 @@ function computeJustifiedRows(items: readonly MusicVideoWithMeta[], containerWid
 // Reused by both sections below — same catalog, just a different order per
 // section (see NEWLY_RELEASED) so the page doesn't read as two copies of one
 // grid when there's no separate content to fill it with.
-function MvGrid({ items, source }: { items: readonly MusicVideoWithMeta[]; source: 'home' | 'mv-create' | 'history' }) {
+function MvGrid({ items, source }: { items: readonly MusicVideoWithMeta[]; source: 'home' | 'mv-create' | 'history' | 'community-profile' }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [isDesktop, setIsDesktop] = useState(() =>
@@ -372,8 +399,18 @@ function MVDetailPage() {
   const params = new URLSearchParams(window.location.search)
   const selected = MV_CATALOG.find((mv) => mv.id === params.get('id'))
   const requestedSource = params.get('from')
-  const source = requestedSource === 'mv-create' || requestedSource === 'history' ? requestedSource : 'home'
-  const backHref = source === 'mv-create' ? '/mv-create' : source === 'history' ? '/history' : '/home'
+  const source =
+    requestedSource === 'mv-create' || requestedSource === 'history' || requestedSource === 'community-profile'
+      ? requestedSource
+      : 'home'
+  const backHref =
+    source === 'mv-create'
+      ? '/mv-create'
+      : source === 'history'
+        ? '/history'
+        : source === 'community-profile'
+          ? '/community-profile?tab=music-videos'
+          : '/home'
 
   return (
     <AppLayout navbar={<DetailNavbar credits={390} backHref={backHref} />}>

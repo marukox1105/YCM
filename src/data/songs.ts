@@ -13,7 +13,27 @@ export interface Song {
    *  markers like [chorus] stripped, so the Now Playing panel can highlight
    *  a line at a time as playback progresses. */
   lyricLines: string[]
+  /** No real per-song creator identity data exists yet — assigned HERE,
+   *  once, same convention as MUSIC_VIDEOS' own USERNAMES pool, so every
+   *  page shares the same creator per song instead of each hardcoding its
+   *  own placeholder. This is a community "See All Songs" list, not the
+   *  user's own songs, so none of these are ever "ScottWu" (the current
+   *  user) — see src/data/profile.ts. */
+  username: string
 }
+
+const USERNAMES = [
+  'MelodyMaker123',
+  'SonicWave',
+  'EchoStudio',
+  'RhythmRider',
+  'AudioAlchemist',
+  'BeatCrafters',
+  'HarmonyHive',
+  'PulseProducer',
+  'VelvetVerse',
+  'LoFiLuna',
+]
 
 const coverModules = import.meta.glob('../assets/covers/Top Picks Songs/*/cover.{png,jpg,jpeg}', {
   eager: true,
@@ -58,7 +78,7 @@ const folderNames = Array.from(
 ).sort()
 
 export const SONGS: Song[] = folderNames
-  .map((folder) => {
+  .map((folder, index) => {
     const coverPath = Object.keys(coverModules).find((path) => path.includes(`/${folder}/cover.`))
     const audioPath = Object.keys(audioModules).find((path) => path.includes(`/${folder}/song.mp3`))
     const titlePath = Object.keys(titleModules).find((path) => path.includes(`/${folder}/title.json`))
@@ -69,6 +89,7 @@ export const SONGS: Song[] = folderNames
       cover: coverModules[coverPath],
       audio: audioModules[audioPath],
       lyricLines: cleanLyrics(titlePath ? titleModules[titlePath].lyrics : undefined),
+      username: USERNAMES[index % USERNAMES.length],
     }
   })
   .filter((song): song is Song => song !== null)

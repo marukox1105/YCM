@@ -25,7 +25,263 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-03 (session 2)
+## Current checkpoint — 2026-08-04
+
+Latest committed checkpoint before this working tree:
+`008d680` — "Fix sign-in logo shape, tool-tile click area, and Feature Room CTA/side-panel
+states". This is a multi-session block of work on top of that commit — see "Previous
+checkpoint — 2026-08-03 (session 2)" below for the work that landed *in* `008d680`.
+
+### Work completed since that checkpoint
+
+**Monetization surface (new)**
+- Added `UpgradeButton`/`UpgradeDialog` (Figma "Sub btn" 1459:10293 + "Popup iAP - Pricing"
+  1797:33233) — a header pill next to the credit balance (signed-in only, in `Navbar`,
+  `RoomNavbar`, `DetailNavbar`) that opens a 3-plan pricing dialog (Weekly / Weekly Pro /
+  Yearly). The Sidebar's own separate bottom "Upgrade" button opens the same dialog via its
+  own independent `useState` (the two buttons have different Figma-mandated visual styles
+  and are never mounted with a shared parent, so lifting state isn't natural here).
+- Added `CreditsDialog` (Figma "IAP — Buy Credits - List_L" 1783:42703) — a "Buy Credits"
+  popup with 6 selectable packs (8000→300 credits, with 20%-off/"Best Value"/"Popular" tags)
+  and a "Buy Now" gradient CTA. Wired to **both** the header `CreditBalance` chip (now a
+  self-contained trigger + dialog, matching `UpgradeButton`'s pattern) and the Credits page's
+  own "Buy More" button.
+- `UpgradeDialog`'s Weekly Pro card: stroke is now a gradient (`Color/Gradient/MV`, via the
+  double-background trick since `border-color` can't take a gradient directly) instead of a
+  flat orange, and the "PRO" badge sits inline right after "Weekly" (was drifting to the far
+  right because `flex: 1` had been applied to the plan-name text itself instead of a
+  name+badge wrapper group).
+
+**Shared popup transition system (new)**
+- Added `src/hooks/useMountTransition.ts` — `useMountTransition(isOpen, duration=300)`
+  returns `{ shouldRender, visible }`: keeps a dialog mounted through its CSS exit
+  transition instead of unmounting the instant `isOpen` goes false, and defers the
+  entering `--visible` class by a **double** `requestAnimationFrame` (a single rAF still
+  fires before the next paint, so the closed state and the visible state could land in the
+  same frame and skip the enter animation entirely — this was caught and fixed mid-session).
+  Also exports `useLastValue()`, for dialogs whose content prop goes `null` right as closing
+  starts (e.g. `trimSong`), so the exit animation still has something to render.
+- Applied to **every** popup in the app: `UpgradeDialog`, `ShareDialog`, `LyricsSheet`,
+  `LoginModal`, Account's Edit Profile/Sign Out/Delete dialogs, History's publish/delete
+  confirmations, all 5 of MV Create's sheets (Settings/Song Picker/Template/Trim
+  Audio/Mode), and the two new dialogs below. Every popup backdrop now also has
+  `backdrop-filter: blur(2px)` (some, like `ShareDialog`/`UpgradeDialog`, had none before).
+- Added shared `PublishDialog` ("Ready to Go Public?" confirm — MV-only) and `Toast`
+  (simple pill status message, Figma node 464:13600 — Song publish, no confirmation step)
+  components, both using the new transition hook. `HistoryPage` was refactored to use them
+  instead of its own inline dialog/toast markup; `MVResultPage`, `SongCreatePage`, and
+  `CommunityProfilePage`'s per-item Publish toggle were newly wired to them (MV → dialog,
+  Song → toast, branching on `item.type` in Community Profile's case since it lists both).
+
+**Home hero / tool selector**
+- `HeroBannerSection`: removed the "✦ Trending MV" badge; the per-video title/subtitle
+  moved up into that slot (smaller, 20px/24px per Figma). Below it, a new self-contained
+  `HeroHeadline` sub-component cycles between two fixed marketing headlines ("Transform
+  song into **Cinematic Video**" / "Turn your selfie into **Music Video**", gradient accent
+  text) every 5s, sliding up like an odometer — reuses the same clone-then-silent-reset
+  infinite-loop technique as the mobile hero carousel below it in the same file. Rendered as
+  **two lines** (plain lead-in, then the accent phrase always on its own line) after the
+  first version's single-line layout clipped the accent phrase mid-word. Animation timing
+  (duration, cubic-bezier) is tuned to the exact values the user specified — see
+  `HEADLINE_ANIM_MS` / the inline `cubic-bezier(0.3, 0, 0.1, 1)` in `HeroBannerSection.tsx`.
+- `ToolSelectorSection` cards: icon badge 56px→60px; the ambient background glow is now
+  always visible (was hover-only) with per-card color (purple for MV, red for Song); a
+  separate hover-only `.tool-selector__glow` overlay fades in a bigger/brighter version of
+  the same glow (own element, not an animated gradient-size change, since CSS can't
+  interpolate between two differently-sized gradients); hover border is a "shimmer"
+  gradient ring added via a masked `::after` (opacity-faded, not a `border-color`
+  transition, for the same gradient-interpolation reason). Title/description colors are now
+  the same in default and hover state (`Neutral/Dark/100` / `Neutral/Dark/89`) — the
+  previous dim-then-brighten-on-hover swap was removed since both values are now identical.
+- **New A/B review page**: `/home-review-b` (`HomePageReviewB.tsx` +
+  `ToolSelectorSectionAlt.tsx`/`.css`) — an alternate tool-selector treatment for the product
+  owner to compare against the real `ToolSelectorSection`, per CLAUDE.md's "A/B proposals
+  get a temporary review page" convention. Differences from the real section: sits **above**
+  the Hero Banner instead of below it; bigger cards (Figma nodes 1835:33139 default /
+  1835:33929 hover) with a "Create" **text** pill CTA on hover instead of the original's
+  arrow icon button; lighter card fill (`rgba(9,9,11,0.4)`, corrected mid-review from an
+  initial `0.6` after the product owner flagged it as too heavy) that's identical between
+  default and hover (hover only adds the glow on top, doesn't change the base fill); tighter
+  10px gap above the cards and 20px gap to the Hero below (both overridden locally via
+  padding/negative-margin so the shared `.home-page` flex-gap used by the real `HomePage`
+  isn't touched). **Not yet folded into the real `HomePage`** — this is still two pages
+  side by side pending the product owner's pick; see Recommended next steps.
+
+**Navigation / consistency fixes**
+- `DetailNavbar`/`RoomNavbar` right-alignment: `.detail-navbar__actions` /
+  `.room-navbar__actions` gained `margin-left: auto` — the credit balance + Upgrade button
+  pair had no `justify-content: space-between` or growing sibling to push them to the far
+  right, so they were sitting flush against the title/back button instead. Fixes every page
+  built on `RoomNavbar` (History, Song Create, MV Create, Blog, Account) and `DetailNavbar`
+  in one place each.
+- `RoomNavbar` gained a `@media (max-width: 767px)` block (padding 60px→16px) — it had no
+  responsive breakpoints at all before, harmless while nothing used its `tabsSlot` prop, but
+  now exposed by History's tabs moving into it (below).
+- **History's tabs bar moved into `RoomNavbar`'s `tabsSlot`** (was rendered directly in the
+  page body) so it's sticky under the header on scroll, matching `SongDetailPage`'s already-
+  sticky `DetailNavbar` `tabsSlot` convention instead of scrolling away with the content.
+- **`Tabs` component's default height corrected to 34px** (was 28px: `padding: 5px 10px` +
+  14px-radius instead of Figma's `padding: 8px 16px` + pill radius + bold weight, node
+  1357:30289). Three pages (`CommunityProfilePage`, `CreditsPage`, `HistoryPage`) had each
+  independently re-implemented this exact same "correct" override locally — those redundant
+  per-page overrides were removed now that the shared default matches.
+- **`CommunityProfilePage` back-navigation is now referrer-based**, not hardcoded to
+  `/account`: `computeBackHref()` reads `document.referrer` (same-origin check) and falls
+  back to `/account` only when there's no usable referrer. Fixes "back" incorrectly
+  returning to your own profile after viewing someone else's from a content page.
+  `CommunityProfilePage` also gates the **own**-profile view behind sign-in (same
+  `useEffect`-`openSignIn()` + early-return pattern as Account/History) while leaving other
+  users' profiles publicly viewable, and its item links now carry
+  `from=community-profile` so `MVDetailPage`/`SongDetailPage`'s own back button can return
+  here (`source` union type extended with `'community-profile'` in both).
+- **Community identity convention**: `src/data/songs.ts`'s `Song` type gained a `username`
+  field (assigned once from a fixed `USERNAMES` pool, same convention as
+  `musicVideos.ts`'s own `USERNAMES`) since `SongDetailPage`'s "See All Songs" list is
+  community content and must never show the signed-in user's own name ("ScottWu") — it had
+  been hardcoded to `"ScottWu"` in three places (the list rows, the desktop Now Playing
+  panel, and the mobile player), all now using the actual song's `username` and routing its
+  avatar click through the shared `communityProfileHref()`. `Card` and `ListItem` gained the
+  same "click avatar → that user's Community Profile" wiring (was previously non-interactive
+  in both).
+- Fixed two **Like icon color bugs** on `SongDetailPage`: the Top Songs list's Like icon
+  wasn't visually synced to Share's dimmed color before being liked (`.top-song__share` had
+  `opacity: 0.4`, `.top-song__like` didn't); the desktop Now Playing panel's and mobile
+  player's Like buttons never actually turned purple when active — the CSS rule
+  (`--active` modifier) existed but the JSX never applied the modifier class.
+
+**Misc fixes**
+- `MVEditPage`'s Cover Image "Recreate" button is enabled whenever the prompt is non-empty,
+  regardless of whether the text changed (was gated on `coverPrompt !== generatedCoverPrompt`
+  — reverted per explicit product direction: regenerating from unchanged text can still
+  produce a different cover). The per-scene Recreate button's own gating is unchanged.
+- `MVCreatePage`'s Mode Choice sheet ("Create Storyboard First" / "Create MV Directly"):
+  featured card's stroke is now the `Color/Gradient/MV` gradient (same double-background
+  technique as `UpgradeDialog`'s Weekly Pro card) instead of a flat pink; the credits tag
+  moved to the bottom-right of its row via `justify-content: space-between` instead of
+  sitting inline next to the duration tag.
+- `CreditsDialog`'s per-pack tags (20% OFF / Best Value / Popular) are now absolutely
+  positioned instead of a normal-flow row with a negative margin — the previous approach
+  made a pack's rendered height (and so its visual gap to its neighbor) depend on whether it
+  had any tags at all. Its small per-pack credit icon is `White 40%`, not orange (was
+  `--color-action-warning`, too visually loud next to the plain price text next to it).
+- **Mobile-specific work** (from the task list, predates this file's detailed session log
+  but landed in this same uncommitted block): extracted `LyricsSheet` as a shared component
+  out of `SongCreatePage` (also now used by `SongDetailPage`, both via a new `isOpen` prop
+  instead of `{condition && <LyricsSheet/>}` conditional mounting, so its own exit
+  transition — see above — actually has time to play); a mobile-only full-screen Song
+  Player view for `SongDetailPage` with push/pop history-state wiring so the phone back
+  gesture returns to the list instead of leaving the page; a rebuilt `MVEditPage` mobile
+  layout (Figma node 49:53) including a mobile-only full-screen Scene Detail view; and a
+  mobile "what would you like to create?" sheet on `MobileTabBar`'s "+" tab (Figma node
+  172:1878, AI Music Video / AI Song options).
+- `AppLayout` gained `showFooter`/`showMobileTabBar` props (both default `false`, were
+  previously unconditional) — Footer and the app-mobile bottom tab bar now only render on
+  the pages that explicitly opt in (`HomePage`, `HistoryPage`), not every page.
+- `vite.config.ts`: disabled CSS minification (`cssMinify: false`). Vite's default minifier
+  (Lightning CSS) collapses a rule declaring both `backdrop-filter` and
+  `-webkit-backdrop-filter` down to only the `-webkit-` one in production builds, silently
+  breaking the blur on browsers that don't honor the legacy alias (e.g. Firefox) — invisible
+  in dev (unminified) but only shows up post-deploy. The size cost is negligible next to
+  this project's multi-MB media assets.
+- `src/assets/backgrounds/History_Option_Menu_Spec.zip` (flagged as an open question in the
+  previous checkpoint) has been deleted from the working tree — resolved by removal rather
+  than kept as a reference artifact.
+
+### Pages and components changed
+
+- Pages: Home (+ new `/home-review-b` review page), History, Credits, Community Profile,
+  Song Detail, Song Create, MV Create, MV Detail, MV Result, MV Edit, MV Storyboard,
+  Account, Blog (minor).
+- New shared components: `UpgradeButton`, `UpgradeDialog`, `CreditsDialog`, `PublishDialog`,
+  `Toast`, `LyricsSheet` (promoted from a `SongCreatePage`-local component).
+- New shared hook: `useMountTransition` (+ `useLastValue`) in `src/hooks/`.
+- New data file: `src/data/profile.ts` (`CURRENT_USERNAME`, `isOwnUsername()`,
+  `communityProfileHref()` — the "which profile does this username link to" convention used
+  everywhere an avatar is clickable).
+- Existing shared components changed: `CreditBalance` (now self-contained trigger +
+  dialog), `DetailNavbar`, `RoomNavbar`, `Tabs`, `Card`, `ListItem`, `TopSongListItem`,
+  `Sidebar`, `Navbar`, `MobileTabBar`, `AppLayout`, `LoginModal`, `ShareDialog`.
+
+### Important implementation decisions
+
+- **A single `requestAnimationFrame` is not enough to guarantee an enter transition plays.**
+  It can still fire before the browser's next paint, letting the closed state and the
+  `--visible` state land in the same frame (no visible animation). `useMountTransition` uses
+  a **double** rAF (schedule the class change from inside the callback of another rAF) —
+  keep this pattern for any future mount-transition code; verified in-browser by sampling
+  `getComputedStyle(...).opacity` across consecutive animation frames right after triggering
+  open, which showed a clean 0 → 1 ramp only after the double-rAF fix (a single rAF measured
+  as an instant jump to `1`).
+- **Gradients can't be transitioned/interpolated by size or between different stop
+  configurations** — every place that needs a gradient to change on hover (bigger/brighter
+  glow, shimmer border ring, gradient card strokes) uses a **separate layered element**
+  (an extra `::before`/`::after`, or the double-background border trick) whose *opacity*
+  fades in/out, rather than trying to animate the gradient itself. This is now the
+  established pattern across `ToolSelectorSection`, `UpgradeDialog`, `MVCreatePage`'s mode
+  cards, and `ToolSelectorSectionAlt`.
+- **MV publish confirms first; Song publish doesn't.** Any future "Publish" toggle should
+  branch on content type the same way `CommunityProfilePage`'s per-item toggle does: MV/
+  Storyboard → `PublishDialog`, Song → `Toast` only. This mirrors `HistoryPage`'s
+  already-established behavior, now extracted into shared components instead of
+  reimplemented per page.
+- **Referrer-based back-href, not a hardcoded destination, for pages reachable from more
+  than one place.** `CommunityProfilePage.computeBackHref()` is the first instance of this;
+  reach for the same `document.referrer` (same-origin check, sensible fallback) pattern
+  before hardcoding a `backHref` on any page that similarly has more than one real entry
+  point, rather than adding another single fixed destination.
+- **A/B proposals get their own page + component, never a flag inside the real
+  component.** `ToolSelectorSectionAlt`/`HomePageReviewB` are fully separate files reusing
+  the same underlying sections (`HeroBannerSection`, `NewMVsSection`, etc.) — nothing in the
+  real `ToolSelectorSection`/`HomePage` was touched to build the alternate. Once the product
+  owner picks a version, fold the winner back into the real files and delete the loser
+  (both the alt component and the review page) rather than leaving two permanently.
+- **Self-contained trigger+dialog is the pattern for any button that just opens one
+  specific popup with no other cross-component state to share** — `UpgradeButton`,
+  `CreditBalance`, and Sidebar's own bottom Upgrade button each own their `useState` and
+  render their own dialog instance, rather than lifting dialog-open state to a shared
+  parent. Reach for this instead of threading an `isOpen`/`onOpen` prop through a page
+  when nothing else needs to know the dialog is open.
+
+### Known issues and unfinished items
+
+- **`/home-review-b` is a temporary A/B page, not a finished feature.** It must not survive
+  long-term — once the product owner picks between the two tool-selector treatments, fold
+  the winner into the real `HomePage`/`ToolSelectorSection` and delete whichever of
+  `ToolSelectorSection`/`ToolSelectorSectionAlt` (+ `HomePageReviewB`, + the `/home-review-b`
+  route in `App.tsx`) lost.
+- **This session leaned heavily on DOM/computed-style JS assertions over visual screenshots**
+  for verification, since the Browser pane's screenshot tool in this environment renders at
+  a small/scaled crop that's hard to eyeball precisely (a recurring, already-known
+  limitation from earlier checkpoints too) — most fixes were confirmed via
+  `getBoundingClientRect()`/`getComputedStyle()` assertions plus low-resolution screenshots
+  for gross layout sanity, not a full pixel-level visual pass at all six widths.
+- **Mobile/tablet sizing for the new `HeroHeadline` rotating headline is a reasonable
+  default, not a confirmed design** — only the ≥1024px Figma frame existed for this
+  element; the smaller-breakpoint font sizes were scaled down proportionally and flagged as
+  such in `HeroBannerSection.css`'s own comments, but haven't been checked against a mobile
+  Figma frame (none was supplied).
+- **The "add 2-3 more templates" request for MV Create's Select-a-Template carousel is still
+  outstanding** — no additional suitable video assets exist in the project yet (checked:
+  only the 8 already-used hero videos are available); this needs either new video files
+  from the user or an explicit decision to reuse an existing clip under a second name.
+- Everything already logged as unfinished in the 2026-08-03 checkpoint below (six-width
+  visual passes on Account/Credits/Community Profile/History, the Trim Audio Figma-precision
+  pass, `SongResult` Figma re-verify) remains open and untouched by this session.
+
+### Recommended next steps
+
+1. Get the product owner's pick between `/home` and `/home-review-b`'s tool-selector
+   treatment, then fold the winner into the real `HomePage`/`ToolSelectorSection` and
+   delete the loser (component file(s), the review page, and its `App.tsx` route).
+2. Do a proper six-width visual pass (not just DOM assertions) over everything touched this
+   session, particularly the new `HeroHeadline` at mobile/tablet widths (no Figma frame was
+   supplied below 1024px) and the popup transition/blur sweep across all ~12 dialogs.
+3. Resolve the outstanding "add more templates" request — ask the user for new video assets
+   or an explicit go-ahead to reuse an existing one.
+4. Continue carrying forward the previous checkpoint's outstanding items (see "Recommended
+   next steps" under "Previous checkpoint — 2026-08-03 (session 2)" below).
+
+## Previous checkpoint — 2026-08-03 (session 2)
 
 Latest committed checkpoint before this working tree:
 `6c0f3be` — "Add account flows, shared badges, and source-aware history navigation".
@@ -679,3 +935,44 @@ of this file. Older commit IDs in the dated logs below are historical handoff re
 - Prepared this documentation checkpoint without making new UI changes. Build/type-check
   results and the exact file list are reported to the product owner before any staging,
   commit, or push.
+
+## Handoff Log — 2026-08-04
+
+- Built the Upgrade/Buy-Credits monetization surface: `UpgradeButton`/`UpgradeDialog`
+  (header pill + 3-plan pricing popup) and `CreditsDialog` (6-pack Buy Credits popup),
+  wired to all their entry points (header credit balance, Sidebar Upgrade, Credits page's
+  Buy More).
+- Added `useMountTransition`/`useLastValue` and rolled a consistent 0.3s open/close
+  transition + backdrop blur out to every popup in the app (~12 dialogs/sheets); fixed a
+  single-vs-double-`requestAnimationFrame` bug that was silently skipping the enter
+  animation on every one of them.
+- Added shared `PublishDialog`/`Toast` components and standardized "MV publish confirms
+  first, Song publish just toasts" across History, MV Result, Song Create, and Community
+  Profile (previously only History had this distinction, implemented inline).
+- Reworked Home's Hero Banner (rotating two-line marketing headline replacing the old
+  "Trending MV" badge) and Tool Selector cards (bigger icon badges, always-on ambient
+  glow, hover shimmer border), and built a full alternate Tool Selector treatment as a
+  temporary `/home-review-b` A/B page for the product owner to choose between.
+- Fixed several navbar/tabs consistency bugs found during review: `DetailNavbar`/
+  `RoomNavbar` action alignment, History's tabs bar not being sticky (now lives in
+  `RoomNavbar`'s `tabsSlot`), and the shared `Tabs` component's default height (28px→34px,
+  removing three pages' redundant local overrides of the same fix).
+- Made `CommunityProfilePage`'s Back button referrer-based instead of hardcoded to
+  `/account`, added its own sign-in gate for the owner's profile, and threaded
+  `from=community-profile` through to MV/Song Detail so their own Back buttons can return
+  here.
+- Established the "community usernames are never the signed-in user" convention:
+  `songs.ts` gained a per-song `username` (mirroring `musicVideos.ts`), fixing three
+  places on Song Detail that had been hardcoded to "ScottWu"; `Card`/`ListItem` gained the
+  same clickable-avatar wiring already used elsewhere.
+- Fixed two Like-icon color bugs on Song Detail (list row not matching Share's dimmed
+  default color; Now Playing/mobile player never actually turning purple when active — the
+  CSS existed but the active class was never applied).
+- Smaller fixes: MV Edit's Cover Image Recreate button no longer requires the prompt text
+  to have changed; MV Create's Mode Choice cards got a gradient stroke + repositioned
+  credits tag; `CreditsDialog`'s pack tags no longer affect row spacing; disabled Vite's
+  CSS minifier to stop it from dropping the standard `backdrop-filter` alongside the
+  `-webkit-` one in production builds.
+- Prepared this documentation checkpoint (this entry) without making further UI changes.
+  Build/type-check results and the exact file list are reported to the product owner
+  before staging, commit, and push.

@@ -31,6 +31,7 @@
 - 避免 inline style。
 - 使用 Mock data 與 local state 模擬操作。
 - 不要建立不必要的工程架構。
+- 任何畫面上的動態變化（顯示/隱藏、展開/收合、狀態切換等）都要自動加上 transition，不可以是瞬間跳變。實作細節見 AGENTS.md 的 Coding and naming conventions。
 
 # Page Structure
 

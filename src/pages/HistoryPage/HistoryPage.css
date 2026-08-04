@@ -11,19 +11,10 @@
   color: var(--neutral-dark-100);
 }
 
-.history-page__tabs {
-  margin-bottom: 28px;
-}
-
-.history-page .tabs {
-  gap: 6px;
-}
-
-.history-page .tabs__tab {
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  font-weight: var(--font-weight-bold);
-}
+/* Tabs now live in RoomNavbar's tabsSlot (sticky, matches SongDetailPage's
+   own tabsSlot convention) instead of scrolling away in the page body —
+   the shape/weight/gap are just the shared Tabs.css default now, no
+   .history-page-specific override needed anymore. */
 
 .history-page__grid {
   display: grid;
@@ -443,16 +434,30 @@
   padding: 16px;
   background: rgba(9, 9, 11, 0.6);
   backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.history-publish-dialog__backdrop--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .history-publish-dialog {
   width: min(100%, 380px);
-  padding: 28px 24px 24px;
+  padding: 32px;
   border: 1px solid var(--white-15);
   border-radius: 28px;
   background: var(--neutral-dark-14);
   color: var(--neutral-dark-100);
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.42);
+  transform: scale(0.96);
+  transition: transform 0.3s ease;
+}
+
+.history-publish-dialog__backdrop--visible .history-publish-dialog {
+  transform: scale(1);
 }
 
 .history-publish-dialog h2 {
@@ -501,22 +506,6 @@
   color: var(--neutral-dark-100);
 }
 
-.history-page__toast {
-  position: fixed;
-  left: 50%;
-  bottom: 40px;
-  z-index: 220;
-  padding: 12px 18px;
-  border: 1px solid var(--white-15);
-  border-radius: var(--radius-pill);
-  background: var(--neutral-dark-24);
-  color: var(--neutral-dark-100);
-  font-size: var(--font-body-s);
-  font-weight: var(--font-weight-semibold);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.36);
-  transform: translateX(-50%);
-}
-
 @media (max-width: 1200px) {
   .history-page__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -550,7 +539,7 @@
     display: none;
   }
 
-  .history-page .tabs {
+  .history-page__tabs .tabs {
     flex-wrap: nowrap;
     width: max-content;
   }

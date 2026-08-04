@@ -3,6 +3,7 @@ import icPlay from '../../assets/icons/ic_play.svg'
 import icPause from '../../assets/icons/ic_pause.svg'
 import icFavoriteOff from '../../assets/icons/ic_favorite_off.svg'
 import icAccount from '../../assets/icons/ic_account.svg'
+import { communityProfileHref } from '../../data/profile'
 import './Card.css'
 
 export type CardType = 'Video' | 'Song'
@@ -121,14 +122,28 @@ function Card({
 
         {community ? (
           <div className="card__user-row">
-            <span className="card__avatar">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="card__avatar-image" />
-              ) : (
-                <span className="card__avatar-icon" style={maskStyle(icAccount)} aria-hidden="true" />
-              )}
-            </span>
-            <span className="card__username">{username}</span>
+            {/* Card is often wrapped in a link to its own detail page —
+                preventDefault (blocks that anchor's navigation) +
+                stopPropagation, same convention as ListItem, so clicking the
+                creator's avatar/name goes to their profile instead. */}
+            <button
+              type="button"
+              className="card__user-link"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (username) window.location.href = communityProfileHref(username)
+              }}
+            >
+              <span className="card__avatar">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="card__avatar-image" />
+                ) : (
+                  <span className="card__avatar-icon" style={maskStyle(icAccount)} aria-hidden="true" />
+                )}
+              </span>
+              <span className="card__username">{username}</span>
+            </button>
             <span className="card__likes">
               <span className="card__likes-icon" style={maskStyle(icFavoriteOff)} aria-hidden="true" />
               <span className="card__likes-count">{likes}</span>

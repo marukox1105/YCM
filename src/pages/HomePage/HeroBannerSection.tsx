@@ -42,6 +42,73 @@ function maskStyle(src: string): CSSProperties {
   return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
 }
 
+// Fixed marketing headline (Figma node 1805:43562's "Text + CTA") — unlike
+// the video title/subtitle above it, this is NOT tied to which hero video is
+// showing. It just cycles between these 2 lines on its own 5s timer.
+const HEADLINES = [
+  { lead: 'Transform song into ', accent: 'Cinematic Video' },
+  { lead: 'Turn your selfie into ', accent: 'Music Video' },
+]
+const HEADLINE_REAL = HEADLINES.length
+const HEADLINE_INTERVAL_MS = 5000
+const HEADLINE_ANIM_MS = 300
+// Same clone-then-silently-reset trick as HeroBannerMobile's infinite drag
+// carousel below: padding one clone on each side lets the track always slide
+// the same direction (up), snapping back invisibly once it lands on a clone.
+const HEADLINE_PADDED = [HEADLINES[HEADLINE_REAL - 1], ...HEADLINES, HEADLINES[0]]
+
+function headlineRealIndex(domIndex: number) {
+  return (((domIndex - 1) % HEADLINE_REAL) + HEADLINE_REAL) % HEADLINE_REAL
+}
+
+function HeroHeadline() {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const domIndexRef = useRef(1)
+  const timerRef = useRef<number | undefined>(undefined)
+
+  function goToDom(domIndex: number, animated: boolean) {
+    domIndexRef.current = domIndex
+    const track = trackRef.current
+    if (!track) return
+    // translateY(%) resolves against the track's OWN total height (all 4
+    // padded items), not one item's height — so the offset has to be
+    // computed in px from an actual item's rendered height instead.
+    const itemHeight = track.firstElementChild instanceof HTMLElement ? track.firstElementChild.offsetHeight : 0
+    track.style.transition = animated ? `transform ${HEADLINE_ANIM_MS}ms cubic-bezier(0.3, 0, 0.1, 1)` : 'none'
+    track.style.transform = `translateY(-${domIndex * itemHeight}px)`
+  }
+
+  function settleAfterSnap() {
+    if (domIndexRef.current >= HEADLINE_REAL + 1) goToDom(1, false)
+  }
+
+  function next() {
+    goToDom(domIndexRef.current + 1, true)
+    window.setTimeout(settleAfterSnap, HEADLINE_ANIM_MS + 10)
+  }
+
+  useEffect(() => {
+    goToDom(1, false)
+    timerRef.current = window.setInterval(next, HEADLINE_INTERVAL_MS)
+    return () => window.clearInterval(timerRef.current)
+    // Mount-only: goToDom/next close over refs, not state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <div className="hero-banner__headline-mask">
+      <div className="hero-banner__headline-track" ref={trackRef}>
+        {HEADLINE_PADDED.map((headline, domIndex) => (
+          <div className="hero-banner__headline" key={`${domIndex}-${headlineRealIndex(domIndex)}`}>
+            <p className="hero-banner__headline-line">{headline.lead}</p>
+            <p className="hero-banner__headline-line hero-banner__headline-accent">{headline.accent}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // App-mobile variant only (see layoutMode.ts) — Figma "Top Hero Banner"
 // (node 369:7479), matched against the reference build's infinite draggable
 // carousel (scottwu630/ycmuse-prototype muse-prototype-v1.html): fixed
@@ -270,19 +337,16 @@ function HeroBannerSection() {
         <div className="hero-banner__scrim" aria-hidden="true" />
 
         <div className="hero-banner__top">
-          <span className="hero-banner__badge">
-            <span className="hero-banner__badge-icon" style={maskStyle(icStar)} aria-hidden="true" />
-            Trending MV
-          </span>
+          <div className={`hero-banner__title-group${isFading ? ' hero-banner__title-group--fading' : ''}`}>
+            <p className="hero-banner__title">{displayed.title}</p>
+            <p className="hero-banner__subtitle">{displayed.subtitle}</p>
+          </div>
 
           <div className="hero-banner__text-cta">
-            <div className={`hero-banner__title-group${isFading ? ' hero-banner__title-group--fading' : ''}`}>
-              <p className="hero-banner__title">{displayed.title}</p>
-              <p className="hero-banner__subtitle">{displayed.subtitle}</p>
-            </div>
+            <HeroHeadline />
 
             <div className="hero-banner__action-row">
-              <Button size="Large" variant="Secondary">
+              <Button size="Large" variant="Secondary" onClick={() => (window.location.href = '/mv-create')}>
                 Create Music Video
               </Button>
               <div className="hero-banner__arrows">

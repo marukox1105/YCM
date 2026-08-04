@@ -41,7 +41,12 @@ src/
   components/        Shared/reusable UI. One folder per component: ComponentName/ComponentName.tsx
                      + ComponentName.css, no barrel index.ts files.
   layouts/            Page chrome shared across pages. Currently just AppLayout/
-                     (Sidebar + Navbar/DetailNavbar slot + Footer + mobile chrome).
+                     (Sidebar + Navbar/DetailNavbar slot + optional Footer + mobile
+                     chrome). Footer and the app-mobile bottom tab bar are opt-in per page
+                     via `showFooter`/`showMobileTabBar` props (both default `false`) —
+                     they used to render unconditionally on every page. Only Home and
+                     History currently pass them; a new page needs one of these only if
+                     its Figma frame actually shows that chrome.
   data/               Mock data assembled from real asset files via import.meta.glob
                      (songs.ts, musicVideos.ts). No manual re-registration needed when new
                      asset folders are added that match the existing naming pattern.
@@ -51,9 +56,16 @@ src/
                      bridges state between separately-routed MV Create/Storyboard/Result/
                      Edit pages, since routing here is full-page navigation, not client-side
                      — component state can't survive the page transition on its own.
-  hooks/              Shared React hooks with no page/component of their own. Currently just
-                     useEnhance.ts (the "Enhance" button's dim-input/spin-icon/swap-text
-                     processing state, reused by every prompt textarea across the app).
+                     profile.ts holds the "which profile does this username link to"
+                     convention: CURRENT_USERNAME, isOwnUsername(), and
+                     communityProfileHref() — every clickable avatar in the app (Card,
+                     ListItem, TopSongListItem, MV/Song Detail) routes through this rather
+                     than building a `/community-profile?user=...` URL by hand.
+  hooks/              Shared React hooks with no page/component of their own. useEnhance.ts
+                     (the "Enhance" button's dim-input/spin-icon/swap-text processing
+                     state, reused by every prompt textarea across the app) and
+                     useMountTransition.ts (see "Popup open/close transitions" below —
+                     the shared hook every dialog/sheet uses for its enter/exit animation).
   config/             layoutMode.ts — one flag (MOBILE_LAYOUT) controlling which mobile
                      chrome renders below the app-mobile breakpoint.
   styles/             tokens.css (design tokens, do not edit without explicit request) and
@@ -66,7 +78,11 @@ src/
   index.css           Global reset + body defaults, sourced from tokens.css.
 ```
 
-Routing today (`src/App.tsx`): `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
+Routing today (`src/App.tsx`): `/home-review-b*` → `HomePageReviewB` (**temporary A/B
+review page** — an alternate Tool Selector treatment for the product owner to compare
+against the real Home; delete this route + `HomePageReviewB.tsx` +
+`ToolSelectorSectionAlt.tsx/.css` once a version is picked and folded into the real
+`HomePage`/`ToolSelectorSection`), `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
 `/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
 MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
 `/mv-edit*` → MVEditPage, `/history*` → HistoryPage, `/blog*` → BlogPage concept 1,
@@ -103,6 +119,45 @@ prototype-only signed-in state and global LoginModal.
 - Default to **no comments** otherwise, per general good practice — only the Figma
   provenance notes and genuine non-obvious "why" notes are the exception, matching what's
   already in the codebase.
+- **Every dynamic UI state change gets a `transition` — no instant snaps.** Show/hide,
+  expand/collapse, active/selected swaps, size or shape changes driven by state, etc. all
+  need to animate, per CLAUDE.md. The established pattern (see `SongDetailPage`'s Now
+  Playing lyrics toggle) is:
+  1. **Keep both states mounted** — don't conditionally render (`{condition && <X/>}`) an
+     element that needs to animate in/out, since React unmount/mount can't transition.
+     Always render it, and toggle a BEM modifier class (e.g. `--open`, `--hidden`,
+     `--active`) that flips the CSS properties actually being transitioned.
+  2. **Transition `opacity`/`transform`/layout properties like `max-width`,
+     `border-radius`** directly on the base class (`transition: opacity 0.2s ease;`), with
+     the modifier class only changing the end-state values (`opacity: 0` / `1`,
+     `pointer-events: none` / `auto`, etc.) — not the transition itself.
+  3. Typical duration/easing already used across the codebase: **0.15s–0.2s, `ease`**
+     (matches `.mv-song-picker__use`, `.tool-selector__card`, `.now-playing__art`, etc.) —
+     reuse this rather than inventing a new duration per component.
+  4. Always pair a hidden/closed state with `pointer-events: none` so it doesn't intercept
+     clicks while invisible, and `pointer-events: auto` on the open/visible modifier.
+  5. **A gradient itself can't be transitioned/interpolated** (not by size, and not between
+     two different stop configurations) — if a hover/active state needs a *different*
+     gradient (bigger glow, shimmer border, gradient stroke), don't animate the gradient
+     property directly. Add a separate layered element (another `::before`/`::after`, or the
+     double-background border trick) holding the target-state gradient, and fade **its
+     opacity** in/out instead. See `ToolSelectorSection`'s hover glow/shimmer border or
+     `UpgradeDialog`'s gradient-stroke featured card for the concrete pattern.
+- **Popup open/close transitions use the shared `useMountTransition` hook**
+  (`src/hooks/useMountTransition.ts`), not a hand-rolled version of the pattern above —
+  every dialog/sheet in the app (`UpgradeDialog`, `ShareDialog`, `LyricsSheet`, `LoginModal`,
+  `PublishDialog`, `CreditsDialog`, `Toast`, MV Create's sheets, Account/History's confirm
+  dialogs) uses it. It returns `{ shouldRender, visible }`: gate the JSX return on
+  `!shouldRender` (keeps the exit transition mounted long enough to finish), and apply
+  `visible` as a `--visible` modifier class carrying a `0.3s` opacity (+ usually a
+  `scale`/`translateY`) transition, with `backdrop-filter: blur(2px)` on the backdrop. It
+  internally uses a **double** `requestAnimationFrame` before flipping to `visible` — a
+  single rAF can still land in the same paint as the initial mount and skip the enter
+  animation entirely, which is why this exists as a shared hook instead of being
+  reimplemented ad hoc. For content whose prop goes `null` right as it starts closing (e.g.
+  a "confirm delete this item" dialog's target item), pair it with the hook's own
+  `useLastValue()` so the exit animation still has something to render instead of going
+  blank immediately.
 
 ## Existing reusable components (src/components/)
 
@@ -113,23 +168,29 @@ prototype-only signed-in state and global LoginModal.
 | Chip | Small selectable pill (Genre/Mood/Vocal pickers on Song Create) |
 | AuthProvider | App-wide prototype auth context — session-scoped mock sign-in state, global LoginModal, and `requireSignIn()` gate for generate/recreate actions |
 | Badge | Shared status/promotional badge — Purple/Gold/Done/Failed/Processing/Hot/New/Sale/Popular |
-| CreditBalance | Shared signed-in credit pill used by marketing, room, and detail navbars |
+| CreditBalance | Self-contained header credit pill — owns its own `CreditsDialog` (Buy Credits popup) and opens it on click; used by marketing, room, and detail navbars |
+| CreditsDialog | "Buy Credits" popup — 6 selectable credit packs + Buy Now CTA. Opened by `CreditBalance` and the Credits page's own "Buy More" button |
 | DetailNavbar | Sticky detail-page header — back button, credits, optional slotted second row for tabs |
 | Footer | Site footer — brand/tagline + Studio/Company link columns (mock links) |
 | FloatingCTA | Fixed-bottom CTA shell with a layout spacer, optional parent-column alignment, and automatic footer avoidance |
 | IconButton | Icon-only button — sizes Large/Medium/Small/XSmall, variants Primary/Secondary/Tertiary/Ghost |
-| ListItem | List row for songs/videos — `variant="community"` (avatar/stats/actions, narrow-vs-wide layout driven by a CSS container query on its own rendered width, not viewport) or `variant="song"` (subtitle + chevron, used in My Creations) |
+| ListItem | List row for songs/videos — `variant="community"` (avatar/stats/actions, narrow-vs-wide layout driven by a CSS container query on its own rendered width, not viewport) or `variant="song"` (subtitle + chevron, used in My Creations). Avatar/username click routes through `communityProfileHref()` |
 | LoginModal | Mobile bottom-sheet / desktop dialog sign-in mock — Apple/Google buttons, mocked "signed in" success stage, no real auth |
+| LyricsSheet | Synced, line-highlighted lyrics popup (mobile bottom sheet / desktop dialog) — shared by Song Create's Result stage and Song Detail's Now Playing |
 | MobileHeader | Sticky app-style mobile top bar — only rendered when `MOBILE_LAYOUT === 'app'` |
-| MobileTabBar | Bottom tab bar (Explore/Create/History) — only rendered when `MOBILE_LAYOUT === 'app'` |
+| MobileTabBar | Bottom tab bar (Explore/Create/History) — only rendered when `MOBILE_LAYOUT === 'app'`. The Create tab opens a "what would you like to create?" sheet (AI Music Video / AI Song) |
 | Navbar | Top marketing navbar — language picker (mock), login trigger |
-| RoomNavbar | Simpler navbar for "Feature Room" pages (e.g. Song Create) — title + credit balance only |
+| PublishDialog | Shared "Ready to Go Public?" confirmation — used for every MV/Storyboard publish action (History, MV Result, Community Profile's MV tab). Song publish uses `Toast` instead, no confirmation step |
+| RoomNavbar | Simpler navbar for "Feature Room" pages (e.g. Song Create) — title + credit balance only, optional slotted tabs row (see History) |
 | SectionHeader | Section title row — optional "See all" link, separate mobile-abbreviated title text |
 | ShareDialog | Share dialog + `shareOrOpenDialog()` helper (prefers native Web Share API when available, falls back to the dialog) |
-| Sidebar | Left nav rail — collapses to icon-only below 1024px |
-| Tabs | Pill tab-bar switcher — controlled via `active`/`onChange` |
+| Sidebar | Left nav rail — collapses to icon-only below 1024px. Its bottom "Upgrade" button and the header's `UpgradeButton` each own an independent `UpgradeDialog` instance |
+| Tabs | Pill tab-bar switcher — controlled via `active`/`onChange`. Default styling (34px height, pill radius, bold) matches Figma "Bar/Tabs" — don't re-override this per page, it's already the shared default |
 | ToggleSwitch | On/off switch (e.g. the Instrumental toggle on Song Create) |
+| Toast | Shared simple pill status message (e.g. "Published success") — auto-dismisses, used wherever a popup confirmation isn't warranted |
 | TopSongListItem | Song row specific to Song Detail's Top Songs list — larger type scale, own stats layout at ≥1920px |
+| UpgradeButton | Header "Upgrade" pill — owns its own `UpgradeDialog` and opens it on click |
+| UpgradeDialog | 3-plan (Weekly/Weekly Pro/Yearly) pricing popup — opened by `UpgradeButton` and Sidebar's own Upgrade button |
 
 Before building something new, check this list — CLAUDE.md's rule against over-splitting
 components means a new shared component should only be created for UI that's genuinely

@@ -33,6 +33,7 @@ import icRectangleHor from '../../assets/icons/ic_rectangle_hor.svg'
 import icSd from '../../assets/icons/ic_sd.svg'
 import icHd from '../../assets/icons/ic_hd.svg'
 import { useEnhance } from '../../hooks/useEnhance'
+import { useMountTransition, useLastValue } from '../../hooks/useMountTransition'
 import sample1 from '../../assets/covers/Avatar/Sample_P1.png'
 import sample2 from '../../assets/covers/Avatar/Sample_P2.png'
 import sample3 from '../../assets/covers/Avatar/Sample_P3.png'
@@ -203,6 +204,7 @@ function songToChosen(song: (typeof SONGS)[number]): ChosenSong {
 // Mobile bottom sheet / desktop centered dialog, same convention as
 // LoginModal (no separate desktop frame was given for the sheet itself).
 interface SettingsSheetProps {
+  visible: boolean
   aspect: '9:16' | '16:9'
   onAspectChange: (value: '9:16' | '16:9') => void
   quality: 'SD' | 'HD'
@@ -219,6 +221,7 @@ interface SettingsSheetProps {
 }
 
 function SettingsSheet({
+  visible,
   aspect,
   onAspectChange,
   quality,
@@ -234,7 +237,7 @@ function SettingsSheet({
   onClose,
 }: SettingsSheetProps) {
   return createPortal(
-    <div className="mv-sheet-overlay">
+    <div className={`mv-sheet-overlay${visible ? ' mv-sheet-overlay--visible' : ''}`}>
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="mv-sheet" role="dialog" aria-label="Settings">
         <div className="mv-sheet__handle" aria-hidden="true" />
@@ -353,11 +356,12 @@ function SettingsSheet({
 // Clicking a row also actually plays that song's audio (one at a time via a
 // single shared <audio> element) and swaps its thumbnail's icon to pause.
 interface SongPickerSheetProps {
+  visible: boolean
   onPick: (song: (typeof SONGS)[number]) => void
   onClose: () => void
 }
 
-function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
+function SongPickerSheet({ visible, onPick, onClose }: SongPickerSheetProps) {
   const [tab, setTab] = useState<'my' | 'sample'>('my')
   const [activeSongId, setActiveSongId] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -388,7 +392,7 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
   }
 
   return createPortal(
-    <div className="mv-sheet-overlay">
+    <div className={`mv-sheet-overlay${visible ? ' mv-sheet-overlay--visible' : ''}`}>
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="mv-sheet mv-song-picker" role="dialog" aria-label="Choose Song">
         <div className="mv-sheet__handle" aria-hidden="true" />
@@ -496,17 +500,18 @@ function SongPickerSheet({ onPick, onClose }: SongPickerSheetProps) {
 // other sheets on this page (SongPickerSheet, SettingsSheet, ModeSheet),
 // since Figma has no dedicated desktop frame for it either.
 interface TemplateSheetProps {
+  visible: boolean
   selectedKey: string
   onSelect: (key: string) => void
   onApply: () => void
   onClose: () => void
 }
 
-function TemplateSheet({ selectedKey, onSelect, onApply, onClose }: TemplateSheetProps) {
+function TemplateSheet({ visible, selectedKey, onSelect, onApply, onClose }: TemplateSheetProps) {
   const selected = VIDEO_TEMPLATES.find((template) => template.key === selectedKey) ?? VIDEO_TEMPLATES[0]
 
   return createPortal(
-    <div className="mv-sheet-overlay">
+    <div className={`mv-sheet-overlay${visible ? ' mv-sheet-overlay--visible' : ''}`}>
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="mv-sheet mv-template-sheet" role="dialog" aria-label="Select a Template">
         <div className="mv-sheet__handle" aria-hidden="true" />
@@ -565,12 +570,13 @@ function TemplateSheet({ selectedKey, onSelect, onApply, onClose }: TemplateShee
 // visual/interaction fidelity only — the drag handles move, but nothing is
 // actually cut).
 interface TrimAudioSheetProps {
+  visible: boolean
   song: (typeof SONGS)[number]
   onConfirm: () => void
   onClose: () => void
 }
 
-function TrimAudioSheet({ song, onConfirm, onClose }: TrimAudioSheetProps) {
+function TrimAudioSheet({ visible, song, onConfirm, onClose }: TrimAudioSheetProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [playing, setPlaying] = useState(false)
@@ -619,7 +625,7 @@ function TrimAudioSheet({ song, onConfirm, onClose }: TrimAudioSheetProps) {
   }
 
   return createPortal(
-    <div className="mv-sheet-overlay">
+    <div className={`mv-sheet-overlay${visible ? ' mv-sheet-overlay--visible' : ''}`}>
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="mv-sheet mv-trim-sheet" role="dialog" aria-label="Trim Audio">
         <div className="mv-sheet__handle" aria-hidden="true" />
@@ -713,11 +719,12 @@ function TrimAudioSheet({ song, onConfirm, onClose }: TrimAudioSheetProps) {
 // directly; desktop has no frame of its own, so this reuses the same
 // centered-dialog convention as the other sheets on this page.
 interface ModeSheetProps {
+  visible: boolean
   draftBase: Omit<MvDraft, 'resultVideo'>
   onClose: () => void
 }
 
-function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
+function ModeSheet({ visible, draftBase, onClose }: ModeSheetProps) {
   function pickMode() {
     const resultVideo = pickRandom(MUSIC_VIDEOS)
     saveMvDraft({
@@ -740,7 +747,7 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
   }
 
   return createPortal(
-    <div className="mv-sheet-overlay">
+    <div className={`mv-sheet-overlay${visible ? ' mv-sheet-overlay--visible' : ''}`}>
       <div className="mv-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="mv-sheet mv-mode-sheet" role="dialog" aria-label="How would you like to create?">
         <div className="mv-sheet__handle" aria-hidden="true" />
@@ -761,9 +768,7 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
             <span className="mv-mode-card__badge">Recommended</span>
           </div>
           <p className="mv-mode-card__title">Create Storyboard First</p>
-          <p className="mv-mode-card__desc">
-            AI crafts a scene-by-scene storyboard for you to review and approve before rendering.
-          </p>
+          <p className="mv-mode-card__desc">Review scenes before rendering.</p>
           <div className="mv-mode-card__tags">
             <span className="mv-mode-card__tag">
               <img src={icClock} alt="" className="mv-mode-card__tag-icon" /> ~1 min
@@ -779,12 +784,12 @@ function ModeSheet({ draftBase, onClose }: ModeSheetProps) {
             <span className="mv-mode-card__icon" style={maskStyle(icVideoAi)} aria-hidden="true" />
           </div>
           <p className="mv-mode-card__title">Create MV Directly</p>
-          <p className="mv-mode-card__desc">AI generates your music video immediately. Fast and effortless.</p>
+          <p className="mv-mode-card__desc">Generate your MV instantly.</p>
           <div className="mv-mode-card__tags">
             <span className="mv-mode-card__tag">
               <img src={icClock} alt="" className="mv-mode-card__tag-icon" /> ~2 min
             </span>
-            <span className="mv-mode-card__tag mv-mode-card__tag--gold">
+            <span className="mv-mode-card__tag mv-mode-card__tag--credit">
               <img src={icCredit} alt="" className="mv-mode-card__tag-icon" /> 200 Credits
             </span>
           </div>
@@ -829,6 +834,13 @@ function MVCreatePage() {
   const [templateSheetOpen, setTemplateSheetOpen] = useState(false)
   const [selectedTemplateKey, setSelectedTemplateKey] = useState(VIDEO_TEMPLATES[0].key)
   const [trimSong, setTrimSong] = useState<(typeof SONGS)[number] | null>(null)
+
+  const songPickerTransition = useMountTransition(songPickerOpen)
+  const trimTransition = useMountTransition(!!trimSong)
+  const stableTrimSong = useLastValue(trimSong)
+  const templateSheetTransition = useMountTransition(templateSheetOpen)
+  const settingsTransition = useMountTransition(settingsOpen)
+  const modeSheetTransition = useMountTransition(modeSheetOpen)
 
   const canCreate = song !== null && ideaText.trim().length > 0
 
@@ -1085,6 +1097,7 @@ function MVCreatePage() {
                         style={maskStyle(isEnhancing('idea') ? icRefresh : icEditAi)}
                         aria-hidden="true"
                       />
+                      Enhance
                     </button>
                   )}
                   <span className="mv-create__char-count">{ideaText.length}/2500</span>
@@ -1253,12 +1266,26 @@ function MVCreatePage() {
         onChange={handleImportAudioFile}
       />
 
-      {songPickerOpen && <SongPickerSheet onPick={handleUseSong} onClose={() => setSongPickerOpen(false)} />}
+      {songPickerTransition.shouldRender && (
+        <SongPickerSheet
+          visible={songPickerTransition.visible}
+          onPick={handleUseSong}
+          onClose={() => setSongPickerOpen(false)}
+        />
+      )}
 
-      {trimSong && <TrimAudioSheet song={trimSong} onConfirm={confirmTrim} onClose={() => setTrimSong(null)} />}
+      {trimTransition.shouldRender && stableTrimSong && (
+        <TrimAudioSheet
+          visible={trimTransition.visible}
+          song={stableTrimSong}
+          onConfirm={confirmTrim}
+          onClose={() => setTrimSong(null)}
+        />
+      )}
 
-      {templateSheetOpen && (
+      {templateSheetTransition.shouldRender && (
         <TemplateSheet
+          visible={templateSheetTransition.visible}
           selectedKey={selectedTemplateKey}
           onSelect={setSelectedTemplateKey}
           onApply={applyTemplate}
@@ -1266,8 +1293,9 @@ function MVCreatePage() {
         />
       )}
 
-      {settingsOpen && (
+      {settingsTransition.shouldRender && (
         <SettingsSheet
+          visible={settingsTransition.visible}
           aspect={aspect}
           onAspectChange={setAspect}
           quality={quality}
@@ -1284,8 +1312,9 @@ function MVCreatePage() {
         />
       )}
 
-      {modeSheetOpen && (
+      {modeSheetTransition.shouldRender && (
         <ModeSheet
+          visible={modeSheetTransition.visible}
           draftBase={{
             songTitle: song?.title ?? 'Down the Memory Lane',
             songCover: song?.cover || MUSIC_VIDEOS[0]?.cover || '',

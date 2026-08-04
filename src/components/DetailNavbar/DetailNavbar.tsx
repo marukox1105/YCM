@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import icArrowLeft from '../../assets/icons/ic_arrow_left.svg'
 import Button from '../Button/Button'
 import CreditBalance from '../CreditBalance/CreditBalance'
+import UpgradeButton from '../UpgradeButton/UpgradeButton'
 import { useAuth } from '../AuthProvider/AuthProvider'
 import './DetailNavbar.css'
 
@@ -44,7 +45,10 @@ function DetailNavbar({ credits, backHref = '/home', title, tabsSlot }: DetailNa
         {title && <p className="detail-navbar__title">{title}</p>}
 
         {isSignedIn ? (
-          <CreditBalance credits={credits} />
+          <div className="detail-navbar__actions">
+            <CreditBalance credits={credits} />
+            <UpgradeButton />
+          </div>
         ) : (
           <Button size="Medium" variant="Tertiary" onClick={openSignIn} className="detail-navbar__login">
             Login

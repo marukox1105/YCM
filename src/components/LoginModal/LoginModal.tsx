@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useMountTransition } from '../../hooks/useMountTransition'
 import icAppleLogo from '../../assets/icons/ic_apple_logo.svg'
 import icGoogleLogo from '../../assets/icons/ic_google_logo.svg'
 import icCheck from '../../assets/icons/ic_check.svg'
@@ -26,6 +27,7 @@ const SUCCESS_DURATION_MS = 1800
 // Figma's mock name "Scott"), then auto-closes.
 function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [provider, setProvider] = useState<Provider | null>(null)
+  const { shouldRender, visible } = useMountTransition(isOpen)
 
   useEffect(() => {
     if (isOpen) setProvider(null)
@@ -37,10 +39,12 @@ function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
     return () => window.clearTimeout(timer)
   }, [provider, onClose])
 
-  if (!isOpen) return null
+  if (!shouldRender) return null
 
   return createPortal(
-    <div className={`login-modal-overlay${provider ? '' : ' login-modal-overlay--sign-in'}`}>
+    <div
+      className={`login-modal-overlay${provider ? '' : ' login-modal-overlay--sign-in'}${visible ? ' login-modal-overlay--visible' : ''}`}
+    >
       <div className="login-modal-backdrop" onClick={onClose} aria-hidden="true" />
       {provider ? (
         <div className="login-modal login-modal--success" role="dialog" aria-label="Signed in successfully">

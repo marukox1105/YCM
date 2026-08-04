@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
+import { useMountTransition, useLastValue } from '../../hooks/useMountTransition'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
 import Button from '../../components/Button/Button'
@@ -14,6 +15,7 @@ import icCredit from '../../assets/icons/ic_credit.svg'
 import icCrown from '../../assets/icons/ic_crown.svg'
 import icNotification from '../../assets/icons/ic_notification.svg'
 import icLanguage from '../../assets/icons/ic_language.svg'
+import icHistory from '../../assets/icons/ic_history_OL.svg'
 import icSend from '../../assets/icons/ic_send.svg'
 import icSettings from '../../assets/icons/ic_settings.svg'
 import icLogOut from '../../assets/icons/ic_log_out.svg'
@@ -36,13 +38,18 @@ interface AccountRowProps {
   subtitle?: string
   href?: string
   onClick?: () => void
+  /** Figma "color/accent/gold" (#FFA614) — only the Weekly Pro crown uses
+   *  this; every other row icon stays the default white. No matching
+   *  token exists yet in tokens.css, so this is passed as a literal hex
+   *  rather than invented as a new global token. */
+  iconColor?: string
 }
 
-function AccountRow({ icon, title, subtitle, href, onClick }: AccountRowProps) {
+function AccountRow({ icon, title, subtitle, href, onClick, iconColor }: AccountRowProps) {
   const content = (
     <>
       <span className="account-page__row-icon-box">
-        <span className="account-page__row-icon" style={maskStyle(icon)} aria-hidden="true" />
+        <span className="account-page__row-icon" style={{ ...maskStyle(icon), ...(iconColor ? { color: iconColor } : {}) }} aria-hidden="true" />
       </span>
       <span className="account-page__row-copy">
         <span className="account-page__row-title">{title}</span>
@@ -59,10 +66,10 @@ function AccountRow({ icon, title, subtitle, href, onClick }: AccountRowProps) {
   )
 }
 
-function ConfirmDialog({ type, onCancel, onConfirm }: { type: 'signout' | 'delete'; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmDialog({ type, visible, onCancel, onConfirm }: { type: 'signout' | 'delete'; visible: boolean; onCancel: () => void; onConfirm: () => void }) {
   const deleting = type === 'delete'
   return (
-    <div className="account-dialog-layer" role="presentation" onMouseDown={onCancel}>
+    <div className={`account-dialog-layer${visible ? ' account-dialog-layer--visible' : ''}`} role="presentation" onMouseDown={onCancel}>
       <section className="account-confirm" role="dialog" aria-modal="true" aria-labelledby="account-confirm-title" onMouseDown={(event) => event.stopPropagation()}>
         <div className="account-confirm__message">
           <h2 id="account-confirm-title">{deleting ? 'Delete Account' : 'Sign Out'}</h2>
@@ -81,10 +88,10 @@ function ConfirmDialog({ type, onCancel, onConfirm }: { type: 'signout' | 'delet
   )
 }
 
-function EditProfileDialog({ onClose }: { onClose: () => void }) {
+function EditProfileDialog({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const [nickname, setNickname] = useState('Scott Wu')
   return (
-    <div className="account-dialog-layer" role="presentation" onMouseDown={onClose}>
+    <div className={`account-dialog-layer${visible ? ' account-dialog-layer--visible' : ''}`} role="presentation" onMouseDown={onClose}>
       <section className="account-edit" role="dialog" aria-modal="true" aria-labelledby="account-edit-title" onMouseDown={(event) => event.stopPropagation()}>
         <header className="account-edit__header">
           <span aria-hidden="true" />
@@ -119,13 +126,36 @@ function EditProfileDialog({ onClose }: { onClose: () => void }) {
 }
 
 function AccountPage() {
-  const { signOut } = useAuth()
+  const { isSignedIn, signOut, openSignIn } = useAuth()
   const [dialog, setDialog] = useState<DialogType>(null)
   const isSettings = window.location.pathname.startsWith('/account/settings')
+
+  const editTransition = useMountTransition(dialog === 'edit')
+  const confirmTransition = useMountTransition(dialog === 'signout' || dialog === 'delete')
+  // `dialog` itself goes back to null the instant the confirm dialog starts
+  // closing — this holds onto whichever type ('signout'/'delete') it last
+  // was so the fade-out still renders the right copy instead of nothing.
+  const confirmType = useLastValue(dialog === 'signout' || dialog === 'delete' ? dialog : null)
+
+  // Account is personal data — signed-out visitors (e.g. a direct link,
+  // not just a nav click) get the sign-in modal instead of ever seeing the
+  // page content, matching the same "can't view this without signing in"
+  // rule as History below.
+  useEffect(() => {
+    if (!isSignedIn) openSignIn()
+  }, [isSignedIn, openSignIn])
 
   function completeSignOut() {
     signOut()
     window.location.href = '/home'
+  }
+
+  if (!isSignedIn) {
+    return (
+      <AppLayout navbar={<RoomNavbar title="Account" credits={0} />}>
+        <section className="account-page" />
+      </AppLayout>
+    )
   }
 
   return (
@@ -157,10 +187,11 @@ function AccountPage() {
                 </div>
               </div>
               <div className="account-page__rows">
-                <AccountRow icon={icCrown} title="Weekly Pro" subtitle="Validity: 2026-08-10" />
+                <AccountRow icon={icCrown} title="Weekly Pro" subtitle="Validity: 2026-08-10" iconColor="#ffa614" />
                 <div className="account-page__divider" />
                 <AccountRow icon={icNotification} title="Notifications" subtitle="On" />
                 <AccountRow icon={icLanguage} title="Language" subtitle="English" />
+                <AccountRow icon={icHistory} title="History" href="/history" />
                 <AccountRow icon={icSend} title="Send Feedback" />
                 <AccountRow icon={icSettings} title="Settings" href="/account/settings" />
                 <div className="account-page__divider" />
@@ -170,9 +201,16 @@ function AccountPage() {
           )}
         </div>
       </section>
-      {dialog === 'edit' && <EditProfileDialog onClose={() => setDialog(null)} />}
-      {(dialog === 'signout' || dialog === 'delete') && (
-        <ConfirmDialog type={dialog} onCancel={() => setDialog(null)} onConfirm={completeSignOut} />
+      {editTransition.shouldRender && (
+        <EditProfileDialog visible={editTransition.visible} onClose={() => setDialog(null)} />
+      )}
+      {confirmTransition.shouldRender && confirmType && (
+        <ConfirmDialog
+          type={confirmType}
+          visible={confirmTransition.visible}
+          onCancel={() => setDialog(null)}
+          onConfirm={completeSignOut}
+        />
       )}
     </AppLayout>
   )

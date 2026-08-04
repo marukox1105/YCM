@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import Button from '../Button/Button'
 import ShareDialog, { shareOrOpenDialog } from '../ShareDialog/ShareDialog'
+import { communityProfileHref } from '../../data/profile'
 import icPlay from '../../assets/icons/ic_play.svg'
 import icPause from '../../assets/icons/ic_pause.svg'
 import icAccount from '../../assets/icons/ic_account.svg'
@@ -20,7 +21,8 @@ import './TopSongListItem.css'
 interface TopSongListItemProps {
   coverImage?: string
   title: string
-  /** Omitted for real user songs — no creator identity data exists for those yet. */
+  /** No real per-song creator identity data exists yet, so callers pass the
+   *  same "ScottWu" placeholder used for creator identity elsewhere. */
   username?: string
   avatarUrl?: string
   plays: number
@@ -83,7 +85,15 @@ function TopSongListItem({
             {title}
           </button>
           {username && (
-            <div className="top-song__user-row">
+            <button
+              type="button"
+              className="top-song__user-row"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                window.location.href = communityProfileHref(username)
+              }}
+            >
               <span className="top-song__avatar">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="top-song__avatar-image" />
@@ -92,7 +102,7 @@ function TopSongListItem({
                 )}
               </span>
               <span className="top-song__username">{username}</span>
-            </div>
+            </button>
           )}
         </div>
 

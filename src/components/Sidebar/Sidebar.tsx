@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import IconButton from '../IconButton/IconButton'
 import Button from '../Button/Button'
+import UpgradeDialog from '../UpgradeDialog/UpgradeDialog'
 import { useAuth } from '../AuthProvider/AuthProvider'
 import logo from '../../assets/brand/Logo.svg'
 import icPanelLeft from '../../assets/icons/ic_panel_left.svg'
@@ -34,7 +35,8 @@ function maskStyle(src: string): CSSProperties {
 }
 
 function Sidebar() {
-  const { isSignedIn } = useAuth()
+  const { isSignedIn, requireSignIn } = useAuth()
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(COLLAPSE_QUERY).matches : false,
   )
@@ -87,6 +89,19 @@ function Sidebar() {
               key={item.key}
               href={item.href}
               className={`sidebar__nav-item${isActive(item.href) ? ' sidebar__nav-item--active' : ''}`}
+              onClick={(event) => {
+                // History is the one main-nav item that's actually personal
+                // data (your own creation history) — signed-out visitors get
+                // the sign-in modal instead of the page itself, same
+                // convention as every other requireSignIn(...) gate in this
+                // app. The rest of the nav (Home, creators, Blog) stays open.
+                if (item.key === 'history' && !isSignedIn) {
+                  event.preventDefault()
+                  requireSignIn(() => {
+                    window.location.href = item.href
+                  })
+                }
+              }}
             >
               <span className="sidebar__nav-icon" style={maskStyle(item.icon)} aria-hidden="true" />
               <span className="sidebar__nav-label">
@@ -113,11 +128,18 @@ function Sidebar() {
             </span>
             <span className="sidebar__profile-chevron" style={maskStyle(icChevronRight)} aria-hidden="true" />
           </a>
-          <Button size="Medium" variant="Tertiary" className="sidebar__upgrade-button">
+          <Button
+            size="Medium"
+            variant="Tertiary"
+            className="sidebar__upgrade-button"
+            onClick={() => setUpgradeOpen(true)}
+          >
             Upgrade
           </Button>
         </div>
       )}
+
+      <UpgradeDialog isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </aside>
   )
 }

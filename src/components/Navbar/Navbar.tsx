@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Button from '../Button/Button'
 import CreditBalance from '../CreditBalance/CreditBalance'
+import UpgradeButton from '../UpgradeButton/UpgradeButton'
 import { useAuth } from '../AuthProvider/AuthProvider'
 import icChevronDown from '../../assets/icons/ic_chevron-down.svg'
 import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
@@ -74,7 +75,10 @@ function Navbar() {
     <header className="navbar">
       <div className="navbar__actions">
         {isSignedIn ? (
-          <CreditBalance credits={390} />
+          <>
+            <CreditBalance credits={390} />
+            <UpgradeButton />
+          </>
         ) : (
           <>
             <LanguagePicker />

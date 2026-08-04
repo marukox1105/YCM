@@ -7,6 +7,14 @@
   justify-content: center;
   padding: 20px;
   box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.login-modal-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .login-modal-backdrop {
@@ -27,17 +35,23 @@
   width: 100%;
   max-width: 360px;
   box-sizing: border-box;
-  padding: 32px 24px;
+  padding: 32px;
   border-radius: var(--radius-2xl);
   border: 1px solid var(--white-15);
   background: var(--neutral-dark-09);
   box-shadow: 0 24px 60px 0 rgba(0, 0, 0, 0.5);
+  transform: scale(0.96);
+  transition: transform 0.3s ease;
+}
+
+.login-modal-overlay--visible .login-modal {
+  transform: scale(1);
 }
 
 .login-modal--sign-in {
   max-width: 380px;
   gap: 12px;
-  padding: 40px 32px;
+  padding: 32px;
   border: none;
   border-radius: var(--radius-3xl);
   background: var(--neutral-dark-14);
@@ -269,7 +283,14 @@
     border-radius: 26px 26px 0 0;
     border: none;
     box-shadow: none;
+    /* Bottom sheet slides up instead of the desktop dialog's scale-in. */
+    transform: translateY(100%);
   }
+
+  .login-modal-overlay--visible .login-modal:not(.login-modal--sign-in) {
+    transform: translateY(0);
+  }
+
   .login-modal--sign-in {
     width: min(100% - 32px, 380px);
   }

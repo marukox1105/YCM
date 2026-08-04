@@ -4,6 +4,7 @@ import AppLayout from '../../layouts/AppLayout/AppLayout'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
 import Tabs from '../../components/Tabs/Tabs'
 import Button from '../../components/Button/Button'
+import CreditsDialog from '../../components/CreditsDialog/CreditsDialog'
 import icArrowLeft from '../../assets/icons/ic_arrow_left.svg'
 import icCredit from '../../assets/icons/ic_credit.svg'
 import icVideoAi from '../../assets/icons/ic_video_ai.svg'
@@ -41,6 +42,7 @@ function maskStyle(src: string): CSSProperties {
 
 function CreditsPage() {
   const [activeTab, setActiveTab] = useState<CreditTab>('All')
+  const [buyOpen, setBuyOpen] = useState(false)
   const visibleEntries = CREDIT_ENTRIES.filter((entry) => {
     if (activeTab === 'Spend') return entry.amount < 0
     if (activeTab === 'Earn') return entry.amount > 0
@@ -62,7 +64,7 @@ function CreditsPage() {
               <p>YOUR BALANCE</p>
               <strong><img src={icCredit} alt="" />360 <span>Credits</span></strong>
             </div>
-            <Button size="Small" variant="PrimaryPayg">Buy More</Button>
+            <Button size="Small" variant="PrimaryPayg" onClick={() => setBuyOpen(true)}>Buy More</Button>
           </div>
 
           <div className="credits-page__tabs">
@@ -72,7 +74,17 @@ function CreditsPage() {
           <div className="credits-page__list">
             {visibleEntries.map((entry) => (
               <div className="credits-page__entry" key={entry.id}>
-                <span className="credits-page__entry-icon"><span style={maskStyle(entry.icon)} /></span>
+                <span className="credits-page__entry-icon">
+                  {/* Credit Purchase reuses the same coin artwork as the balance
+                      hero above — rendered as a plain <img> (not the shared
+                      currentColor mask) so it keeps its own gold color instead
+                      of turning white like the other masked entry icons. */}
+                  {entry.icon === icCredit ? (
+                    <img src={icCredit} alt="" />
+                  ) : (
+                    <span style={maskStyle(entry.icon)} />
+                  )}
+                </span>
                 <span className="credits-page__entry-copy"><strong>{entry.title}</strong><time>{entry.date}</time></span>
                 <strong className={entry.amount > 0 ? 'credits-page__amount credits-page__amount--earned' : 'credits-page__amount'}>
                   {entry.amount > 0 ? '+' : ''}{entry.amount}
@@ -82,6 +94,7 @@ function CreditsPage() {
           </div>
         </div>
       </section>
+      <CreditsDialog isOpen={buyOpen} onClose={() => setBuyOpen(false)} balance={360} />
     </AppLayout>
   )
 }

@@ -146,7 +146,7 @@ function MVStoryboardPage() {
         ) : (
           <>
         <div className="mv-storyboard__panel">
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--visual-style">
             <p className="mv-storyboard__label">VISUAL STYLE</p>
             <div
               className={`mv-storyboard__input-box${isEnhancing('visual-style') ? ' mv-storyboard__input-box--processing' : ''}`}
@@ -175,20 +175,21 @@ function MVStoryboardPage() {
                     style={maskStyle(isEnhancing('visual-style') ? icRefresh : icEditAi)}
                     aria-hidden="true"
                   />
+                  Enhance
                 </button>
                 <span className="mv-storyboard__char-count">{visualStyle.length}/2500</span>
               </div>
             </div>
           </div>
 
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--story">
             <p className="mv-storyboard__label">STORY</p>
             <div className="mv-storyboard__display-card mv-storyboard__display-card--flat">
               <p className="mv-storyboard__display-text mv-storyboard__display-text--muted">{MOCK_STORY}</p>
             </div>
           </div>
 
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--story-line">
             <button
               type="button"
               className="mv-storyboard__storyline-header"
@@ -237,6 +238,7 @@ function MVStoryboardPage() {
                             style={maskStyle(isEnhancing(`scene-${index}`) ? icRefresh : icEditAi)}
                             aria-hidden="true"
                           />
+                          Enhance
                         </button>
                         <span className="mv-storyboard__char-count">{scenes[index].length}/2500</span>
                       </div>
@@ -262,7 +264,7 @@ function MVStoryboardPage() {
         </div>
 
         <div className="mv-storyboard__side">
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--char-image">
             <p className="mv-storyboard__label">CHARACTER IMAGE</p>
             <div className="mv-storyboard__char-image">
               <img src={storyboardClip1} alt="Storyboard character" className="mv-storyboard__char-photo" />
@@ -285,7 +287,7 @@ function MVStoryboardPage() {
             </div>
           </div>
 
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--mv-song">
             <p className="mv-storyboard__label">MV SONG</p>
             <div className="mv-storyboard__song">
               <audio
@@ -326,7 +328,7 @@ function MVStoryboardPage() {
             </div>
           </div>
 
-          <div className="mv-storyboard__section">
+          <div className="mv-storyboard__section mv-storyboard__section--lyrics">
             <p className="mv-storyboard__label">LYRICS</p>
             <div className="mv-storyboard__lyrics">
               {MOCK_LYRICS.map((line) => (

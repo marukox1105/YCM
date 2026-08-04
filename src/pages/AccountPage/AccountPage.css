@@ -36,16 +36,19 @@
 .account-page__row-chevron { width: 20px; height: 20px; flex: 0 0 20px; background: var(--neutral-dark-24); mask-repeat: no-repeat; mask-position: center; mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: contain; }
 .account-page__divider { height: 17px; border-top: 1px solid var(--white-15); transform: translateY(8px); }
 
-.account-dialog-layer { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(0,0,0,.72); }
-.account-confirm, .account-edit { width: min(380px, 100%); border-radius: 26px; box-sizing: border-box; background: var(--neutral-dark-09); }
-.account-confirm { display: flex; padding: 20px; flex-direction: column; align-items: center; gap: 16px; }
+.account-dialog-layer { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; background: rgba(0,0,0,.72); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.account-dialog-layer--visible { opacity: 1; pointer-events: auto; }
+.account-confirm, .account-edit { width: min(380px, 100%); border-radius: 26px; box-sizing: border-box; background: var(--neutral-dark-09); transform: scale(0.96); transition: transform 0.3s ease; }
+.account-dialog-layer--visible .account-confirm,
+.account-dialog-layer--visible .account-edit { transform: scale(1); }
+.account-confirm { display: flex; padding: 32px; flex-direction: column; align-items: center; gap: 16px; }
 .account-confirm__message { text-align: center; }
 .account-confirm h2, .account-edit h2 { margin: 0; color: var(--neutral-dark-100); font-size: var(--font-title-m); line-height: var(--line-height-title-m); }
 .account-confirm p { margin: 4px 0 0; color: var(--neutral-dark-64); font-size: var(--font-body-m); line-height: var(--line-height-body-m); }
 .account-confirm__actions, .account-edit__actions { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 12px; }
 .account-confirm__actions .button, .account-edit__actions .button { width: 100%; }
 .account-confirm__delete.button { color: white; background: var(--color-action-danger); }
-.account-edit { display: flex; padding: 20px; flex-direction: column; gap: 16px; }
+.account-edit { display: flex; padding: 32px; flex-direction: column; gap: 16px; }
 .account-edit__header { display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; text-align: center; }
 .account-edit__avatar-area { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .account-edit__avatar { margin-top: 6px; }
@@ -64,5 +67,7 @@
   .account-page__identity-copy strong { font-size: var(--font-title-m); line-height: var(--line-height-title-m); }
   .account-page__row-title { font-size: var(--font-body-l); line-height: var(--line-height-body-l); }
   .account-dialog-layer { align-items: flex-end; padding: 0; }
-  .account-confirm, .account-edit { width: 100%; border-radius: 26px 26px 0 0; }
+  .account-confirm, .account-edit { width: 100%; border-radius: 26px 26px 0 0; transform: translateY(100%); }
+  .account-dialog-layer--visible .account-confirm,
+  .account-dialog-layer--visible .account-edit { transform: translateY(0); }
 }

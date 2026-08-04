@@ -26,9 +26,22 @@ interface AppLayoutProps {
   /** The looping colorflow background is Home-only — every other page keeps
    *  a plain dark background instead. */
   showBackground?: boolean
+  /** The marketing Footer only belongs on Home and Blog — every other page
+   *  (create flows, detail pages, account, etc.) omits it. */
+  showFooter?: boolean
+  /** The app-mobile bottom tab bar only belongs on Home and History — every
+   *  other page relies on its own top-of-page back button instead (see
+   *  DetailNavbar/RoomNavbar's back arrow). */
+  showMobileTabBar?: boolean
 }
 
-function AppLayout({ children, navbar, showBackground = false }: AppLayoutProps) {
+function AppLayout({
+  children,
+  navbar,
+  showBackground = false,
+  showFooter = false,
+  showMobileTabBar = false,
+}: AppLayoutProps) {
   const isMobileApp = MOBILE_LAYOUT === 'app'
 
   const [activeIndex, setActiveIndex] = useState(0)
@@ -84,17 +97,17 @@ function AppLayout({ children, navbar, showBackground = false }: AppLayoutProps)
         </>
       )}
 
-      {/* Sidebar/Navbar/Footer stay mounted as the desktop-sync mobile
-          fallback — MOBILE_LAYOUT in layoutMode.ts decides which set of
-          chrome is visible below the app-mobile breakpoint. */}
+      {/* Sidebar/Navbar stay mounted as the desktop-sync mobile fallback —
+          MOBILE_LAYOUT in layoutMode.ts decides which set of chrome is
+          visible below the app-mobile breakpoint. */}
       <Sidebar />
 
       <div className="app-layout__main">
         {navbar ?? <Navbar />}
         {isMobileApp && <MobileHeader />}
         <main className="app-layout__content">{children}</main>
-        <Footer />
-        {isMobileApp && <MobileTabBar />}
+        {showFooter && <Footer />}
+        {isMobileApp && showMobileTabBar && <MobileTabBar />}
       </div>
     </div>
   )

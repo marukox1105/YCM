@@ -4,6 +4,8 @@ import AppLayout from '../../layouts/AppLayout/AppLayout'
 import DetailNavbar from '../../components/DetailNavbar/DetailNavbar'
 import ShareDialog, { shareOrOpenDialog } from '../../components/ShareDialog/ShareDialog'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
+import PublishDialog from '../../components/PublishDialog/PublishDialog'
+import Toast from '../../components/Toast/Toast'
 import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import { loadMvDraft } from '../../data/mvDraft'
 import icDownload from '../../assets/icons/ic_download.svg'
@@ -50,9 +52,28 @@ function MVResultPage() {
   const [liked, setLiked] = useState(false)
   const [disliked, setDisliked] = useState(false)
   const [publish, setPublish] = useState(false)
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [shareOpen, setShareOpen] = useState(false)
+
+  // MV publish always confirms first (Figma "Ready to Go Public?") — unlike
+  // Song, which just toasts (see SongCreatePage/CommunityProfilePage).
+  function handlePublishToggle(next: boolean) {
+    if (next) {
+      setPublishDialogOpen(true)
+      return
+    }
+    setPublish(false)
+    setToastMessage('Unpublished success')
+  }
+
+  function confirmPublish() {
+    setPublish(true)
+    setPublishDialogOpen(false)
+    setToastMessage('Published success')
+  }
 
   function togglePlay() {
     const video = videoRef.current
@@ -218,7 +239,7 @@ function MVResultPage() {
                 <p className="mv-result__publish-title">Publish</p>
                 <p className="mv-result__publish-state">{publish ? 'On' : 'Off'}</p>
               </div>
-              <ToggleSwitch checked={publish} onChange={setPublish} />
+              <ToggleSwitch checked={publish} onChange={handlePublishToggle} />
             </div>
           </div>
 
@@ -259,6 +280,12 @@ function MVResultPage() {
       </div>
 
       <ShareDialog title={draft.mvTitle} isOpen={shareOpen} onClose={() => setShareOpen(false)} />
+      <PublishDialog
+        isOpen={publishDialogOpen}
+        onCancel={() => setPublishDialogOpen(false)}
+        onConfirm={confirmPublish}
+      />
+      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
     </AppLayout>
   )
 }

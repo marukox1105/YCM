@@ -22,6 +22,19 @@
   padding: 0 60px 16px;
 }
 
+.detail-navbar__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  /* Pushes to the far right regardless of which back/title combination
+     precedes it (icon-only back + title, or the original "‹ Back" text
+     link with no title) — .detail-navbar__top has no space-between of its
+     own, so without this the actions just trail immediately after
+     whatever comes before them. */
+  margin-left: auto;
+}
+
 .detail-navbar__back {
   display: flex;
   align-items: center;
@@ -40,6 +53,8 @@
 }
 
 .detail-navbar__title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   text-align: left;
   color: var(--neutral-dark-100);

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties, Dispatch, SetStateAction } from 'react'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
+import { useMountTransition } from '../../hooks/useMountTransition'
 import RoomNavbar from '../../components/RoomNavbar/RoomNavbar'
 import Tabs from '../../components/Tabs/Tabs'
 import ToggleSwitch from '../../components/ToggleSwitch/ToggleSwitch'
 import Badge from '../../components/Badge/Badge'
+import PublishDialog from '../../components/PublishDialog/PublishDialog'
+import Toast from '../../components/Toast/Toast'
 import { useAuth } from '../../components/AuthProvider/AuthProvider'
 import { MUSIC_VIDEOS } from '../../data/musicVideos'
 import { SONGS } from '../../data/songs'
@@ -234,7 +237,15 @@ function HistoryPage() {
   const [pendingPublishId, setPendingPublishId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const { requireSignIn } = useAuth()
+  const { isSignedIn, requireSignIn, openSignIn } = useAuth()
+  const deleteTransition = useMountTransition(!!pendingDeleteId)
+
+  // History is personal data — signed-out visitors (e.g. a direct link, not
+  // just a nav click) get the sign-in modal instead of ever seeing the
+  // page content, matching the same rule on AccountPage.
+  useEffect(() => {
+    if (!isSignedIn) openSignIn()
+  }, [isSignedIn, openSignIn])
 
   useEffect(() => {
     if (!openMenuId) return
@@ -267,12 +278,6 @@ function HistoryPage() {
     }, 1800)
     return () => window.clearTimeout(timer)
   }, [publishStates])
-
-  useEffect(() => {
-    if (!toastMessage) return
-    const timer = window.setTimeout(() => setToastMessage(null), 2200)
-    return () => window.clearTimeout(timer)
-  }, [toastMessage])
 
   const visibleItems = HISTORY_ITEMS.filter((item) => {
     if (deletedIds.has(item.id)) return false
@@ -330,12 +335,30 @@ function HistoryPage() {
     requireSignIn(() => { window.location.href = destination })
   }
 
+  if (!isSignedIn) {
+    return (
+      <AppLayout navbar={<RoomNavbar title="My Creations" credits={0} />} showMobileTabBar>
+        <div className="history-page" />
+      </AppLayout>
+    )
+  }
+
   return (
-    <AppLayout navbar={<RoomNavbar title="My Creations" credits={390} />}>
+    <AppLayout
+      navbar={
+        <RoomNavbar
+          title="My Creations"
+          credits={390}
+          tabsSlot={
+            <div className="history-page__tabs">
+              <Tabs tabs={TABS} active={activeTab} onChange={(tab) => { setActiveTab(tab as HistoryTab); setOpenMenuId(null) }} />
+            </div>
+          }
+        />
+      }
+      showMobileTabBar
+    >
       <div className="history-page">
-        <div className="history-page__tabs">
-          <Tabs tabs={TABS} active={activeTab} onChange={(tab) => { setActiveTab(tab as HistoryTab); setOpenMenuId(null) }} />
-        </div>
         <div className="history-page__grid">
           {visibleItems.map((item) => (
             <HistoryCard
@@ -354,20 +377,17 @@ function HistoryPage() {
           ))}
         </div>
       </div>
-      {pendingPublishId && (
-        <div className="history-publish-dialog__backdrop" role="presentation" onMouseDown={() => setPendingPublishId(null)}>
-          <section className="history-publish-dialog" role="dialog" aria-modal="true" aria-labelledby="history-publish-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
-            <h2 id="history-publish-dialog-title">Ready to Go Public?</h2>
-            <p>Once published, your creation is visible to the community and may be shared on our social channels.</p>
-            <div className="history-publish-dialog__actions">
-              <button type="button" onClick={() => setPendingPublishId(null)}>Cancel</button>
-              <button type="button" className="history-publish-dialog__confirm" onClick={confirmPublish}>Confirm</button>
-            </div>
-          </section>
-        </div>
-      )}
-      {pendingDeleteId && (
-        <div className="history-publish-dialog__backdrop" role="presentation" onMouseDown={() => setPendingDeleteId(null)}>
+      <PublishDialog
+        isOpen={!!pendingPublishId}
+        onCancel={() => setPendingPublishId(null)}
+        onConfirm={confirmPublish}
+      />
+      {deleteTransition.shouldRender && (
+        <div
+          className={`history-publish-dialog__backdrop${deleteTransition.visible ? ' history-publish-dialog__backdrop--visible' : ''}`}
+          role="presentation"
+          onMouseDown={() => setPendingDeleteId(null)}
+        >
           <section className="history-publish-dialog" role="dialog" aria-modal="true" aria-labelledby="history-delete-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
             <h2 id="history-delete-dialog-title">Delete this creation?</h2>
             <p>This creation will be removed from your history. This action cannot be undone.</p>
@@ -378,7 +398,7 @@ function HistoryPage() {
           </section>
         </div>
       )}
-      {toastMessage && <div className="history-page__toast" role="status">{toastMessage}</div>}
+      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
     </AppLayout>
   )
 }
