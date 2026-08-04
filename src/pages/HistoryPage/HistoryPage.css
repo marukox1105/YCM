@@ -59,6 +59,17 @@
   background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.42) 100%);
 }
 
+.history-card--ready .history-card__cover::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.4) 100%),
+    rgba(0, 0, 0, 0.15);
+  content: '';
+  pointer-events: none;
+}
+
 .history-card--generating .history-card__cover {
   background: linear-gradient(121deg, #ff6bce 0%, #a855f7 50%, #4338ca 100%);
 }

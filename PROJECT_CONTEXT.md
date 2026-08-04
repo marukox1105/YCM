@@ -25,7 +25,89 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-04
+## Current checkpoint — 2026-08-04 (session 2)
+
+Latest committed checkpoint before this working tree:
+`647e94d` — "Add Upgrade/Credits monetization, shared popup transitions, and Home
+hero/tool-selector refinements".
+
+### Work completed since that checkpoint
+
+- **MV Create mock face detection:** the character-photo add action now opens a Figma-based
+  Select a Face flow instead of the browser file picker. It uses the supplied
+  `src/assets/faces/demo-detection/group.jpg`, shows a deterministic 1.4-second scan, then
+  reveals four selectable face boxes/crops. Mobile uses a bottom sheet with a top-right
+  check action; desktop adapts the same hierarchy into a centered dialog with a
+  `Use This Face` pill CTA. Selection stroke is 2px on mobile and 4px on desktop, with the
+  specified purple spread shadow. This remains an intentional prototype simulation, not
+  real computer-vision detection.
+- **History Storyboard emphasis:** ready Storyboard covers now add a black 15% overlay plus
+  a 40% bottom gradient so the centered `Create MV` action reads clearly without changing
+  the underlying artwork.
+- **Shared Done badge:** the Done status now uses a `--pf-green-40` background with white
+  icon/text, affecting History and the Components reference page through the shared Badge
+  component.
+- **Home mobile Hero:** the existing 272×153 mobile carousel now centers responsively at
+  320px/375px and wider phone widths, including safe inset at its first and last positions.
+  Home mobile horizontal padding is 16px, the Hero-to-tool-card gap is 10px, and the small
+  `Create MV` CTA matches the mobile Figma sizing. Tablet/desktop behavior is unchanged.
+- **Footer sitemap:** added a Support column (`Pricing`, `Blogs`, `FAQ`) between Studio and
+  Company. Blogs routes to the existing `/blog` page; Pricing and FAQ remain mock links in
+  keeping with the UI-prototype scope.
+
+### Pages and components changed
+
+- Pages: Home, MV Create, History.
+- Shared components: Badge, Footer.
+- New committed asset: `src/assets/faces/demo-detection/group.jpg`.
+
+### Important implementation decisions
+
+- Face detection is deliberately deterministic mock UI. Face boxes and thumbnail crops use
+  percentage coordinates against one controlled demo image so the review flow is stable;
+  no image upload service, ML library, API, or new dependency was introduced.
+- The mobile Hero keeps one fixed 272px card and computes its track inset from available
+  width (`(100% - 272px) / 2`) rather than scaling the card, preserving the Figma ratio while
+  centering correctly across supported phone widths.
+- The History Storyboard darkening is a non-interactive cover pseudo-element, keeping the
+  content/card behavior unchanged and avoiding duplicated artwork or DOM wrappers.
+
+### Known issues and unfinished items
+
+- Face detection is a visual simulation tied to `group.jpg`; arbitrary user uploads and
+  actual face-coordinate extraction are outside the current prototype and are not built.
+- The four face crop/background positions are visually tuned percentages and should receive
+  one final browser comparison at 320, 375, 768, and 1440 if the Figma face-selection flow
+  changes again.
+- Footer Pricing and FAQ are still placeholder links because no destination pages have been
+  specified.
+- `/home-review-b` remains a temporary A/B review route pending selection and cleanup.
+- The broader visual-validation backlog from the previous checkpoint remains: Trim Audio
+  precision/moving playhead and complete breakpoint passes for newer Song/MV/Account/
+  History flows.
+
+### Recommended next steps
+
+1. Decide whether mock face detection remains deterministic or should accept arbitrary
+   uploads; only pursue real detection after the production integration requirements are
+   known.
+2. Complete a six-breakpoint visual pass for MV Create's face dialog and the Home mobile
+   Hero, with special attention to 320px and 375px.
+3. Resolve and delete the temporary `/home-review-b` A/B route after the tool-selector
+   direction is selected.
+4. Finish the existing Trim Audio interaction backlog and the remaining latest-Figma
+   comparisons listed in the previous checkpoint.
+
+### Progress log — 2026-08-04 (session 2)
+
+- Added the deterministic multi-face selection demo to MV Create using the supplied group
+  photo and responsive mobile/desktop dialog treatments.
+- Refined History Storyboard contrast, shared Done badge styling, and Home's mobile Hero
+  spacing/centering.
+- Expanded the Footer sitemap with Support links.
+- Production build and TypeScript validation are recorded in the checkpoint commit handoff.
+
+## Previous checkpoint — 2026-08-04
 
 Latest committed checkpoint before this working tree:
 `008d680` — "Fix sign-in logo shape, tool-tile click area, and Feature Room CTA/side-panel

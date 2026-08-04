@@ -40,7 +40,7 @@
 .badge--purple { border-color: rgba(168, 85, 247, .35); color: var(--color-accent-purple); background: rgba(168, 85, 247, .2); }
 .badge--gold { border-color: rgba(245, 158, 11, .25); color: var(--color-action-warning); background: rgba(245, 158, 11, .15); }
 .badge--processing { background: var(--neutral-dark-14); }
-.badge--done { color: var(--pf-green); background: rgba(1, 179, 123, .2); }
+.badge--done { color: var(--neutral-dark-100); background: var(--pf-green-40); }
 .badge--failed { color: var(--pf-red); background: rgba(255, 38, 0, .2); }
 .badge--hot { padding: 2px 6px; border: 1px solid rgba(168, 85, 247, .35); background: var(--pf-purple-60); }
 .badge--new { padding: 2px 6px; border: 1px solid rgba(245, 158, 11, .25); background: var(--pf-orange-60); }

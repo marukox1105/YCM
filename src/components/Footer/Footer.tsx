@@ -2,6 +2,7 @@ import logo from '../../assets/brand/Logo.svg'
 import './Footer.css'
 
 const STUDIO_LINKS = ['Music Video Creator', 'Song Composer', 'Storybook Creator']
+const SUPPORT_LINKS = ['Pricing', 'Blogs', 'FAQ']
 const COMPANY_LINKS = ['Terms of Service', 'Privacy Policy', 'Contact']
 
 function Footer() {
@@ -25,6 +26,14 @@ function Footer() {
               <p className="footer__column-title">Studio</p>
               {STUDIO_LINKS.map((link) => (
                 <a key={link} className="footer__link" href="#">
+                  {link}
+                </a>
+              ))}
+            </div>
+            <div className="footer__column">
+              <p className="footer__column-title">Support</p>
+              {SUPPORT_LINKS.map((link) => (
+                <a key={link} className="footer__link" href={link === 'Blogs' ? '/blog' : '#'}>
                   {link}
                 </a>
               ))}

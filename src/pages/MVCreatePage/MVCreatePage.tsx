@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import AppLayout from '../../layouts/AppLayout/AppLayout'
@@ -53,6 +53,7 @@ import templatePastel from '../../assets/hero/hero_05_pastel_film_converted.mp4?
 import templateAlice from '../../assets/hero/hero_06_alice_in_wonderland.mp4?url'
 import templateJpop from '../../assets/hero/hero_07_jpop.mp4?url'
 import templatePaper from '../../assets/hero/hero_08_paper_wonderland_converted.mp4?url'
+import faceDetectionGroup from '../../assets/faces/demo-detection/group.jpg'
 import './MVCreatePage.css'
 
 // Figma "AI MV — Feature Room" (nodes 1330:24550, 1344:25723). Flow/behavior
@@ -67,9 +68,9 @@ import './MVCreatePage.css'
 // aren't built yet, matching how Song Create's Processing/Result stages
 // were added in later, separate passes rather than all at once.
 //
-// The reference HTML's face-detection picker (multi-face group photos,
-// #fp-sheet) isn't in either Figma frame and only triggers for a specific
-// edge case — simplified to plain single-photo selection instead.
+// Multi-face photo selection follows Figma nodes 280:3091 and 280:3131.
+// Detection is intentionally deterministic mock state for this UI prototype:
+// one supplied group photo, percentage-based face boxes, and CSS crops.
 
 type SongSource = 'library' | 'import' | null
 
@@ -93,6 +94,13 @@ const MV_STYLES: StyleOption[] = [
 ]
 
 const SAMPLE_PHOTOS = [sample1, sample2, sample3, sample4, sample5, sample6, sample7, sample8]
+
+const DETECTED_FACES = [
+  { label: 'Face 1', position: '26% 18%', box: { left: '22.5%', top: '15%', width: '14%', height: '31%' } },
+  { label: 'Face 2', position: '40% 30%', box: { left: '36.5%', top: '25%', width: '12%', height: '29%' } },
+  { label: 'Face 3', position: '57% 16%', box: { left: '49%', top: '14%', width: '14%', height: '31%' } },
+  { label: 'Face 4', position: '74% 30%', box: { left: '63%', top: '25%', width: '14%', height: '30%' } },
+]
 
 const ENHANCED_SUGGESTIONS = [
   'A slow-burn cinematic story: two strangers keep crossing paths under neon signs, the city breathing in time with the song, until a final glance says everything words couldn\'t.',
@@ -800,6 +808,104 @@ function ModeSheet({ visible, draftBase, onClose }: ModeSheetProps) {
   )
 }
 
+interface FacePickerProps {
+  open: boolean
+  slot: number
+  onClose: () => void
+  onConfirm: (slot: number, faceIndex: number) => void
+}
+
+// Figma "Select a Face" processing / detected states (nodes 280:3091,
+// 280:3131). Mobile uses the supplied bottom sheet; desktop adapts the same
+// hierarchy into the project's established centered-dialog convention.
+function FacePicker({ open, slot, onClose, onConfirm }: FacePickerProps) {
+  const [analyzing, setAnalyzing] = useState(true)
+  const [selectedFace, setSelectedFace] = useState(0)
+  const transition = useMountTransition(open)
+
+  useEffect(() => {
+    if (!open) return
+    setAnalyzing(true)
+    setSelectedFace(0)
+    const timer = window.setTimeout(() => setAnalyzing(false), 1400)
+    return () => window.clearTimeout(timer)
+  }, [open])
+
+  if (!transition.shouldRender) return null
+
+  return createPortal(
+    <div className={`face-picker-overlay${transition.visible ? ' face-picker-overlay--visible' : ''}`}>
+      <button type="button" className="face-picker__backdrop" onClick={onClose} aria-label="Close face selector" />
+      <section className="face-picker" role="dialog" aria-modal="true" aria-labelledby="face-picker-title">
+        <div className="face-picker__handle" aria-hidden="true" />
+        <header className="face-picker__header">
+          <button type="button" className="face-picker__icon-button" onClick={onClose} aria-label="Close">
+            <span className="face-picker__icon" style={maskStyle(icClose)} aria-hidden="true" />
+          </button>
+          <div className="face-picker__heading">
+            <h2 id="face-picker-title" className="face-picker__title">Select a Face</h2>
+            <p className="face-picker__subtitle">{analyzing ? 'Analyzing photo…' : '4 faces detected. Tap to select'}</p>
+          </div>
+          <button
+            type="button"
+            className={`face-picker__icon-button face-picker__done${analyzing ? '' : ' face-picker__done--ready'}`}
+            onClick={() => onConfirm(slot, selectedFace)}
+            disabled={analyzing}
+            aria-label="Use selected face"
+          >
+            <span className="face-picker__icon" style={maskStyle(icCheck)} aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className="face-picker__body">
+          <div className="face-picker__preview">
+            <img src={faceDetectionGroup} alt="Four friends at a skate park" />
+            <span className={`face-picker__scan${analyzing ? ' face-picker__scan--active' : ''}`} aria-hidden="true" />
+            {DETECTED_FACES.map((face, index) => (
+              <span
+                key={face.label}
+                className={`face-picker__face-box${!analyzing ? ' face-picker__face-box--visible' : ''}${selectedFace === index ? ' face-picker__face-box--selected' : ''}`}
+                style={face.box}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
+
+          <p className="face-picker__label">CHOOSE ONE FACE</p>
+          <div className="face-picker__faces">
+            {DETECTED_FACES.map((face, index) => (
+              <button
+                key={face.label}
+                type="button"
+                className={`face-picker__face${selectedFace === index ? ' face-picker__face--selected' : ''}`}
+                onClick={() => setSelectedFace(index)}
+                disabled={analyzing}
+              >
+                <span
+                  className="face-picker__crop"
+                  style={{ backgroundImage: `url("${faceDetectionGroup}")`, backgroundPosition: face.position }}
+                  aria-hidden="true"
+                />
+                <span className="face-picker__face-label">{face.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="face-picker__confirm"
+            onClick={() => onConfirm(slot, selectedFace)}
+            disabled={analyzing}
+          >
+            Use This Face
+          </button>
+        </div>
+      </section>
+    </div>,
+    document.body,
+  )
+}
+
 function MVCreatePage() {
   const { requireSignIn, isSignedIn } = useAuth()
   const [selectedStyle, setSelectedStyle] = useState(0)
@@ -818,7 +924,7 @@ function MVCreatePage() {
   const [photos, setPhotos] = useState<(string | null)[]>([null, null])
   const [photoNames, setPhotoNames] = useState<string[]>(['', ''])
   const [editingPhotoSlot, setEditingPhotoSlot] = useState<number | null>(null)
-  const photoInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)]
+  const [facePickerSlot, setFacePickerSlot] = useState<number | null>(null)
   const importAudioInputRef = useRef<HTMLInputElement>(null)
 
   const [aspect, setAspect] = useState<'9:16' | '16:9'>('9:16')
@@ -896,14 +1002,6 @@ function MVCreatePage() {
     else audio.pause()
   }
 
-  function handlePhotoFile(slot: number, event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    if (!file) return
-    setPhotos((current) => current.map((p, i) => (i === slot ? URL.createObjectURL(file) : p)))
-    setPhotoNames((current) => current.map((n, i) => (i === slot ? '' : n)))
-    event.target.value = ''
-  }
-
   function handleUseSamplePhoto(slot: number, sample: string) {
     setPhotos((current) => current.map((p, i) => (i === slot ? sample : p)))
     setPhotoNames((current) => current.map((n, i) => (i === slot ? '' : n)))
@@ -917,6 +1015,12 @@ function MVCreatePage() {
 
   function setPhotoNameAt(slot: number, value: string) {
     setPhotoNames((current) => current.map((n, i) => (i === slot ? value : n)))
+  }
+
+  function confirmDetectedFace(slot: number, faceIndex: number) {
+    setPhotos((current) => current.map((photo, index) => (index === slot ? faceDetectionGroup : photo)))
+    setPhotoNames((current) => current.map((name, index) => (index === slot ? `Face ${faceIndex + 1}` : name)))
+    setFacePickerSlot(null)
   }
 
   // Default static — only the hovered (desktop) or actively-pressed (mobile,
@@ -1166,7 +1270,7 @@ function MVCreatePage() {
                     <button
                       type="button"
                       className={`mv-create__photo-add mv-create__photo-add--${slot === 0 ? 'primary' : 'tertiary'}`}
-                      onClick={() => photoInputRefs[slot].current?.click()}
+                      onClick={() => setFacePickerSlot(slot)}
                     >
                       <span className="mv-create__photo-add-circle">
                         <span className="mv-create__photo-add-icon" style={maskStyle(icAdd)} aria-hidden="true" />
@@ -1178,13 +1282,6 @@ function MVCreatePage() {
                       </span>
                     </button>
                   )}
-                  <input
-                    ref={photoInputRefs[slot]}
-                    type="file"
-                    accept="image/*"
-                    className="mv-create__file-input"
-                    onChange={(e) => handlePhotoFile(slot, e)}
-                  />
                 </div>
               ))}
             </div>
@@ -1264,6 +1361,13 @@ function MVCreatePage() {
         accept="audio/*"
         className="mv-create__file-input"
         onChange={handleImportAudioFile}
+      />
+
+      <FacePicker
+        open={facePickerSlot !== null}
+        slot={facePickerSlot ?? 0}
+        onClose={() => setFacePickerSlot(null)}
+        onConfirm={confirmDetectedFace}
       />
 
       {songPickerTransition.shouldRender && (
