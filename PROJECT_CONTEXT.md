@@ -25,7 +25,194 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-05
+## Current checkpoint — 2026-08-05 (session 2)
+
+Latest committed checkpoint before this working tree:
+`84d3f7b` — "Fix background video import and rework Home video edge mask/scope".
+
+### Work completed since that checkpoint
+
+- **Home mobile responsive pass** — a batch of small, explicitly-scoped mobile-only fixes
+  across Home, none touching desktop:
+  - Mobile Hero card (`HeroBannerMobile`) was fixed at 272×153px, matching Figma's 320px
+    reference frame exactly but not scaling on wider phones. Card width is now `85vw` with
+    `aspect-ratio: 16/9` (272:153 simplifies exactly to 16:9); `HeroBannerSection.tsx`'s
+    drag/auto-rotate math now measures the actual rendered card width at runtime (mount +
+    resize) instead of assuming a constant, since the width is no longer fixed.
+  - New MVs / Top Picks Songs mobile mini-cards were reusing the desktop 6-per-row width
+    formula (way too large/small depending on width) and desktop text sizes. Now
+    `min(34.375vw, 160px)` (110/320 Figma ratio, capped so it never approaches desktop's
+    own 200px floor on large phones), 12px radius (not `--radius-xl`), 13px/9px title/
+    subtitle text.
+  - Tool Selector and Hero mobile cards' border-radius hardcoded to the Figma-exact `14px`
+    (no matching design token exists).
+  - "See all" link and its chevron were still desktop-sized (17px/24px icon) on mobile —
+    now Caption/M (11px/16px) + 14px icon, per Figma's mobile Section Header spec.
+  - Tool Selector card titles now show a shorter mobile-only copy ("Music Video"/"AI Song")
+    via the same dual-element `--desktop`/`--mobile` CSS-toggle pattern `SectionHeader`
+    already used, since CSS can only swap which element is visible, not text content.
+  - Tool Selector's description text: first hidden entirely on tablet (768–1023px, where it
+    wrapped to 4–5 lines), then changed to a 2-line `-webkit-line-clamp` ellipsis instead per
+    follow-up feedback — desktop (1024px+) is unaffected either way.
+- **New Songs section (Home)** — this section's `ListItem`s were never passed `username`,
+  so the avatar/username row never rendered on desktop OR mobile (not a hidden-on-purpose
+  state, a missing prop). Fixed for both. Also removed the mobile-only swipeable
+  page-of-3 pager entirely (a previous session's interpretation of the Figma frame) in
+  favor of just stacking all 6 songs in one flat list — mobile now reuses the exact same
+  markup as desktop's single-column fallback, just re-flowed by an existing CSS media
+  query, so `NewSongsMobilePager` and its drag/dot-indicator code are gone. Also added
+  `cta` (the "Create" pill) to every `ListItem`, matching a supplied Figma reference
+  (node 1330:22085) the product owner uses in production — this ran on both desktop and
+  mobile automatically once the pager was removed (both now share the same JSX).
+- **Shared `Tabs` component** — inactive text was a hardcoded `rgba(255,255,255,0.4)`
+  one-off; Figma's current spec is `--white-60` (0.6), so the token is now used and the
+  value corrected. Added an app-mobile variant (previously nonexistent): 26px height via
+  5px/10px padding + Caption/M 11px Medium (desktop is 34px, 13px Bold) — same color
+  tokens both places. Added a `Tabs` entry to `/components` (the reference/showcase page),
+  which had never included one despite the component existing.
+- **New A/B proposal: `/home-review-c`** (see CLAUDE.md's A/B convention, third proposal
+  after the real `HomePage` and `/home-review-b`) — built from two Figma references the
+  product owner is preparing to show internally:
+  - `ToolSelectorSectionV3` — 3 cards (adds "AI Storybooks" next to Music Video/Song) with
+    a big "What would you like to create today?" heading, sitting above the Hero Banner.
+    Hover is glow + icon-grow only (no CTA reveal — confirmed with the product owner after
+    an initial version that had one).
+  - `HeroBannerSectionV3` — replaces the rotating single-active-card Hero with a row where
+    every card always shows its own title/subtitle/"Create MV" pill. Built as a genuine
+    native scroll container (`overflow-x: auto` + `scroll-snap-type: x mandatory` +
+    `scroll-snap-align: center` per card, scrollbar hidden), not a JS-transform carousel —
+    the product owner specifically wanted native user-scrollability where one scroll
+    gesture always lands exactly one card over. Auto-advances via `scrollTo()` on the same
+    mechanism a manual scroll would use; an infinite loop is simulated by padding one clone
+    card onto each end and silently snapping back to the real equivalent once scrolling
+    settles onto one (same technique as `HeroBannerMobile`, adapted from `transform` to
+    `scrollLeft`). Card width/height scale together via `aspect-ratio: 713/320` (Figma's W/H
+    are ratio-locked, not independent), capped at the exact Figma reference values once
+    `.home-page`'s own `max-width: 1440px` stops the row from growing further. The
+    left/right peek is derived via `calc()` from the row's own live rendered width (not a
+    flat vw guess) — needed because the row's real width varies with Sidebar's
+    collapsed/expanded state and isn't the flat 1080px Figma assumes, and a flat guess read
+    as visibly off-center once the real width diverged from that assumption.
+- **Hero asset path fix** — the product owner replaced 4 of the 8 Home Hero thumbnails,
+  changing their extension from `.jpg` to `.jpeg` in the process (`hero_04_midnight_static`,
+  `hero_05_pastel_film`, `hero_07_jpop`, `hero_08_paper_wonderland`). `HeroBannerSection.tsx`
+  still imported the old `.jpg` paths — repointed to `.jpeg`. Affects both the real
+  `HomePage` and `/home-review-c` (both import the same `HERO_ITEMS` catalog).
+
+### Pages and components changed
+
+- Home: `HeroBannerSection` (mobile card sizing + runtime step measurement, `.jpeg` thumbnail
+  imports), `ToolSelectorSection` (mobile title/description/radius), `NewMVsSection` /
+  `TopPicksSection` (mobile mini-card sizing/text), `NewSongsSection` (avatar wiring, pager
+  removal, `cta`).
+- New pages: `HomePageReviewC`, `ToolSelectorSectionV3`, `HeroBannerSectionV3` (all
+  Home-folder, temporary A/B proposal — see CLAUDE.md).
+- Shared components: `SectionHeader` (mobile "See all" sizing), `Tabs` (color fix + new
+  mobile variant).
+- `/components` reference page: added `TabsShowcase`.
+- Assets: `src/assets/hero/` — 4 thumbnails renamed `.jpg`→`.jpeg` (product owner's own
+  replacement), 2 more (`hero_01_Vintage Car.png`, `hero_06_alice_in_wonderland.jpg`)
+  updated in place at the same paths.
+
+### Important implementation decisions
+
+- **`HeroBannerSectionV3` is native scroll, not a transform carousel** — an explicit,
+  deliberate product-owner request (not read off Figma), specifically so the browser's own
+  `scroll-snap-type: mandatory` guarantees "one scroll gesture = exactly one card," which is
+  hard to replicate reliably with manual wheel-event math. This is a meaningfully different
+  technique from every other carousel in this codebase (`HeroBannerMobile`,
+  `HeroBannerSection`'s own desktop rotation) — worth knowing before extending it further.
+- **Peek/centering math must be derived live via `calc()`, not assumed from Figma's flat
+  reference width** — this tripped up two rounds of this session's own work: a first
+  attempt using independent `vw` values for card width and peek both looked right at
+  exactly 1440px but read as off-center at other widths, because the row's actual rendered
+  width isn't a fixed fraction of the viewport (Sidebar's own collapsed/expanded state and
+  `.home-page`'s `max-width: 1440px` both affect it independently of viewport width). The
+  fix — expressing peek as `calc((100% - cardWidth) / 2)` against the row's own live
+  width — is the general pattern to reach for anytime a "centered item + symmetric peek"
+  layout is needed against a container whose width isn't a clean, fixed proportion of the
+  viewport.
+- **`aspect-ratio` (not independent width + height) for anything Figma shows as a ratio-locked
+  W/H pair** — `HeroBannerSectionV3`'s cards were initially built with a responsive `vw`
+  width but a flat pixel height, which silently broke Figma's actual 713:320 ratio-lock
+  (visible in the Figma inspector's link icon) once the width started scaling on wider
+  screens.
+- **`NewSongsSection`'s mobile view now reuses desktop's exact markup** — deleting the
+  swipe-pager instead of fixing its "only 3 of 6 songs discoverable" bug was a deliberate,
+  product-owner-confirmed simplification (see `AskUserQuestion` decision in this session),
+  not an assumption. The Figma frame's own "page 1"/"page 2" layer naming had been read by
+  an earlier session as "this should paginate," but stacking them directly (already
+  possible via an existing, unrelated desktop-fallback media query) turned out to be both
+  simpler and what the product owner actually wanted.
+- **Mobile-only CSS/text changes never touch the desktop-width rules** — every mobile fix
+  this session was scoped either to `@media (max-width: 767px) { .app-layout--mobile-app
+  ... }` or a dedicated mobile-only element/class, per an explicit standing instruction
+  from the product owner partway through the session ("from now on, mobile only, desktop
+  stays as-is") — the one exception (Tool Selector's tablet 768–1023px description
+  handling) was a separate, explicit, targeted request that intentionally falls outside
+  that mobile-only scope.
+
+### Known issues and unfinished items
+
+- `/home-review-c` is desktop-only for now — neither `ToolSelectorSectionV3` nor
+  `HeroBannerSectionV3` has a mobile-specific treatment yet (the Figma references given
+  were explicitly desktop/"_L" frames). Below 768px they just re-flow via existing
+  desktop CSS rather than getting a real mobile design.
+- `HeroBannerSectionV3`'s inter-card edges are a flat rounded-24 card + a row-level
+  edge-fade mask, not Figma's actual per-card SVG gradient mask (`mask-position` offset per
+  card creating one seamless filmstrip) — flagged to the product owner as a simplification,
+  not implemented pixel-for-pixel.
+- `/home-review-c`'s peek amount at 1440px measures ~183px in the browser, not Figma's
+  static-frame value of 164px — expected given `scroll-snap-align: center` computes the
+  centered position from live geometry rather than the fixed peek+gap+card+gap+peek
+  arithmetic a static Figma frame implies; flagged to the product owner as a live known
+  difference, not silently accepted.
+- Both `/home-review-b` and `/home-review-c` are still open, temporary A/B pages pending
+  the product owner's decision — CLAUDE.md's convention is to fold the winning direction
+  back into the real `ToolSelectorSection`/`HeroBannerSection` and delete the losing
+  page(s) once chosen.
+- The product owner asked whether "all components' hover states have transitions" should
+  be a full site-wide audit or just this session's new components — this session only
+  confirmed/fixed transitions on the components it touched (`ToolSelectorSectionV3`,
+  `HeroBannerSectionV3`); a broader sweep across the rest of the app hasn't been done and
+  is still an open question for the product owner.
+
+### Recommended next steps
+
+1. Get the product owner's decision between `HomePage` (current), `/home-review-b`, and
+   `/home-review-c` — then fold the winner back into the real Home page/components and
+   delete the other temporary review page(s) + their now-unused components.
+2. If `/home-review-c` is picked, decide whether the ~183px vs 164px peek discrepancy and
+   the simplified (non-per-card-mask) card edges need closer Figma matching, or are
+   acceptable as shipped.
+3. Design and build actual mobile-specific treatments for `ToolSelectorSectionV3` /
+   `HeroBannerSectionV3` if `/home-review-c` is chosen — currently desktop-only.
+4. Clarify and, if wanted, execute a site-wide hover-transition audit beyond this session's
+   own components.
+5. Carry over older outstanding items from the 2026-08-05 (session 1) checkpoint below
+   (background-video breakpoint screenshot pass, etc.) — none of this session's work
+   affects or resolves them.
+
+### Progress log — 2026-08-05 (session 2)
+
+- Shipped a batch of mobile-only Home fixes: Hero card + New MVs/Top Picks mini-card
+  responsive sizing, hardcoded 14px radii, "See all" mobile type size, Tool Selector
+  mobile-only title copy and tablet-range description clamping.
+- Fixed New Songs' missing avatar/username row (desktop and mobile), removed its
+  mobile-only swipe pager in favor of a flat 6-song list, and added the "Create" CTA
+  pill to match a supplied Figma reference.
+- Fixed the shared `Tabs` component's inactive-text color and added its previously-missing
+  app-mobile size variant; added it to the `/components` reference page.
+- Built a third Home A/B proposal (`/home-review-c`): a 3-card hover Tool Selector variant
+  and a native-scroll, always-showing-info Hero Banner carousel, iterated across several
+  rounds of product-owner feedback (symmetric peek math, aspect-ratio locking, CTA
+  removal, native scroll-snap instead of a JS carousel).
+- Fixed 4 Hero thumbnail image imports left pointing at `.jpg` after the product owner
+  replaced them with `.jpeg` versions.
+- Production build and TypeScript validation are recorded in the checkpoint commit
+  handoff.
+
+## Previous checkpoint — 2026-08-05
 
 Latest committed checkpoint before this working tree:
 `568e64c` — "Add mock face selection and polish shared UI".
@@ -1162,6 +1349,31 @@ of this file. Older commit IDs in the dated logs below are historical handoff re
   Sidebar) to being scoped inside `.app-layout__main` only, per explicit request; adjusted
   its `z-index` from `0` to `-1` to stay correctly behind the content now sharing its
   stacking context.
+- Prepared this documentation checkpoint (this entry) without making further UI changes.
+  Build/type-check results and the exact file list are reported to the product owner
+  before staging, commit, and push.
+
+## Handoff Log — 2026-08-05 (session 2)
+
+- Shipped a batch of mobile-only Home responsive fixes (Hero card, New MVs/Top Picks
+  mini-cards, Tool Selector title/description/radius, "See all" type size) — all scoped to
+  the app-mobile breakpoint, desktop untouched, per an explicit standing instruction
+  partway through the session.
+- Fixed New Songs' missing avatar/username row (was never wired on desktop or mobile),
+  removed its mobile-only swipe pager in favor of a flat 6-song list matching desktop's
+  existing fallback layout, and added the "Create" CTA pill to match a supplied Figma
+  reference the product owner uses in production.
+- Fixed the shared `Tabs` component's inactive-text color (hardcoded 40% white → the
+  correct `--white-60` token) and added its previously-missing app-mobile size variant;
+  added a `Tabs` entry to the `/components` reference page.
+- Built a third Home A/B proposal, `/home-review-c`: `ToolSelectorSectionV3` (3-card hover
+  treatment, no CTA reveal) and `HeroBannerSectionV3` (a genuine native scroll-snap
+  carousel where every card always shows its own info, not a JS-transform carousel like
+  every other carousel in this codebase) — iterated across several rounds of product-owner
+  feedback on peek/centering math, aspect-ratio locking, and the scroll mechanism itself.
+- Fixed 4 Hero thumbnail imports left pointing at deleted `.jpg` files after the product
+  owner replaced them with `.jpeg` versions (affects both the real Home page and
+  `/home-review-c`, which share the same image catalog).
 - Prepared this documentation checkpoint (this entry) without making further UI changes.
   Build/type-check results and the exact file list are reported to the product owner
   before staging, commit, and push.

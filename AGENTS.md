@@ -82,7 +82,12 @@ Routing today (`src/App.tsx`): `/home-review-b*` → `HomePageReviewB` (**tempor
 review page** — an alternate Tool Selector treatment for the product owner to compare
 against the real Home; delete this route + `HomePageReviewB.tsx` +
 `ToolSelectorSectionAlt.tsx/.css` once a version is picked and folded into the real
-`HomePage`/`ToolSelectorSection`), `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
+`HomePage`/`ToolSelectorSection`), `/home-review-c*` → `HomePageReviewC` (**temporary A/B
+review page**, a third Home proposal — a 3-card Tool Selector with a big heading
+(`ToolSelectorSectionV3.tsx/.css`) and a native scroll-snap Hero Banner carousel where
+every card always shows its own info (`HeroBannerSectionV3.tsx/.css`); delete this route +
+those 3 files once a version is picked and folded into the real `HomePage`/
+`ToolSelectorSection`/`HeroBannerSection`), `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
 `/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
 MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
 `/mv-edit*` → MVEditPage, `/history*` → HistoryPage, `/blog*` → BlogPage concept 1,
@@ -185,7 +190,7 @@ prototype-only signed-in state and global LoginModal.
 | SectionHeader | Section title row — optional "See all" link, separate mobile-abbreviated title text |
 | ShareDialog | Share dialog + `shareOrOpenDialog()` helper (prefers native Web Share API when available, falls back to the dialog) |
 | Sidebar | Left nav rail — collapses to icon-only below 1024px. Its bottom "Upgrade" button and the header's `UpgradeButton` each own an independent `UpgradeDialog` instance |
-| Tabs | Pill tab-bar switcher — controlled via `active`/`onChange`. Default styling (34px height, pill radius, bold) matches Figma "Bar/Tabs" — don't re-override this per page, it's already the shared default |
+| Tabs | Pill tab-bar switcher — controlled via `active`/`onChange`. Default styling (34px height, pill radius, bold, `--white-60` inactive text) matches Figma "Bar/Tabs" — don't re-override this per page, it's already the shared default. App-mobile (`.app-layout--mobile-app`, below 767px) gets its own smaller variant (26px height, Caption/M Medium) baked into `Tabs.css`, no per-page override needed there either |
 | ToggleSwitch | On/off switch (e.g. the Instrumental toggle on Song Create) |
 | Toast | Shared simple pill status message (e.g. "Published success") — auto-dismisses, used wherever a popup confirmation isn't warranted |
 | TopSongListItem | Song row specific to Song Detail's Top Songs list — larger type scale, own stats layout at ≥1920px |
