@@ -25,7 +25,95 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-04 (session 2)
+## Current checkpoint — 2026-08-05
+
+Latest committed checkpoint before this working tree:
+`568e64c` — "Add mock face selection and polish shared UI".
+
+### Work completed since that checkpoint
+
+- **Home background video import fix:** one of the five looping colorflow background
+  videos had been converted from `.mov` to `.mp4` outside this session
+  (`colorflow-animation-02_converted.mp4`), leaving `AppLayout.tsx`'s import pointing at the
+  now-deleted `colorflow-animation-02.mov` and breaking the dev server ("Failed to resolve
+  import"). Repointed the import to the new file.
+- **Tool Selector glow gradient tuning:** iteratively updated the exact radial-gradient
+  values (size/position/color stops) for both the default (`::before`) and hover
+  (`.tool-selector__glow`) states of the Home Tool Selector's MV (purple) and Song (red)
+  cards, matching refined Figma fill values supplied directly by the product owner across
+  four rounds of small tweaks.
+- **Home background video edge mask reworked:** rebuilt `.app-layout__background-scrim` to
+  match a supplied Figma reference (node 1862:37795 plus the video layer's own Figma fill
+  stack) instead of the previous approximation. The video now blends in at the very top
+  (~19vh fade from solid page-bg to transparent), stays at a flat 70% black tint through the
+  middle, and fades back to the solid page background exactly at its own bottom edge (80vh)
+  instead of a fixed offset unrelated to where the video actually ends.
+- **Background video no longer spans behind Sidebar:** moved the `<video>` and its scrim
+  from being a sibling of `Sidebar`/`.app-layout__main` (spanning the full page width,
+  including behind Sidebar's glass panel) to being the first children inside
+  `.app-layout__main` itself, so it's now scoped to only the main content column's width.
+  Adjusted its `z-index` from `0` to `-1` to keep it correctly behind Navbar/content/Footer
+  inside its new stacking context (non-positioned in-flow siblings paint before
+  z-index:0/auto positioned ones, so `0` was no longer enough once the video moved inside
+  the same stacking context as that content).
+
+### Pages and components changed
+
+- Layout: `AppLayout` (background video import, scrim gradient rework, DOM position/
+  z-index).
+- Pages: Home (`ToolSelectorSection` glow gradient values only — no markup changes).
+- Assets: removed `src/assets/backgrounds/colorflow-animation-02.mov`, added
+  `src/assets/backgrounds/colorflow-animation-02_converted.mp4`.
+
+### Important implementation decisions
+
+- The edge-mask fade stops are expressed in `vh` (proportional to the video's own 80vh
+  height), consistent with the existing convention documented in `AppLayout.css` — chosen
+  because this scrim element spans the whole scrollable page, so a `%`-based gradient would
+  fade out relative to the page's total height instead of where the video actually ends.
+  The specific stop values (19vh top blend, 41vh–80vh bottom blend) were derived by reading
+  the exact Figma node's pixel offsets and the video rectangle's own fill-stack
+  percentages, then converting them proportionally into that existing 80vh convention.
+- Kept the flat 70% black tint (`rgba(0, 0, 0, 0.7)`) as a plain `background-color` layered
+  underneath the two gradients in the same `background` shorthand — the same
+  multiple-background-layers trick already used elsewhere in the codebase (e.g.
+  `ToolSelectorSection`) for combining a gradient with a flat color in one property.
+- Scoping the background video to `.app-layout__main` (rather than the full `.app-layout`)
+  was an explicit, deliberate request rather than something read off Figma — only Home
+  uses `showBackground`, so no other page is affected.
+
+### Known issues and unfinished items
+
+- No new issues introduced this session. Every change was verified via `tsc --noEmit`,
+  live network requests (200 OK), `getComputedStyle`, and `getBoundingClientRect` checks
+  against the running dev server after each edit.
+- All previously known issues from the 2026-08-04 (session 2) checkpoint remain open and
+  are unaffected by this session's work (see "Previous checkpoint — 2026-08-04 (session 2)"
+  below).
+
+### Recommended next steps
+
+1. Carry over the previous checkpoint's outstanding items (see below) — none of this
+   session's work resolves them.
+2. If the product owner wants the background-video treatment applied to more than just
+   Home, revisit the `showBackground` prop rather than special-casing another page.
+3. A full 1920/1440/1024/768/375/320 pass of the Home background + Tool Selector cards
+   would help confirm the new gradient/mask values hold up at every supported width (this
+   session only spot-checked 1440/1280/1024/900 in the dev server).
+
+### Progress log — 2026-08-05
+
+- Fixed a broken background-video import left over from an out-of-session `.mov`→`.mp4`
+  conversion.
+- Tuned the Home Tool Selector's default/hover glow gradients across four rounds of exact
+  values supplied by the product owner.
+- Reworked the Home background video's edge mask to match a supplied Figma reference (top
+  blend + flat 70% tint + bottom blend ending precisely at the video's own edge), and
+  scoped the video to `.app-layout__main` only so it no longer renders behind Sidebar.
+- Production build and TypeScript validation are recorded in the checkpoint commit
+  handoff.
+
+## Previous checkpoint — 2026-08-04 (session 2)
 
 Latest committed checkpoint before this working tree:
 `647e94d` — "Add Upgrade/Credits monetization, shared popup transitions, and Home
@@ -1055,6 +1143,25 @@ of this file. Older commit IDs in the dated logs below are historical handoff re
   credits tag; `CreditsDialog`'s pack tags no longer affect row spacing; disabled Vite's
   CSS minifier to stop it from dropping the standard `backdrop-filter` alongside the
   `-webkit-` one in production builds.
+- Prepared this documentation checkpoint (this entry) without making further UI changes.
+  Build/type-check results and the exact file list are reported to the product owner
+  before staging, commit, and push.
+
+## Handoff Log — 2026-08-05
+
+- Fixed `AppLayout.tsx`'s background-video import, which had been left pointing at a
+  `.mov` file the product owner deleted after converting it to
+  `colorflow-animation-02_converted.mp4` outside this session.
+- Tuned the Home Tool Selector's MV/Song glow gradients (default + hover states) across
+  four rounds of exact values supplied directly by the product owner.
+- Reworked the Home background video's edge-mask gradient to precisely match a supplied
+  Figma reference: a top blend, a flat 70% black tint through the middle, and a bottom
+  blend that ends exactly at the video's own bottom edge (previously an approximation
+  disconnected from where the video actually ended).
+- Moved the background video/scrim from spanning the full page width (including behind
+  Sidebar) to being scoped inside `.app-layout__main` only, per explicit request; adjusted
+  its `z-index` from `0` to `-1` to stay correctly behind the content now sharing its
+  stacking context.
 - Prepared this documentation checkpoint (this entry) without making further UI changes.
   Build/type-check results and the exact file list are reported to the product owner
   before staging, commit, and push.
