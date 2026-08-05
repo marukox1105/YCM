@@ -16,9 +16,11 @@
   1440px desktop reference (713/1440 = 49.51vw), expressed as vw so it
   scales with the viewport instead of staying pinned (same reasoning as the
   Hero mobile card's 85vw and the New MVs/Top Picks mobile mini-cards' vw
-  sizing this session). Capped at 713px because .home-page itself caps at
-  max-width:1440px — past that, this row's real available width stops
-  growing too, so letting the card keep growing via vw would overflow it.
+  sizing this session). Capped (at 880px, raised from Figma's own 713px per
+  product-owner request — bigger than the Figma reference on purpose) because
+  .home-page itself caps at max-width:1440px — past that, this row's real
+  available width stops growing too, so letting the card keep growing via vw
+  would overflow it.
 
   The peek/padding is NOT a separate vw guess — it's derived directly from
   the row's own real rendered width via calc(), specifically so it stays
@@ -26,8 +28,9 @@
   flat 1080px like the Figma reference: Sidebar's collapsed/expanded state
   and .home-page's own max-width interact, so the row can render anywhere
   from ~1080px up to ~1320px depending on viewport — a fixed vw peek value
-  went out of sync with the card's own 713px cap in that range and the row
-  read as lopsided instead of centered).
+  went out of sync with the card's own width cap in that range and the row
+  read as lopsided instead of centered). Its cap must stay in sync with the
+  card's own (880px) — see .hero-banner-v3__card below.
 
   Figma blends adjacent cards' edges with a shared SVG gradient mask
   (mask-position offset per card) so the row reads as one continuous
@@ -64,7 +67,7 @@
      could never be scrolled to a centered position) — derived via calc()
      from the row's own width (not a flat vw guess like the card's own) so
      it stays correct regardless of how wide the row itself ends up being. */
-  padding-inline: max(0px, calc((100% - min(49.51vw, 713px)) / 2));
+  padding-inline: max(0px, calc((100% - min(49.51vw, 880px)) / 2));
 }
 
 .hero-banner-v3__track::-webkit-scrollbar {
@@ -79,7 +82,7 @@
   flex-shrink: 0;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  width: min(49.51vw, 713px);
+  width: min(49.51vw, 880px);
   /* Figma's 713x320 is a fixed ratio (locked in the inspector), not an
      independent width/height — aspect-ratio keeps height scaling together
      with the vw-based width instead of staying pinned at 320px on wide
