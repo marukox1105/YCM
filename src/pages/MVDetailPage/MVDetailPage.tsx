@@ -482,7 +482,7 @@ function MVDetailPage() {
           : '/home'
 
   return (
-    <AppLayout navbar={<DetailNavbar credits={390} backHref={backHref} />} showMobileHeader={false}>
+    <AppLayout navbar={<DetailNavbar credits={390} backHref={backHref} hideMobileBar />} showMobileHeader={false}>
       <div className={`mv-detail${selected ? ' mv-detail--selected' : ''}`}>
         {!selected && (
           <header className="mv-detail__mobile-header">

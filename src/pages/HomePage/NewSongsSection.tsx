@@ -31,16 +31,40 @@ function NewSongsSection() {
       <div className="new-songs__layout">
         <div className="new-songs__column">
           {COLUMN_1.map((song) => (
-            <a key={song.id} href={songHref(song.id)} className="new-songs__item">
-              <ListItem title={song.title} username={song.username} cta plays={0} likes={0} shares={0} coverImage={song.cover} />
-            </a>
+            <div key={song.id} className="new-songs__item">
+              <ListItem
+                title={song.title}
+                username={song.username}
+                cta
+                createHref="/song-create?from=home"
+                plays={0}
+                likes={0}
+                shares={0}
+                coverImage={song.cover}
+                onSelect={() => {
+                  window.location.href = songHref(song.id)
+                }}
+              />
+            </div>
           ))}
         </div>
         <div className="new-songs__column">
           {COLUMN_2.map((song) => (
-            <a key={song.id} href={songHref(song.id)} className="new-songs__item">
-              <ListItem title={song.title} username={song.username} cta plays={0} likes={0} shares={0} coverImage={song.cover} />
-            </a>
+            <div key={song.id} className="new-songs__item">
+              <ListItem
+                title={song.title}
+                username={song.username}
+                cta
+                createHref="/song-create?from=home"
+                plays={0}
+                likes={0}
+                shares={0}
+                coverImage={song.cover}
+                onSelect={() => {
+                  window.location.href = songHref(song.id)
+                }}
+              />
+            </div>
           ))}
         </div>
       </div>

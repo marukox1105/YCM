@@ -551,21 +551,20 @@
   }
 
   .mv-player__floating {
-    gap: 4px;
+    gap: 10px;
     padding: 20px 16px 40px;
   }
 
-  /* Figma's landscape ("LAN 4:3") player puts the playback controls
-     directly under the video, with the CTA as the very last element at
-     the bottom — the opposite order from the portrait player, where the
-     CTA sits just above the controls (both overlaid on the full-bleed
-     video). Portrait keeps DOM order (meta-row incl. CTA, then controls);
-     landscape flips it visually via flex order. */
-  .mv-player:not(.mv-player--portrait) .mv-player__meta-row {
+  /* Figma (both the landscape "LAN 4:3" frame and the portrait "POR" one,
+     node 361-6195) puts the playback controls directly under the video,
+     with the CTA as the very last element at the bottom — for both
+     ratios, not just landscape as an earlier pass assumed. Flipped
+     visually via flex order rather than reordering the DOM. */
+  .mv-player__meta-row {
     order: 2;
   }
 
-  .mv-player:not(.mv-player--portrait) .mv-player__controls {
+  .mv-player__controls {
     order: 1;
   }
 
@@ -639,6 +638,7 @@
   }
 
   .mv-player__controls {
+    height: 40px;
     gap: 10px;
   }
 
