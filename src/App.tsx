@@ -1,8 +1,6 @@
 import './App.css'
 import ComponentsPage from './pages/ComponentsPage/ComponentsPage'
 import HomePage from './pages/HomePage/HomePage'
-import HomePageReviewB from './pages/HomePage/HomePageReviewB'
-import HomePageReviewC from './pages/HomePage/HomePageReviewC'
 import MVDetailPage from './pages/MVDetailPage/MVDetailPage'
 import SongDetailPage from './pages/SongDetailPage/SongDetailPage'
 import SongCreatePage from './pages/SongCreatePage/SongCreatePage'
@@ -20,14 +18,6 @@ import AuthProvider from './components/AuthProvider/AuthProvider'
 function AppRoutes() {
   if (window.location.pathname.startsWith('/components')) {
     return <ComponentsPage />
-  }
-
-  if (window.location.pathname.startsWith('/home-review-b')) {
-    return <HomePageReviewB />
-  }
-
-  if (window.location.pathname.startsWith('/home-review-c')) {
-    return <HomePageReviewC />
   }
 
   if (window.location.pathname === '/' || window.location.pathname.startsWith('/home')) {

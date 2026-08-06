@@ -1,18 +1,20 @@
 import icVideoAi from '../../assets/icons/ic_video_ai.svg'
 import icSongAi from '../../assets/icons/ic_song_ai.svg'
-import icStoryAi from '../../assets/icons/ic_story_ai.svg'
+// import icStoryAi from '../../assets/icons/ic_story_ai.svg' // re-enable with the AI Storybooks card below
 import './ToolSelectorSectionV3.css'
 
 function maskStyle(src: string) {
   return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
 }
 
-// A/B proposal #2 (see CLAUDE.md's A/B convention) — Figma "Tool Selector
-// Section" (node 1875:34099): a big heading above 3 cards (adds AI
-// Storybooks next to Music Video/Song), sitting above the Hero Banner like
-// HomePageReviewB's ToolSelectorSectionAlt. See ToolSelectorSectionV3.css
-// for why the hover treatment doesn't grow the card (Figma's own "Active"
-// variants do, but that was confirmed not to be the intended behavior).
+// Real Home desktop Tool Selector (product owner picked this review-c
+// treatment over the original and review-b) — Figma "Tool Selector Section"
+// (node 1875:34099): a big heading above 3 cards (adds AI Storybooks next
+// to Music Video/Song), sitting above the Hero Banner. Desktop-only —
+// HomePage.tsx renders the original ToolSelectorSection on mobile instead,
+// see that file for why. See ToolSelectorSectionV3.css for why the hover
+// treatment doesn't grow the card (Figma's own "Active" variants do, but
+// that was confirmed not to be the intended behavior).
 function ToolSelectorSectionV3() {
   return (
     <section className="tool-selector-v3">
@@ -39,18 +41,9 @@ function ToolSelectorSectionV3() {
           </div>
         </a>
 
-        {/* AI Storybook has no build creation flow yet (Sidebar's own "AI
-            Storybook" nav item is also href="#" with a "NEW" badge) — kept
-            consistent rather than pointing at MV Create as a stand-in. */}
-        <a href="#" className="tool-selector-v3__card tool-selector-v3__card--story">
-          <div className="tool-selector-v3__icon-badge tool-selector-v3__icon-badge--story">
-            <span className="tool-selector-v3__icon" style={maskStyle(icStoryAi)} aria-hidden="true" />
-          </div>
-          <div className="tool-selector-v3__text">
-            <p className="tool-selector-v3__title">AI Storybooks</p>
-            <p className="tool-selector-v3__description">Turn your story into an AI audiobook or video.</p>
-          </div>
-        </a>
+        {/* AI Storybooks card hidden per product owner request until the
+            feature itself ships — re-enable this block (Figma node
+            1875:34099's 3rd card) once it does. */}
       </div>
     </section>
   )

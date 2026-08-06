@@ -25,7 +25,167 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-05 (session 2)
+## Current checkpoint — 2026-08-06
+
+Latest committed checkpoint before this working tree:
+`976110c` — "Raise home-review-c Hero card max-width to 880px".
+
+### Work completed since that checkpoint
+
+- **Home review-c adopted as the real Home** — the product owner picked the review-c
+  Tool Selector/Hero Banner treatment over the original and review-b. `HomePage.tsx` now
+  renders `ToolSelectorSectionV3` + `HeroBannerSectionV3` on desktop; mobile keeps the
+  original `ToolSelectorSection` + `HeroBannerSection` unchanged (mobile was decided
+  independently of the desktop A/B result and never had its own review-b/c treatment) via
+  a `window.matchMedia('(max-width: 767px)')` branch in `HomePage.tsx`, the same technique
+  `MVDetailPage`'s `MvGrid` already used for a structurally different (not just
+  CSS-hidden) mobile render. `/home-review-b`, `/home-review-c`, `HomePageReviewB.tsx`,
+  `HomePageReviewC.tsx`, and the losing `ToolSelectorSectionAlt.tsx/.css` are all deleted;
+  their routes are gone from `src/App.tsx`. `AGENTS.md`'s routing table updated to match.
+- **Tool Selector V3 adjustments post-adoption**: the "AI Storybooks" 3rd card is hidden
+  (JSX block + its icon import commented out, not deleted — the feature itself hasn't
+  shipped yet, same as Sidebar's own `href="#"` "AI Storybook NEW" stub) per product owner
+  request. The remaining 2 cards get `max-width: 380px` each (were unbounded `flex: 1`,
+  which stretched them too wide once the 3rd card's share of the row disappeared) and the
+  row gained `justify-content: center` at the `≥768px` breakpoint so the pair centers
+  instead of hugging the left edge.
+- **Hero Banner V3 gained prev/next arrow buttons** — matches the existing hover-reveal
+  affordance pattern from `NewMVsSection`/`TopPicksSection` (absolute-positioned `Large`/
+  `Ghost` `IconButton`s, `opacity: 0` by default, revealed on section `:hover`), wired to
+  the carousel's existing `scrollToIndex` mechanism. Unlike those finite rows, this
+  carousel loops infinitely (see `PADDED_ITEMS`), so there's no scroll-boundary state to
+  gate visibility on — the buttons are always available on hover instead.
+- **Fixed the new arrow buttons reading as too faint** — the row's edge-fade
+  `mask-image` was on the outer `.hero-banner-v3` section, so it faded the arrow buttons
+  (its children) along with the peeking cards. Moved the `mask-image`/
+  `-webkit-mask-image` down to `.hero-banner-v3__track` (the actual scrolling element)
+  so the fade still applies to the cards but no longer touches the buttons layered on top.
+- **MV Detail mobile treatment built out** (Figma nodes 361-7365 "New MVs" list,
+  361-5525 "Portrait" player, 361-6042 "Landscape" player — all `≤767px`, no desktop
+  change):
+  - **List view**: gained its own sticky mobile header (back button left, centered "New
+    MVs" title) and a real 2-column grid (`MvGrid` gained an `isMobile` branch, same
+    `matchMedia` technique as `HomePage`'s new one, splitting `items` into even/odd
+    columns) — was a single column reusing the tablet wrap-grid before. `AppLayout` gained
+    a new `showMobileHeader` prop (default `true`) so this page can suppress the shared
+    app-mobile `MobileHeader` and render its own Figma-specific one instead
+    (`MVDetailPage` passes `showMobileHeader={false}`).
+  - **Player view**: gained its own mobile-only header (back button + per-video title/
+    subtitle, overlaid on the video), a floating mobile profile-avatar button, and a
+    mobile-specific CTA label ("Create Music Video" vs. desktop's "Create MV"). The
+    portrait/landscape check (`isPortrait`) is now driven directly by `item.ratio ===
+    '3:4'` instead of measuring the loaded video's actual pixel dimensions at runtime —
+    simpler, and avoids a state update immediately after mount.
+  - **Landscape player corrected against Figma's "LAN 4:3" frame**: the video's mobile
+    aspect-ratio was hardcoded to `16/9` (didn't match the catalog's actual `'4:3'` ratio
+    or the Figma reference); changed to `4/3`. The playback-controls-row vs. CTA-button
+    order is also *reversed* between portrait and landscape per Figma — portrait overlays
+    the CTA above the controls (both near the bottom of the full-bleed video, matching the
+    existing DOM order), landscape puts the controls directly under the (smaller,
+    letterboxed) video with the CTA as the very last element. Rather than reordering the
+    DOM, the root player `<div>` now gets a `mv-player--portrait` modifier class (mirroring
+    `.mv-player__stage`'s existing one) so the landscape case can flip `.mv-player__meta-row`/
+    `.mv-player__controls` visually via flex `order` inside the existing
+    `flex-direction: column` `.mv-player__floating`.
+  - Back-navigation nuance: when a video is opened via the list's "view all" links
+    (`?view=all`), its back button returns to the list instead of the page's outer
+    `from=` source — `fromAll` in `MVDetailPage` picks the right `backHref` per case.
+  - Confirmed (no code change needed): the avatar/like/share icon stack's existing
+    `position: fixed; top: 43%` (of the viewport) already lands correctly centered against
+    the video for *both* portrait and landscape — verified via `getBoundingClientRect()`
+    that `.mv-player__stage` spans the full `100svh` player height in both cases (the
+    landscape video is letterboxed and centered *within* that same full-height stage via
+    flexbox), so "43% of viewport" and "centered against the video" coincide in both
+    cases. An earlier concern that this was badly offset for landscape turned out to be a
+    misread screenshot, not a real bug.
+
+### Pages and components changed
+
+- Home: `HomePage` (`isMobile` desktop/mobile component branch), `ToolSelectorSectionV3`
+  (AI Storybooks hidden, card `max-width`, row centering), `HeroBannerSectionV3` (prev/next
+  arrows, mask moved to `__track`).
+- Deleted: `HomePageReviewB`, `HomePageReviewC`, `ToolSelectorSectionAlt.tsx/.css` (A/B
+  losers, folded/resolved).
+- MV Detail: `MVDetailPage` (mobile list header + 2-col grid, mobile player header/profile
+  button/CTA label, portrait/landscape order fix, `view=all` back-href), `MVDetailPage.css`
+  (~290 new lines under the existing `@media (max-width: 767px)` block).
+- Shared: `AppLayout` (new `showMobileHeader` prop).
+- Docs: `AGENTS.md` routing table and `layouts/` description updated to match.
+
+### Important implementation decisions
+
+- **Mobile Home stays on the original components regardless of the desktop A/B
+  result.** This was an explicit, separate product-owner decision (mobile was "already
+  finalized" independently) — not something inferred from Figma. Any future desktop A/B
+  round for Home should default to leaving mobile alone unless told otherwise.
+- **`ToolSelectorSectionV3`/`HeroBannerSectionV3` keep their "V3" names for now**, even
+  though they're the real desktop components today (not one of several proposals anymore).
+  Renaming them (and the original mobile-only `ToolSelectorSection`/`HeroBannerSection`,
+  which would need a symmetric rename to avoid a name collision) was explicitly deferred by
+  the product owner — see Recommended next steps.
+- **Hiding an unshipped feature card means commenting out its JSX + icon import, not
+  deleting it** — matches how Sidebar's own "AI Storybook NEW" nav stub is handled
+  elsewhere in the app; re-enabling later should be a one-line uncomment.
+- **A row-level edge-fade `mask-image` must live on the scrolling element itself, not a
+  wrapper that also contains non-scrolling overlay UI** (like prev/next buttons) — else the
+  mask silently dims that overlay UI too. Worth checking for on any other
+  edge-fade-masked row before adding an overlay button to it.
+- **Portrait vs. landscape mobile MV players need different visual order for
+  controls/CTA, achieved via a root modifier class + flex `order`, not by duplicating the
+  JSX** — `mv-player--portrait` mirrors the pattern `.mv-player__stage--portrait` already
+  established, kept the two cases in one shared render path.
+
+### Known issues and unfinished items
+
+- **Site-wide mobile "back button (left) + title (centered)" header sweep is still
+  open.** The product owner confirmed this pattern should exist on nearly every page
+  except Home (Explore) and History, but this checkpoint only applied it to MV Detail
+  (which already needed its own mobile header for other reasons). No other page has been
+  touched — this is a deliberately deferred, larger cross-page sweep, not an oversight.
+- **`ToolSelectorSectionV3`/`HeroBannerSectionV3` naming cleanup is deferred** (see above)
+  — whenever it happens, it needs a symmetric rename of the original mobile-only
+  components too (naming collision otherwise), touching `HomePage.tsx`'s imports and every
+  CSS class prefix in both component pairs.
+- **New arrow buttons on Hero Banner V3 were verified via computed-style/DOM inspection
+  (opacity, mask value, click→`scrollTo` wiring), not a real mouse hover/click** — this
+  session's Browser-pane automation couldn't reliably trigger a genuine `:hover` state or
+  have a native `.click()` register on *either* the new Hero arrows or the pre-existing
+  `NewMVsSection` arrows (confirmed as a tool-level limitation via a control test on the
+  already-shipped `NewMVsSection` buttons, not a regression from this session's change) —
+  worth a real manual click-through before considering this fully confirmed.
+- Everything already logged as unfinished in the 2026-08-05 (session 2) checkpoint below
+  (`/home-review-c` peek-math discrepancy now moot since it's the real Home;
+  `HeroBannerSectionV3`'s simplified edge mask vs. Figma's per-card SVG mask; the
+  site-wide hover-transition audit question) remains open except where superseded above.
+
+### Recommended next steps
+
+1. Do a real (non-automated) click-through of the Hero Banner V3 and confirm the prev/next
+   arrows and hover-reveal actually feel right in a real browser.
+2. Decide when to do the `ToolSelectorSectionV3`/`HeroBannerSectionV3` → non-"V3" rename
+   (and the matching original-component rename needed to avoid the name collision).
+3. Decide scope/timing for the mobile back+title header sweep across the remaining pages
+   (everything except Home/Explore and History).
+4. Re-enable the "AI Storybooks" Tool Selector card once that feature actually ships.
+5. Carry over older outstanding items from the 2026-08-05 (session 2) checkpoint below —
+   none of this session's work affects or resolves them.
+
+### Progress log — 2026-08-06
+
+- Merged the product owner's chosen review-c Home treatment into the real `HomePage`
+  (desktop only; mobile untouched) and deleted both losing A/B proposals and their
+  now-unused components/routes.
+- Hid the not-yet-shipped "AI Storybooks" card, capped the remaining 2 cards at 380px,
+  and centered the row.
+- Added hover-reveal prev/next arrows to the Hero Banner V3 carousel and fixed them
+  rendering faint under the row's own edge-fade mask.
+- Built out MV Detail's mobile list (2-column grid, sticky header) and player (mobile
+  header, profile button, mobile CTA copy) to match three supplied Figma frames, including
+  a landscape-specific aspect-ratio fix (16:9 → 4:3) and controls/CTA order fix.
+- Production build (`tsc -b` + Vite build) and lint pass clean; checkpoint commit handoff
+  below.
+
+## Previous checkpoint — 2026-08-05 (session 2)
 
 Latest committed checkpoint before this working tree:
 `84d3f7b` — "Fix background video import and rework Home video edge mask/scope".

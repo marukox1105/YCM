@@ -33,6 +33,9 @@ interface AppLayoutProps {
    *  other page relies on its own top-of-page back button instead (see
    *  DetailNavbar/RoomNavbar's back arrow). */
   showMobileTabBar?: boolean
+  /** Set false when a page supplies its own Figma-specific mobile header
+   *  inside the page (for example the immersive MV index/player). */
+  showMobileHeader?: boolean
 }
 
 function AppLayout({
@@ -41,6 +44,7 @@ function AppLayout({
   showBackground = false,
   showFooter = false,
   showMobileTabBar = false,
+  showMobileHeader = true,
 }: AppLayoutProps) {
   const isMobileApp = MOBILE_LAYOUT === 'app'
 
@@ -104,7 +108,7 @@ function AppLayout({
           </>
         )}
         {navbar ?? <Navbar />}
-        {isMobileApp && <MobileHeader />}
+        {isMobileApp && showMobileHeader && <MobileHeader />}
         <main className="app-layout__content">{children}</main>
         {showFooter && <Footer />}
         {isMobileApp && showMobileTabBar && <MobileTabBar />}

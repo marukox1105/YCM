@@ -1,11 +1,15 @@
 import { useEffect, useRef } from 'react'
 import Button from '../../components/Button/Button'
+import IconButton from '../../components/IconButton/IconButton'
+import icArrowLeft from '../../assets/icons/ic_arrow_left.svg'
+import icArrowRight from '../../assets/icons/ic_arrow_right.svg'
 import { HERO_ITEMS } from './HeroBannerSection'
 import './HeroBannerSectionV3.css'
 
-// A/B proposal #2 (see CLAUDE.md's A/B convention) — Figma "Hero Banner
-// Section" (node 1871:33666). See HeroBannerSectionV3.css for the
-// mask/sizing notes.
+// Real Home desktop Hero Banner (product owner picked this review-c
+// treatment) — Figma "Hero Banner Section" (node 1871:33666). Desktop-only
+// — HomePage.tsx renders the original HeroBannerSection on mobile instead.
+// See HeroBannerSectionV3.css for the mask/sizing notes.
 //
 // A real native scroll container (not a JS-transform carousel like
 // HeroBannerMobile) — CSS scroll-snap does the "one scroll = exactly one
@@ -95,6 +99,16 @@ function HeroBannerSectionV3() {
 
   return (
     <section className="hero-banner-v3">
+      <div className="hero-banner-v3__previous">
+        <IconButton
+          size="Large"
+          variant="Ghost"
+          icon={icArrowLeft}
+          label="Previous"
+          onClick={() => scrollToIndex(domIndexRef.current - 1, true)}
+        />
+      </div>
+
       <div className="hero-banner-v3__track" ref={trackRef} onScroll={handleScroll}>
         {PADDED_ITEMS.map((item, domIndex) => (
           <div className="hero-banner-v3__card" key={`${domIndex}-${item.title}`}>
@@ -116,6 +130,16 @@ function HeroBannerSectionV3() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="hero-banner-v3__next">
+        <IconButton
+          size="Large"
+          variant="Ghost"
+          icon={icArrowRight}
+          label="Next"
+          onClick={() => scrollToIndex(domIndexRef.current + 1, true)}
+        />
       </div>
     </section>
   )

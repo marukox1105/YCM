@@ -46,7 +46,10 @@ src/
                      via `showFooter`/`showMobileTabBar` props (both default `false`) —
                      they used to render unconditionally on every page. Only Home and
                      History currently pass them; a new page needs one of these only if
-                     its Figma frame actually shows that chrome.
+                     its Figma frame actually shows that chrome. `showMobileHeader`
+                     (default `true`) lets a page opt OUT of the shared app-mobile
+                     `MobileHeader` when it renders its own Figma-specific mobile header
+                     instead — MVDetailPage does this for its immersive MV index/player.
   data/               Mock data assembled from real asset files via import.meta.glob
                      (songs.ts, musicVideos.ts). No manual re-registration needed when new
                      asset folders are added that match the existing naming pattern.
@@ -78,16 +81,13 @@ src/
   index.css           Global reset + body defaults, sourced from tokens.css.
 ```
 
-Routing today (`src/App.tsx`): `/home-review-b*` → `HomePageReviewB` (**temporary A/B
-review page** — an alternate Tool Selector treatment for the product owner to compare
-against the real Home; delete this route + `HomePageReviewB.tsx` +
-`ToolSelectorSectionAlt.tsx/.css` once a version is picked and folded into the real
-`HomePage`/`ToolSelectorSection`), `/home-review-c*` → `HomePageReviewC` (**temporary A/B
-review page**, a third Home proposal — a 3-card Tool Selector with a big heading
-(`ToolSelectorSectionV3.tsx/.css`) and a native scroll-snap Hero Banner carousel where
-every card always shows its own info (`HeroBannerSectionV3.tsx/.css`); delete this route +
-those 3 files once a version is picked and folded into the real `HomePage`/
-`ToolSelectorSection`/`HeroBannerSection`), `/` or `/home*` → HomePage, `/mv-detail*` → MVDetailPage,
+Routing today (`src/App.tsx`): `/` or `/home*` → HomePage (desktop renders the review-c
+Tool Selector/Hero treatment the product owner picked — `ToolSelectorSectionV3`/
+`HeroBannerSectionV3` — while mobile keeps the original `ToolSelectorSection`/
+`HeroBannerSection`, chosen independently of the desktop A/B result; see `HomePage.tsx`'s
+`isMobile` branch. The `/home-review-b` and `/home-review-c` temporary A/B routes and the
+losing `HomePageReviewB`/`HomePageReviewC`/`ToolSelectorSectionAlt` files have been removed
+now that the pick is made), `/mv-detail*` → MVDetailPage,
 `/song-detail*` → SongDetailPage, `/song-create*` → SongCreatePage, `/mv-create*` →
 MVCreatePage, `/mv-storyboard*` → MVStoryboardPage, `/mv-result*` → MVResultPage,
 `/mv-edit*` → MVEditPage, `/history*` → HistoryPage, `/blog*` → BlogPage concept 1,

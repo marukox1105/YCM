@@ -1,9 +1,8 @@
 /*
-  A/B proposal #2 (see CLAUDE.md's A/B convention) — Figma "Tool Selector
-  Section" (node 1875:34099), 3 cards instead of 2, with a big heading above
-  the row. Hover is glow + icon-size only (no CTA reveal, confirmed with the
-  product owner) — the same opacity-glow technique as ToolSelectorSectionAlt
-  (radial-gradient ::before faded in by opacity) minus its CTA pill.
+  Real Home desktop Tool Selector — Figma "Tool Selector Section" (node
+  1875:34099), 3 cards instead of 2, with a big heading above the row.
+  Hover is glow + icon-size only (no CTA reveal, confirmed with the product
+  owner) — a radial-gradient ::before faded in by opacity.
 
   Figma's own "Active" (hover) component variants show the card growing
   taller/wider on hover (e.g. Music Video: 346.67x100 -> 530x152). Confirmed
@@ -22,9 +21,8 @@
   width: 100%;
   padding-top: 10px;
   box-sizing: border-box;
-  /* Same reasoning as ToolSelectorSectionAlt: HomePage.css's shared gap
-     between sections is cancelled down to this section's own tighter gap
-     before the Hero Banner below it. */
+  /* HomePage.css's shared gap between sections is cancelled down to this
+     section's own tighter gap before the Hero Banner below it. */
   margin-bottom: -12px;
 }
 
@@ -56,6 +54,7 @@
 @media (min-width: 768px) {
   .tool-selector-v3__row {
     flex-direction: row;
+    justify-content: center;
     gap: 20px;
   }
 }
@@ -67,6 +66,7 @@
   gap: 16px;
   flex: 1;
   min-width: 0;
+  max-width: 380px;
   box-sizing: border-box;
   padding: 16px 24px;
   border-radius: 24px;

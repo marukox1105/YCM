@@ -1,7 +1,7 @@
 /*
-  A/B proposal #2 (see CLAUDE.md's A/B convention) — Figma "Hero Banner
-  Section" (node 1871:33666): unlike the real HeroBannerSection (one active
-  card + a separate row of plain thumbnails below it), every card here shows
+  Real Home desktop Hero Banner — Figma "Hero Banner Section" (node
+  1871:33666): unlike HeroBannerSection (one active card + a separate row of
+  plain thumbnails below it, still used on mobile), every card here shows
   its own title/subtitle/CTA at all times. Auto-rotates with the active card
   centered and its neighbors peeking on each side, but — unlike
   HeroBannerMobile's JS-transform carousel — this is a REAL native
@@ -44,12 +44,38 @@
 */
 
 .hero-banner-v3 {
+  position: relative;
   width: 100%;
   overflow: hidden;
-  /* Fades the row's left/right edges to transparent so the peeking
-     neighbor cards blend out instead of ending in a hard clip. */
-  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 0) 0%, #000 10%, #000 90%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 0) 0%, #000 10%, #000 90%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* Same prev/next affordance as NewMVsSection/TopPicksSection (hover-reveal,
+   vertically centered) — this row loops infinitely (see PADDED_ITEMS), so
+   unlike those finite rows there's no scroll-boundary state to gate on;
+   the buttons are always available whenever the row is hovered. */
+.hero-banner-v3__previous,
+.hero-banner-v3__next {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.hero-banner-v3__previous {
+  left: 20px;
+}
+
+.hero-banner-v3__next {
+  right: 20px;
+}
+
+.hero-banner-v3:hover .hero-banner-v3__previous,
+.hero-banner-v3:hover .hero-banner-v3__next {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .hero-banner-v3__track {
@@ -58,6 +84,12 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  /* Fades the row's left/right edges to transparent so the peeking
+     neighbor cards blend out instead of ending in a hard clip — scoped to
+     the track itself (not the outer .hero-banner-v3) so the prev/next
+     arrow buttons layered on top of it stay at full opacity. */
+  -webkit-mask-image: linear-gradient(270deg, rgba(0, 0, 0, 0) 0%, #000 10%, #000 90%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(270deg, rgba(0, 0, 0, 0) 0%, #000 10%, #000 90%, rgba(0, 0, 0, 0) 100%);
   /* With scroll-snap-align:center on the cards, the browser centers
      whichever card is active purely from its own geometry — the visible
      peek on each side is simply (row width - card width) / 2, regardless
