@@ -25,7 +25,76 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-06 (session 2)
+## Current checkpoint — 2026-08-06 (session 3)
+
+Latest committed checkpoint before this working tree:
+`00fd5d3` — "Fix mobile MV Detail Figma mismatches and rename New MVs to Trending MVs".
+
+### Work completed since that checkpoint
+
+- **Hero Banner V3's centered card now plays its video instead of a static thumbnail**
+  (`HeroBannerSectionV3.tsx`). `HERO_ITEMS` (from `HeroBannerSection.tsx`) already carries
+  both a `thumbnail` and a `video` per item — this component was only ever rendering the
+  thumbnail. Added `activeDomIndex` React state (mirroring the existing `domIndexRef`,
+  which alone can't trigger a re-render) updated inside `scrollToIndex` — the same function
+  already called on every auto-advance tick, manual arrow click, and settle-correction, so
+  no new call sites were needed. Each card now renders `<video>` (autoplay/loop/muted/
+  playsInline) instead of `<img>` only when `domIndex === activeDomIndex`, using the same
+  `.hero-banner-v3__bg` class so sizing/hover-zoom CSS applies identically to both. Verified
+  via DOM query that exactly one of the 10 padded cards (8 real + 2 clones) has a `<video>`
+  at any time, and that it moves with the carousel.
+
+### Pages and components changed
+
+- Home: `HeroBannerSectionV3.tsx` only (no CSS changes — reused the existing
+  `.hero-banner-v3__bg` class).
+
+### Important implementation decisions
+
+- **Reused the existing `scrollToIndex` function as the single place to update active-card
+  state**, rather than adding a separate effect/observer to detect the centered card —
+  every path that changes which card is centered (auto-advance, arrow clicks, the
+  clone-boundary snap-back) already funnels through it.
+
+### Known issues and unfinished items
+
+- The mobile "back+title" shared-component sweep (`DetailNavbar`/`RoomNavbar`) is
+  in progress but had no code changes at the time of this checkpoint — investigation only
+  so far (confirmed `DetailNavbar` already has back/title markup just hidden on mobile by
+  `AppLayout.css`'s blanket rule; confirmed `RoomNavbar` has no back-button concept at all
+  today; checked which `RoomNavbar` pages have an existing incoming `from=`/source value
+  worth reusing for a mobile back destination — only `SongCreatePage`'s `from=history`
+  branch does, the rest have none and should fall back to `/home` per the codebase's own
+  existing "safe fallback after a direct deep link" convention). Implementation itself
+  starts next session.
+- Everything already logged as unfinished in the 2026-08-06 (session 2) checkpoint below
+  remains open and untouched by this session.
+
+### Recommended next steps
+
+1. Implement the mobile back+title header sweep per the investigation notes above:
+   extend `DetailNavbar` to show a compact mobile bar instead of being hidden (needs an
+   opt-out for `MVDetailPage`, which already has its own richer bespoke mobile header);
+   add missing `title` props to `SongDetailPage`/`CommunityProfilePage`/Account Settings so
+   the new bar has something to show; add a new back-button capability to `RoomNavbar` for
+   `MVCreatePage`/`SongCreatePage`/`BlogPage`/`AccountPage` (not `HistoryPage`, which stays
+   excluded like Home); fix `CreditsPage`'s pre-existing double-header bug (it built its
+   own bespoke mobile header but never suppressed the generic shared `MobileHeader`) as
+   part of the same pass.
+2. Carry over the 2026-08-06 (session 2) checkpoint's remaining next steps below.
+
+### Progress log — 2026-08-06 (session 3)
+
+- Made Hero Banner V3's centered/active card play its real video instead of showing a
+  static thumbnail, reusing the existing per-card video assets and the carousel's existing
+  index-tracking function.
+- Investigated (no code changes) the mobile back+title header sweep: confirmed the shared-
+  component approach, mapped out `RoomNavbar` pages' back-destination logic, found the
+  `CreditsPage` double-header bug to fix alongside it.
+- Production build (`tsc -b` + Vite build) and lint pass clean; checkpoint commit handoff
+  below.
+
+## Previous checkpoint — 2026-08-06 (session 2)
 
 Latest committed checkpoint before this working tree:
 `6c09d69` — "Adopt review-c Home, add MV Detail mobile treatment, polish Hero Banner V3".

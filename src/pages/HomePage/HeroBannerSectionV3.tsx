@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Button from '../../components/Button/Button'
 import IconButton from '../../components/IconButton/IconButton'
 import icArrowLeft from '../../assets/icons/ic_arrow_left.svg'
@@ -32,6 +32,10 @@ function HeroBannerSectionV3() {
   const stepRef = useRef(0)
   const timerRef = useRef<number | undefined>(undefined)
   const settleTimeoutRef = useRef<number | undefined>(undefined)
+  // Mirrors domIndexRef as actual state (the ref alone doesn't trigger a
+  // re-render) so the centered card can swap its static thumbnail for its
+  // video — only ever one at a time, matching whichever card is centered.
+  const [activeDomIndex, setActiveDomIndex] = useState(1)
 
   function measureStep() {
     const firstCard = trackRef.current?.firstElementChild
@@ -42,6 +46,7 @@ function HeroBannerSectionV3() {
     const track = trackRef.current
     if (!track) return
     domIndexRef.current = domIndex
+    setActiveDomIndex(domIndex)
     track.scrollTo({ left: domIndex * stepRef.current, behavior: animated ? 'smooth' : 'instant' })
   }
 
@@ -110,26 +115,33 @@ function HeroBannerSectionV3() {
       </div>
 
       <div className="hero-banner-v3__track" ref={trackRef} onScroll={handleScroll}>
-        {PADDED_ITEMS.map((item, domIndex) => (
-          <div className="hero-banner-v3__card" key={`${domIndex}-${item.title}`}>
-            {item.thumbnail && <img src={item.thumbnail} alt="" className="hero-banner-v3__bg" draggable={false} />}
-            <div className="hero-banner-v3__scrim" aria-hidden="true" />
-            <div className="hero-banner-v3__bottom">
-              <div className="hero-banner-v3__text">
-                <p className="hero-banner-v3__title">{item.title}</p>
-                <p className="hero-banner-v3__subtitle">{item.subtitle}</p>
+        {PADDED_ITEMS.map((item, domIndex) => {
+          const isActive = domIndex === activeDomIndex
+          return (
+            <div className="hero-banner-v3__card" key={`${domIndex}-${item.title}`}>
+              {isActive && item.video ? (
+                <video className="hero-banner-v3__bg" src={item.video} autoPlay loop muted playsInline />
+              ) : (
+                item.thumbnail && <img src={item.thumbnail} alt="" className="hero-banner-v3__bg" draggable={false} />
+              )}
+              <div className="hero-banner-v3__scrim" aria-hidden="true" />
+              <div className="hero-banner-v3__bottom">
+                <div className="hero-banner-v3__text">
+                  <p className="hero-banner-v3__title">{item.title}</p>
+                  <p className="hero-banner-v3__subtitle">{item.subtitle}</p>
+                </div>
+                <Button
+                  size="Medium"
+                  variant="Secondary"
+                  className="hero-banner-v3__cta"
+                  onClick={() => (window.location.href = '/mv-create')}
+                >
+                  Create MV
+                </Button>
               </div>
-              <Button
-                size="Medium"
-                variant="Secondary"
-                className="hero-banner-v3__cta"
-                onClick={() => (window.location.href = '/mv-create')}
-              >
-                Create MV
-              </Button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="hero-banner-v3__next">
