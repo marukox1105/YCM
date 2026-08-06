@@ -25,7 +25,165 @@ Vercel for the product owner to review without needing a local dev environment.
 `vercel.json` does a catch-all SPA rewrite to `/index.html` since routing is manual
 pathname-matching with no server-side route awareness (see AGENTS.md).
 
-## Current checkpoint — 2026-08-06
+## Current checkpoint — 2026-08-06 (session 2)
+
+Latest committed checkpoint before this working tree:
+`6c09d69` — "Adopt review-c Home, add MV Detail mobile treatment, polish Hero Banner V3".
+
+### Work completed since that checkpoint
+
+This session was a live Figma-comparison pass against the previous checkpoint's mobile
+work — the product owner opened the specific Figma frames side-by-side with the running
+app and flagged concrete mismatches, several of which turned out to be real bugs (not just
+missed polish) once traced to their cause.
+
+- **Fixed iOS Safari auto text-size adjustment**: added `text-size-adjust: 100%` /
+  `-webkit-text-size-adjust: 100%` to the global `html` reset (`src/index.css`). Without
+  it, Safari's own "font boosting" was silently resizing text on top of whatever our
+  breakpoint media queries specify, reading as continuously-scaling font sizes instead of
+  the two fixed mobile/desktop values actually authored. No `vw`/`clamp()` font-sizing
+  exists anywhere in the codebase, confirming this wasn't an intentional fluid-type choice
+  — this needs a real iOS Safari check (not verifiable from this session's Chromium-based
+  Browser-pane tooling) before being considered fully confirmed.
+- **MV Detail mobile "New MVs" list header corrected against Figma node 361-7375**:
+  was a gradient-fade, content-sized bar; Figma inspection showed a flat `Neutral/Dark/04`
+  fill, a fixed `H50` height (its Figma frame's own `H90` minus a `40px` status-bar
+  reservation this web page doesn't need), a `10px` top gap before the back button/title,
+  and a `1px` inside `white 9%` bottom border. `.mv-detail__mobile-header` updated to
+  match all four.
+- **MV Detail mobile 2-column grid's `padding-top` corrected**: `4px` → `10px` (a plain
+  transcription slip from the previous checkpoint, caught by inspecting the actual value
+  in Figma).
+- **MV Detail mobile 2-column grid rebalanced (Figma comparison surfaced a real bug)**:
+  the previous checkpoint's `index % 2` column split looked count-balanced but wasn't
+  height-balanced — `MUSIC_VIDEOS`' own ratio assignment (`RATIOS[index % 2]` in
+  `src/data/musicVideos.ts`) also cycles on `index % 2`, so every `3:4` (taller) item
+  landed in one column and every `4:3` (shorter) item in the other, making one column run
+  much longer than the other (screenshotted by the product owner as "one row very full,
+  one very empty"). Replaced with a greedy shortest-column algorithm: each item is added to
+  whichever column's running height estimate (`1 / aspectRatio`, valid since both columns
+  share the same width) is currently smaller — balanced regardless of the source data's
+  own ratio pattern.
+- **MV Detail mobile player CTA button corrected against Figma node 361-5803**: was
+  flat `--color-accent-purple` at a hardcoded `14px` radius and `46px` height — both
+  wrong. Traced to `Button`'s own CSS: `.button--primary` is gradient (`var(--gradient-mv)`)
+  by default, but a `.button--medium.button--primary` override flattens it to solid purple
+  (an existing, deliberate rule for Medium buttons elsewhere in the app) — this mobile CTA
+  needed the *Large* Primary look (gradient pill, `14px 16px` padding) without actually
+  switching the shared element to `size="Large"` (which would've also changed the desktop
+  rendering of the same JSX). Fixed with a mobile-only override that restores the pill
+  radius and gradient background, leaving desktop's existing `size="Medium"` untouched.
+- **Home page text renames** (`src/pages/HomePage/NewMVsSection.tsx`,
+  `src/pages/MVDetailPage/MVDetailPage.tsx`): "New Music Videos"/"New MVs" →
+  "Trending Music Videos"/"Trending MVs" everywhere the string is user-facing — Home's
+  section header (desktop title + mobile abbreviation), the MV Detail "See all" page's own
+  mobile header `<h1>`, its back-button `aria-label`, and its "Top Picks Music Videos"
+  grid section header (now also "Trending Music Videos"). Figma node/asset-path references
+  to "New MVs"/"New Music Videos" in code comments and `src/assets/covers/New Music
+  Videos/` are intentionally left alone (source-of-truth naming, not display text).
+- **Removed the mobile Hero carousel's "✦ Trending MV" badge** (`HeroBannerMobile` in
+  `HeroBannerSection.tsx`) — the equivalent desktop badge was already removed in an earlier
+  checkpoint; this makes mobile match. Removing it surfaced a real layout bug: the card's
+  `justify-content: space-between` relied on the (now-removed) badge as a second flex
+  child to anchor the title/subtitle block to the bottom — with only one flex child left,
+  `space-between` pushed that block to the *top* of the card instead ("原本的文字跑上去了" —
+  the product owner caught this immediately from a live screenshot). Fixed by changing to
+  `justify-content: flex-end`, which anchors correctly regardless of child count.
+
+### Pages and components changed
+
+- MV Detail: `MVDetailPage.tsx`/`.css` — mobile header fill/height/border, grid
+  `padding-top`, mobile player CTA button override, 2-column height-balancing algorithm,
+  "Trending MVs"/"Trending Music Videos" copy.
+- Home: `NewMVsSection.tsx` (section title/mobile-title copy), `HeroBannerSection.tsx`/
+  `.css` (removed `HeroBannerMobile`'s badge JSX + its now-unused `icStar` import and
+  `maskStyle` helper + `CSSProperties` import, fixed the resulting `justify-content` bug).
+- Global: `src/index.css` (`text-size-adjust` reset).
+
+### Important implementation decisions
+
+- **A shared component's per-size override can silently fight a page-specific need** —
+  `Button`'s `.button--medium.button--primary` flattening the gradient to solid purple is
+  a real, deliberate rule (not a bug) for every *other* Medium Primary button in the app;
+  the MV Detail mobile CTA needed the Large look without becoming a Large button
+  everywhere. The fix pattern — a scoped mobile-only override reinstating the base
+  variant's own default, rather than changing `size` on the shared element — is worth
+  reusing anywhere else a specific instance needs to diverge from its size class's own
+  override.
+- **A flex-layout rule tuned around a specific child count (`space-between` for
+  exactly two items) breaks silently when a child is removed** — worth checking any
+  other `space-between`/`space-around` container before deleting one of its flex children;
+  `flex-end`/`flex-start` are more robust when the "other" item was only there to push
+  content to one edge.
+- **Ratio-alternating mock data (`RATIOS[index % 2]`) can silently correlate with any
+  other `index % 2`-based logic** — the New MVs mobile grid's column split and the
+  catalog's own ratio cycling both keyed off raw index parity, producing a visually broken
+  result despite each piece looking correct in isolation. A production data source
+  wouldn't have this exact coincidence, but worth remembering when this prototype's own
+  synthetic mock data drives a layout decision.
+- **This session's fixes came from the product owner directly reading Figma's Inspect
+  panel** (exact padding/fill/stroke/gap values) and pasting screenshots of both the panel
+  and the live rendered bug, rather than only a frame link — significantly faster and more
+  reliable than this session's own attempts to drive Figma's viewer through browser
+  automation (see Known issues below). Continue asking for Inspect-panel values/screenshots
+  directly when a frame's exact numbers matter and aren't already stated in the request.
+
+### Known issues and unfinished items
+
+- **The text-size-adjust fix is unverified on a real iOS Safari device** — this
+  session's Browser-pane tooling is Chromium-based and can't reproduce the Safari-specific
+  font-boosting behavior being fixed. Needs a real-device check.
+- **This session's Figma-viewer browser automation was unreliable**: keyboard zoom
+  shortcuts (`+`, `Shift+2`) didn't visibly affect the canvas, `ctrl+scroll` panned instead
+  of zooming, and the "zoom" tool action doesn't crop/magnify in this Browser pane at all
+  (returns the full, un-zoomed screenshot) — screenshots are also downscaled ~2x from the
+  real viewport regardless of size, so small frames render illegibly small. A fresh
+  `navigate` (not a follow-up zoom/pan on the same load) to a `node-id` URL was the only
+  reliable way found to center a specific frame, and even then only at whatever zoom level
+  Figma happens to pick. Asking the product owner for Inspect-panel screenshots directly
+  (see above) was the effective workaround this session, not a fix to the tooling itself.
+- **Site-wide mobile "back (left) + title (centered)" header sweep is still open** —
+  confirmed approach (shared-component change to `DetailNavbar`/`RoomNavbar`, back
+  destinations following each page's existing desktop `from=` source logic) but not yet
+  implemented. `DetailNavbar` already has the title/back-button markup; it's currently
+  hidden on mobile entirely by a blanket `AppLayout.css` rule instead of showing a compact
+  version. `RoomNavbar` has no back-button concept at all today (Figma-deliberate, title +
+  credits only) and needs one added for its Feature Room pages (MV Create, Song Create,
+  Blog, Account) while `History` (also `RoomNavbar`-based) stays excluded, matching Home.
+  A pre-existing bug was also found along the way: `CreditsPage` already built its own
+  bespoke mobile header but never suppressed the generic shared `MobileHeader`, so today
+  both render stacked on top of each other — worth folding into whichever fix lands first.
+- Everything already logged as unfinished in the 2026-08-06 checkpoint below (V3 naming
+  cleanup, Hero Banner V3 arrow real-device click/hover verification, re-enabling AI
+  Storybooks) remains open and untouched by this session.
+
+### Recommended next steps
+
+1. Verify the `text-size-adjust` fix on a real iOS Safari device.
+2. Implement the mobile back+title header sweep: extend `DetailNavbar` to show a compact
+   back+title bar on mobile instead of being hidden, add an equivalent (new) back-button
+   capability to `RoomNavbar` for its non-History pages, and fix `CreditsPage`'s
+   double-header bug as part of the same pass.
+3. Carry over the 2026-08-06 (session 1) checkpoint's next steps below — none of this
+   session's work resolves them.
+
+### Progress log — 2026-08-06 (session 2)
+
+- Fixed iOS Safari's automatic text-size adjustment globally.
+- Corrected MV Detail's mobile "New MVs" header fill/height/border and grid top padding
+  against Figma's exact Inspect-panel values.
+- Found and fixed a real height-imbalance bug in the mobile 2-column grid (ratio-vs-index
+  correlation) and a real button-style regression in the mobile player CTA (wrong
+  radius/color from a stale override).
+- Renamed "New Music Videos"/"New MVs" to "Trending Music Videos"/"Trending MVs"
+  throughout Home and the MV Detail page.
+- Removed the mobile Hero carousel's leftover "Trending MV" badge (already removed on
+  desktop in an earlier checkpoint) and fixed the `justify-content` layout regression that
+  removing it exposed.
+- Production build (`tsc -b` + Vite build) and lint pass clean; checkpoint commit handoff
+  below.
+
+## Previous checkpoint — 2026-08-06
 
 Latest committed checkpoint before this working tree:
 `976110c` — "Raise home-review-c Hero card max-width to 880px".

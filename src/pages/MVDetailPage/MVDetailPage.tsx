@@ -115,7 +115,7 @@ function VideoPlayer({ item, backHref }: { item: (typeof MV_CATALOG)[number]; ba
   return (
     <div className={`mv-player${isPortrait ? ' mv-player--portrait' : ''}`} ref={playerRef}>
       <div className="mv-player__mobile-header">
-        <a href={backHref} className="mv-player__mobile-back" aria-label="Back to New MVs">
+        <a href={backHref} className="mv-player__mobile-back" aria-label="Back to Trending MVs">
           <span className="mv-player__mobile-back-icon" style={maskStyle(icArrowLeft)} aria-hidden="true" />
         </a>
         <div className="mv-player__mobile-heading">
@@ -365,7 +365,21 @@ function MvGrid({ items, source }: { items: readonly MusicVideoWithMeta[]; sourc
   // desktop frame Figma provides) doesn't have room to work with — fall
   // back to the simpler fixed-width wrapping grid instead.
   if (isMobile) {
-    const columns = [items.filter((_, index) => index % 2 === 0), items.filter((_, index) => index % 2 === 1)]
+    // A plain index % 2 split looks even by count, but MUSIC_VIDEOS alternates
+    // ratio by index too (RATIOS[index % 2] in musicVideos.ts) — so it landed
+    // every 3:4 (taller) item in one column and every 4:3 (shorter) item in
+    // the other, making one column run far longer than the other. Greedily
+    // adding each item to whichever column's estimated height (both columns
+    // share the same width, so 1/aspectRatio is a valid proportional height)
+    // is currently smaller keeps the two columns balanced regardless of the
+    // source ratio pattern.
+    const columns: MusicVideoWithMeta[][] = [[], []]
+    const columnHeights = [0, 0]
+    items.forEach((mv) => {
+      const shorter = columnHeights[0] <= columnHeights[1] ? 0 : 1
+      columns[shorter].push(mv)
+      columnHeights[shorter] += 1 / aspectRatioOf(mv.ratio)
+    })
     return (
       <div className="mv-detail__mobile-grid" ref={containerRef}>
         {columns.map((column, columnIndex) => (
@@ -475,7 +489,7 @@ function MVDetailPage() {
             <a href={backHref} className="mv-detail__mobile-back" aria-label="Back">
               <span style={maskStyle(icArrowLeft)} aria-hidden="true" />
             </a>
-            <h1>New MVs</h1>
+            <h1>Trending MVs</h1>
             <span className="mv-detail__mobile-header-spacer" aria-hidden="true" />
           </header>
         )}
@@ -484,7 +498,7 @@ function MVDetailPage() {
         {/* This page is already the "See all" destination, so neither
             section links anywhere further. */}
         <section className="mv-detail__grid-section mv-detail__grid-section--primary">
-          <SectionHeader title="Top Picks Music Videos" showSeeAll={false} />
+          <SectionHeader title="Trending Music Videos" showSeeAll={false} />
           <MvGrid items={MV_CATALOG} source={source} />
         </section>
 

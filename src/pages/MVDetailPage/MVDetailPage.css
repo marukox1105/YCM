@@ -350,6 +350,11 @@
     overflow: hidden;
   }
 
+  /* Figma node 361-7375: fixed H50 bar (its own 90px frame minus a
+     40px status-bar reservation we don't need — our page has no separate
+     status-bar spacer), solid Neutral/Dark/04 fill (not a gradient), a
+     10px top gap before the content so it doesn't sit flush against the
+     very top edge, and a 1px inside white-9% bottom border. */
   .mv-detail__mobile-header {
     position: sticky;
     top: 0;
@@ -357,10 +362,12 @@
     display: grid;
     grid-template-columns: 28px 1fr 28px;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    height: 50px;
     margin: 0 -16px;
-    padding: 12px 16px 8px;
-    background: linear-gradient(to bottom, #09090b 65%, rgba(9, 9, 11, 0));
+    padding: 10px 16px 0;
+    background: var(--color-bg-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   }
 
   .mv-detail__mobile-header h1 {
@@ -421,7 +428,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     width: 100%;
-    padding-top: 4px;
+    padding-top: 10px;
   }
 
   .mv-detail__mobile-column {
@@ -609,11 +616,18 @@
     background: rgba(9, 9, 11, 0.8);
   }
 
+  /* Figma's mobile player CTA (node 361-5803) is the gradient pill already
+     used by Large Primary buttons elsewhere (var(--gradient-mv)) with
+     Large's own 14px/16px padding — not Medium Primary's flat-purple/14px-
+     radius look this was wrongly overriding into. Kept as a mobile-only
+     override (not size="Large" on the shared element) so desktop, which
+     already renders this same Button at size="Medium", is untouched. */
   .mv-player__cta.button--medium {
     width: 100%;
     min-width: 0;
-    height: 46px;
-    border-radius: 14px;
+    padding: 14px 16px;
+    background: var(--gradient-mv);
+    border-radius: var(--radius-pill);
   }
 
   .mv-player__cta-desktop {

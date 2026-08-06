@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import Button from '../../components/Button/Button'
 import IconButton from '../../components/IconButton/IconButton'
-import icStar from '../../assets/icons/ic_star.svg'
 import icChevronLeft from '../../assets/icons/ic_chevron-left.svg'
 import icChevronRight from '../../assets/icons/ic_chevron-right.svg'
 import video01 from '../../assets/hero/hero_01_Vintage Car-tmp-tmp.mp4?url'
@@ -39,10 +38,6 @@ export const HERO_ITEMS = [
 
 const ROTATE_INTERVAL_MS = 3000
 const FADE_MS = 250
-
-function maskStyle(src: string): CSSProperties {
-  return { maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")` }
-}
 
 // Fixed marketing headline (Figma node 1805:43562's "Text + CTA") — unlike
 // the video title/subtitle above it, this is NOT tied to which hero video is
@@ -255,10 +250,6 @@ function HeroBannerMobile() {
                 <img src={item.thumbnail} alt="" className="hero-banner-mobile__bg" draggable={false} />
               )}
               <div className="hero-banner-mobile__scrim" aria-hidden="true" />
-              <span className="hero-banner-mobile__badge">
-                <span className="hero-banner-mobile__badge-icon" style={maskStyle(icStar)} aria-hidden="true" />
-                Trending MV
-              </span>
               <div className={`hero-banner-mobile__bottom${isActive ? ' hero-banner-mobile__bottom--active' : ''}`}>
                 <div className="hero-banner-mobile__text">
                   <p className="hero-banner-mobile__title">{item.title}</p>
