@@ -16,6 +16,11 @@
   z-index: 120;
   display: flex;
   align-items: center;
+  /* The progress bar's max-width (see .song-bar__progress) caps how much
+     of the bar's free space it soaks up, so without this the leftover
+     space just sits unused after the last item instead of the whole row
+     sitting centered in the bar. */
+  justify-content: center;
   gap: 16px;
   padding: 12px 24px;
   /* Translucent + blurred (not a flat fill) so scrolled-past content is
@@ -47,7 +52,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 0 1 160px;
+  flex: 0 1 220px;
   min-width: 0;
 }
 
@@ -146,6 +151,7 @@
   position: relative;
   flex: 1;
   min-width: 0;
+  max-width: 320px;
   height: 20px;
   display: flex;
   align-items: center;
